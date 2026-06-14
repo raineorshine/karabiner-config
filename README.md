@@ -4,6 +4,8 @@ This is my [Karabiner](https://karabiner-elements.pqrs.org) setup for custom key
 
 The default config file is located at `~/.config/karabiner/karabiner.json`.
 
+- Disable Cmd+M to minimize globally; allow only in selected apps
+  - [any] + Command + `m` → Command + Option + Shift + `m`
 - Quick Chars
   - L-Option + `'` → `` ` ``
   - L-Option + `t` → `~`
