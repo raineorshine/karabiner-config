@@ -47,6 +47,8 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
 - Tab Navigation: Command + h/i
   - Command + `h` → Command + L-Shift + `[`
   - Command + `l` → Command + L-Shift + `]`
+- GitHub notifications: Cmd + Option + t
+  - L-Command + L-Option + `t` → `open 'https://github.com/notifications'`
 
 
 ## karabiner-config-to-markdown

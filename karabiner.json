@@ -921,6 +921,21 @@
                 "type": "basic"
               }
             ]
+          },
+          {
+            "description": "GitHub notifications: Cmd + Option + t",
+            "manipulators": [
+              {
+                "from": {
+                  "key_code": "t",
+                  "modifiers": { "mandatory": ["left_command", "left_option"] }
+                },
+                "to": [
+                  { "shell_command": "open 'https://github.com/notifications'" }
+                ],
+                "type": "basic"
+              }
+            ]
           }
         ]
       },
