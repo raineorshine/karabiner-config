@@ -958,7 +958,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "/usr/bin/osascript \"$HOME/.config/karabiner/scripts/clear-site-data.applescript\""
+                                        "shell_command": "/usr/bin/osascript -l JavaScript \"$HOME/.config/karabiner/scripts/clear-site-data.js\""
                                     }
                                 ],
                                 "type": "basic"

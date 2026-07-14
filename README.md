@@ -50,7 +50,7 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
 - GitHub notifications: Cmd + Option + t
   - L-Command + L-Option + `t` → `open 'https://github.com/notifications'`
 - Chromium DevTools: Clear site data, focus page, and reload: Cmd + Option + r
-  - Command + Option + `r` → `/usr/bin/osascript "$HOME/.config/karabiner/scripts/clear-site-data.applescript"`
+  - Command + Option + `r` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/clear-site-data.js"`
 
 
 ## karabiner-config-to-markdown
