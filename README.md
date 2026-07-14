@@ -4,7 +4,7 @@ This is my [Karabiner](https://karabiner-elements.pqrs.org) setup for custom key
 
 The default config file is located at `~/.config/karabiner/karabiner.json`.
 
-- Disable Cmd+M to minimize globally; allow only in selected apps
+- Disable Cmd+M to minimize globally.
   - [any] + Command + `m` → Command + Option + Shift + `m`
 - Quick Chars
   - L-Option + `'` → `` ` ``
@@ -44,7 +44,7 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - R-Shift + `z` → `open '/Applications/zoom.us.app'`
 - Move italic to Cmd + Ctrl + i to make room for easy tab navigation
   - Command + Ctrl + `l` → Command + `l`
-- Tab Navigation: Command + h/i
+- Tab Navigation: Cmd + h/i
   - Command + `h` → Command + L-Shift + `[`
   - Command + `l` → Command + L-Shift + `]`
 - GitHub notifications: Cmd + Option + t
