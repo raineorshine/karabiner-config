@@ -1,6 +1,5 @@
 // Clear the current site's data from Chromium DevTools, return focus to the page,
-// reload it, and close the tutorial. DevTools "Focus page" must be bound to
-// Command-Option-Return.
+// reload it, and close the tutorial.
 
 ;(() => {
 const systemEvents = Application('System Events')
@@ -36,7 +35,11 @@ if (isAllowedLocalhostUrl(pageUrl)) {
   delay(0.1)
   systemEvents.keyCode(36) // Run Clear site data
 
-  systemEvents.keyCode(36, { using: ['command down', 'option down'] }) // DevTools: Focus page
+  keystroke('p', ['command', 'shift']) // Open DevTools Command Menu
+  delay(0.1)
+  keystroke('Focus page')
+  delay(0.1)
+  systemEvents.keyCode(36) // Run Focus page
   delay(0.2)
 
   keystroke('r', ['command']) // Reload page
