@@ -938,6 +938,32 @@
                                 "type": "basic"
                             }
                         ]
+                    },
+                    {
+                        "description": "Chromium DevTools: Clear site data, focus page, and reload: Cmd + Option + r",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": [
+                                            "^com\\.brave\\.Browser$",
+                                            "^com\\.google\\.Chrome$"
+                                        ],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "s",
+                                    "modifiers": { "mandatory": ["command", "option"] }
+                                },
+                                "to": [
+                                    {
+                                        "shell_command": "/usr/bin/osascript \"$HOME/.config/karabiner/scripts/clear-site-data.applescript\""
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
                     }
                 ]
             },

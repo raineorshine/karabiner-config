@@ -6,6 +6,7 @@ const config = require(configPath)
 const karabinerConfigToMarkdown = require('karabiner-config-to-markdown')
 
 const colemakRuleNames = [
+  'Chromium DevTools',
   'Launch apps',
   'Quick Chars',
 ]
