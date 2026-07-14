@@ -23,7 +23,6 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - L-Shift + L-Option + `l` → `{`
   - L-Shift + L-Option + `;` → `}`
   - L-Command + L-Option + `l` → L-Command + `[`
-  - L-Command + L-Option + `;` → L-Command + `]`
 - Desktop Navigation: Right shift + brackets
   - R-Shift + `[` → L-Ctrl + `→`
   - R-Shift + `]` → L-Ctrl + `←`
