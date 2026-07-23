@@ -6,6 +6,10 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
 
 - Disable Cmd+M to minimize globally.
   - [any] + Command + `m` → Command + Option + Shift + `m`
+- Claude app: Cmd+J -> Cmd+K, Cmd+3
+  - Command + `j` → Command + `n`, Command + `3`
+- Claude app: Cmd+R -> click project selector (315, 875)
+  - Command + `r` → , 
 - Quick Chars
   - L-Option + `'` → `` ` ``
   - L-Option + `t` → `~`
