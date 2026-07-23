@@ -37,6 +37,35 @@
                         ]
                     },
                     {
+                        "comment": "Workaround for a Colemak bug in the Claude app: https://github.com/anthropics/claude-code/issues/68859. Note: the macOS Colemak input source re-translates Karabiner's output, so to send the app Cmd+K we emit key_code n (Colemak maps the n-position to 'k'). Digits are not remapped by Colemak, so Cmd+3 is emitted as-is.",
+                        "description": "Claude app: Cmd+J -> Cmd+K, Cmd+3",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "j",
+                                    "modifiers": { "mandatory": ["command"] }
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "n",
+                                        "modifiers": ["command"]
+                                    },
+                                    {
+                                        "key_code": "3",
+                                        "modifiers": ["command"]
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "description": "Vi Mode: D as Trigger Key",
                         "manipulators": [
                             {
