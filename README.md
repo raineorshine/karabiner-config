@@ -14,6 +14,8 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Command + Shift + `g` → Command + Shift + `d`
 - Claude app: Cmd+B -> Cmd+.
   - Command + `b` → Command + `.`
+- Claude app: Cmd+T -> Ctrl+` (physical key f in Colemak)
+  - Command + `f` → Ctrl + `` ` ``
 - Quick Chars
   - L-Option + `'` → `` ` ``
   - L-Option + `t` → `~`
