@@ -6,97 +6,6 @@
             "complex_modifications": {
                 "rules": [
                     {
-                        "comment": "This will disable Cmd + Shift + M in everye app unless you add the app id to the frontmost_application_unless block. Use `osascript -e 'id of app {APP_NAME}'` to determine the app name.",
-                        "description": "Disable Cmd+M to minimize globally.",
-                        "manipulators": [
-                            {
-                                "conditions": [
-                                    {
-                                        "bundle_identifiers": [
-                                            "com.github.githubapp",
-                                            "com.anthropic.claudefordesktop"
-                                        ],
-                                        "type": "frontmost_application_unless"
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "m",
-                                    "modifiers": {
-                                        "mandatory": ["command"],
-                                        "optional": ["any"]
-                                    }
-                                },
-                                "to": [
-                                    {
-                                        "key_code": "m",
-                                        "modifiers": ["command", "option", "shift"]
-                                    }
-                                ],
-                                "type": "basic"
-                            }
-                        ]
-                    },
-                    {
-                        "comment": "Workaround for a Colemak bug in the Claude app: https://github.com/anthropics/claude-code/issues/68859. Note: the macOS Colemak input source re-translates Karabiner's output, so to send the app Cmd+K we emit key_code n (Colemak maps the n-position to 'k'). Digits are not remapped by Colemak, so Cmd+3 is emitted as-is.",
-                        "description": "Claude app: Cmd+J -> Cmd+K, Cmd+3",
-                        "manipulators": [
-                            {
-                                "conditions": [
-                                    {
-                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
-                                        "type": "frontmost_application_if"
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "j",
-                                    "modifiers": { "mandatory": ["command"] }
-                                },
-                                "to": [
-                                    {
-                                        "key_code": "n",
-                                        "modifiers": ["command"]
-                                    },
-                                    {
-                                        "key_code": "3",
-                                        "modifiers": ["command"]
-                                    }
-                                ],
-                                "type": "basic"
-                            }
-                        ]
-                    },
-                    {
-                        "comment": "Clicks the project selector on the New Conversation screen. Claude's Electron renderer exposes no accessibility tree, so the button cannot be targeted by name and the position is hardcoded. Coordinates are absolute on the main display, so this only lands correctly while the Claude window sits in its usual position and size.",
-                        "description": "Claude app: Cmd+R -> click project selector (315, 875)",
-                        "manipulators": [
-                            {
-                                "conditions": [
-                                    {
-                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
-                                        "type": "frontmost_application_if"
-                                    }
-                                ],
-                                "from": {
-                                    "key_code": "r",
-                                    "modifiers": { "mandatory": ["command"] }
-                                },
-                                "to": [
-                                    {
-                                        "software_function": {
-                                            "set_mouse_cursor_position": {
-                                                "screen": 0,
-                                                "x": 315,
-                                                "y": 875
-                                            }
-                                        }
-                                    },
-                                    { "pointing_button": "button1" }
-                                ],
-                                "type": "basic"
-                            }
-                        ]
-                    },
-                    {
                         "description": "Vi Mode: D as Trigger Key",
                         "manipulators": [
                             {
@@ -591,6 +500,97 @@
                                         "key_code": "e",
                                         "modifiers": ["left_control"]
                                     }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
+                        "comment": "This will disable Cmd + Shift + M in everye app unless you add the app id to the frontmost_application_unless block. Use `osascript -e 'id of app {APP_NAME}'` to determine the app name.",
+                        "description": "Disable Cmd+M to minimize globally.",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": [
+                                            "com.github.githubapp",
+                                            "com.anthropic.claudefordesktop"
+                                        ],
+                                        "type": "frontmost_application_unless"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "m",
+                                    "modifiers": {
+                                        "mandatory": ["command"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "m",
+                                        "modifiers": ["command", "option", "shift"]
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
+                        "comment": "Workaround for a Colemak bug in the Claude app: https://github.com/anthropics/claude-code/issues/68859. Note: the macOS Colemak input source re-translates Karabiner's output, so to send the app Cmd+K we emit key_code n (Colemak maps the n-position to 'k'). Digits are not remapped by Colemak, so Cmd+3 is emitted as-is.",
+                        "description": "Claude app: Cmd+J -> Cmd+K, Cmd+3",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "j",
+                                    "modifiers": { "mandatory": ["command"] }
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "n",
+                                        "modifiers": ["command"]
+                                    },
+                                    {
+                                        "key_code": "3",
+                                        "modifiers": ["command"]
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
+                        "comment": "Clicks the project selector on the New Conversation screen. Claude's Electron renderer exposes no accessibility tree, so the button cannot be targeted by name and the position is hardcoded. Coordinates are absolute on the main display, so this only lands correctly while the Claude window sits in its usual position and size.",
+                        "description": "Claude app: Cmd+R -> click project selector (315, 875)",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "r",
+                                    "modifiers": { "mandatory": ["command"] }
+                                },
+                                "to": [
+                                    {
+                                        "software_function": {
+                                            "set_mouse_cursor_position": {
+                                                "screen": 0,
+                                                "x": 315,
+                                                "y": 875
+                                            }
+                                        }
+                                    },
+                                    { "pointing_button": "button1" }
                                 ],
                                 "type": "basic"
                             }
