@@ -12,6 +12,8 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Command + `r` → , 
 - Claude app: Cmd+Shift+G -> Cmd+Shift+D
   - Command + Shift + `g` → Command + Shift + `d`
+- Claude app: Cmd+B -> Cmd+.
+  - Command + `b` → Command + `.`
 - Quick Chars
   - L-Option + `'` → `` ` ``
   - L-Option + `t` → `~`
