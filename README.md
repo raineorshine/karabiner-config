@@ -52,6 +52,8 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Command + `l` → Command + L-Shift + `]`
 - GitHub notifications: Cmd + Option + t
   - L-Command + L-Option + `t` → `open 'https://github.com/notifications'`
+- em issues: Cmd + Ctrl + Option + e (physical key k in Colemak)
+  - L-Command + L-Ctrl + L-Option + `k` → `open 'https://github.com/cybersemics/em/issues/'`
 - Chromium DevTools: Clear site data, focus page, and reload: Cmd + Option + r
   - Command + Option + `r` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/clear-site-data.js"`
 

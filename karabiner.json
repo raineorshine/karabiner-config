@@ -989,6 +989,19 @@
                         ]
                     },
                     {
+                        "description": "em issues: Cmd + Ctrl + Option + e (physical key k in Colemak)",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "k",
+                                    "modifiers": { "mandatory": ["left_command", "left_control", "left_option"] }
+                                },
+                                "to": [{ "shell_command": "open 'https://github.com/cybersemics/em/issues/'" }],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "description": "Chromium DevTools: Clear site data, focus page, and reload: Cmd + Option + r",
                         "manipulators": [
                             {
