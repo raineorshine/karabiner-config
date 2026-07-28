@@ -4,6 +4,9 @@
 ;(() => {
   const systemEvents = Application('System Events')
 
+  const ENTER = 36
+  const ESCAPE = 53
+
   const keystroke = (key, modifiers = []) =>
     modifiers.length
       ? systemEvents.keystroke(key, {
@@ -28,23 +31,26 @@
 
   const isAllowedLocalhostUrl = url => /^https:\/\/localhost(?::\d+)?(?:[/?#]|$)/.test(url)
 
-  if (isAllowedLocalhostUrl(pageUrl)) {
-    keystroke('p', ['command', 'shift']) // Open DevTools Command Menu
-    delay(0.2)
+  if (!isAllowedLocalhostUrl(pageUrl)) return
 
-    keystroke('Clear site data')
-    delay(0.1)
-    systemEvents.keyCode(36) // Run Clear site data
+  // Open DevTools Command Menu
+  keystroke('p', ['command', 'shift'])
+  delay(0.2)
 
-    keystroke('p', ['command', 'shift']) // Open DevTools Command Menu
-    delay(0.1)
-    keystroke('Focus page')
-    delay(0.1)
-    systemEvents.keyCode(36) // Run Focus page
-    delay(0.2)
+  keystroke('Clear site data')
+  delay(0.1)
+  systemEvents.keyCode(ENTER)
 
-    keystroke('r', ['command']) // Reload page
-    delay(1)
-    systemEvents.keyCode(53) // Escape: close tutorial
-  }
+  keystroke('p', ['command', 'shift']) // Open DevTools Command Menu
+  delay(0.1)
+  keystroke('Focus page')
+  delay(0.1)
+  systemEvents.keyCode(ENTER)
+  delay(0.2)
+
+  keystroke('r', ['command'])
+  delay(1)
+
+  // close tutorial
+  systemEvents.keyCode(ESCAPE)
 })()
