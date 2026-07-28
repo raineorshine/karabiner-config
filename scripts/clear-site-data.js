@@ -33,6 +33,13 @@
 
   if (!isAllowedLocalhostUrl(pageUrl)) return
 
+  // hit escape until the cursor is null, otherwise Cmd + Shift + P will shadow the native shortcut
+  systemEvents.keyCode(ESCAPE)
+  systemEvents.keyCode(ESCAPE)
+  systemEvents.keyCode(ESCAPE)
+  systemEvents.keyCode(ESCAPE)
+  systemEvents.keyCode(ESCAPE)
+
   // Open DevTools Command Menu
   keystroke('p', ['command', 'shift'])
   delay(0.2)
@@ -48,8 +55,9 @@
   systemEvents.keyCode(ENTER)
   delay(0.2)
 
+  // reload page and wait for welcome modal to appear (which takes a while)
   keystroke('r', ['command'])
-  delay(1)
+  delay(1.2)
 
   // close tutorial
   systemEvents.keyCode(ESCAPE)
