@@ -15,5 +15,8 @@
   "dependencies": {
     "karabiner-config-to-markdown": "^0.2.4",
     "qwerty-to-colemak": "^0.1.0"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.6"
   }
 }
