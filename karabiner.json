@@ -636,7 +636,8 @@
                         ]
                     },
                     {
-                        "description": "Claude app: Cmd+Shift+G -> Cmd+Shift+D",
+                        "comment": "Show Diff. The app ignores Cmd+Shift+D while the chat box has focus, so the rule first clicks an empty spot in the sidebar to blur it. Like the Cmd+P and Cmd+Shift+P rules, the coordinates are absolute on the main display and only land correctly while the Claude window sits in its usual position and size. restore-mouse-position.js saves the cursor position and puts it back afterward, since Karabiner can move the cursor but cannot read it; the 200ms hold gives it time to read the position before the cursor moves, and the two 100ms holds keep the click from racing the cursor move and give the app time to move focus before the keystroke arrives.",
+                        "description": "Claude app: Cmd+Shift+G -> click empty sidebar (230, 940), Cmd+Shift+D",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -650,6 +651,31 @@
                                     "modifiers": { "mandatory": ["command", "shift"] }
                                 },
                                 "to": [
+                                    {
+                                        "shell_command": "/usr/bin/osascript -l JavaScript \"$HOME/.config/karabiner/scripts/restore-mouse-position.js\""
+                                    },
+                                    {
+                                        "hold_down_milliseconds": 200,
+                                        "key_code": "vk_none"
+                                    },
+                                    {
+                                        "software_function": {
+                                            "set_mouse_cursor_position": {
+                                                "screen": 0,
+                                                "x": 230,
+                                                "y": 940
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "hold_down_milliseconds": 100,
+                                        "key_code": "vk_none"
+                                    },
+                                    { "pointing_button": "button1" },
+                                    {
+                                        "hold_down_milliseconds": 100,
+                                        "key_code": "vk_none"
+                                    },
                                     {
                                         "key_code": "d",
                                         "modifiers": ["command", "shift"]
