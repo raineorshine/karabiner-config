@@ -567,7 +567,7 @@
                     },
                     {
                         "comment": "Clicks the project selector on the New Conversation screen. Claude's Electron renderer exposes no accessibility tree, so the button cannot be targeted by name and the position is hardcoded. Coordinates are absolute on the main display, so this only lands correctly while the Claude window sits in its usual position and size. The vk_none hold is a 100ms pause so the click does not race the cursor move; see the Cmd+Shift+P rule.",
-                        "description": "Claude app: Cmd+P -> click project selector (315, 875) (physical key r in Colemak)",
+                        "description": "Claude app: Cmd+P -> click project selector (physical key r in Colemak)",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -602,7 +602,7 @@
                     },
                     {
                         "comment": "Clicks the Create PR button in the session view. Like the Cmd+P project-selector rule, the Electron renderer exposes no accessibility tree, so the position is hardcoded. Coordinates are absolute on the main display; y matches the project-selector rule, x is the button's position in a 2x Retina screenshot (1313 px) halved to points. The vk_none hold is a 100ms pause: without it the click races the cursor move and the app registers only the hover, so the shortcut had to be pressed twice.",
-                        "description": "Claude app: Cmd+Shift+P -> click Create PR button (656, 875) (physical key r in Colemak)",
+                        "description": "Claude app: Cmd+Shift+P -> click Create PR button (physical key r in Colemak)",
                         "manipulators": [
                             {
                                 "conditions": [
