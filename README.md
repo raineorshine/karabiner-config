@@ -8,8 +8,10 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - [any] + Command + `m` → Command + Option + Shift + `m`
 - Claude app: Cmd+J -> Cmd+K, Cmd+3
   - Command + `j` → Command + `n`, Command + `3`
-- Claude app: Cmd+R -> click project selector (315, 875)
+- Claude app: Cmd+P -> click project selector (315, 875) (physical key r in Colemak)
   - Command + `r` → , 
+- Claude app: Cmd+Shift+P -> click Create PR button (656, 875) (physical key r in Colemak)
+  - Command + Shift + `r` → , 
 - Claude app: Cmd+Shift+G -> Cmd+Shift+D
   - Command + Shift + `g` → Command + Shift + `d`
 - Claude app: Cmd+B -> Cmd+.
