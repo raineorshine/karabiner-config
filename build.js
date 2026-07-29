@@ -25,6 +25,16 @@ colemakRules.forEach(rule =>
   })
 )
 
+// vk_none is a no-op key used only to carry a hold_down_milliseconds pause, so drop it before
+// labeling rather than rendering it as if it were a key that gets pressed
+config.profiles[0].complex_modifications.rules.forEach(rule =>
+  rule.manipulators.forEach(manipulator => {
+    if (manipulator.to) {
+      manipulator.to = manipulator.to.filter(entry => entry.key_code !== 'vk_none')
+    }
+  })
+)
+
 const pointingButtons = {
   button1: 'Left Click',
   button2: 'Right Click',
