@@ -25,6 +25,16 @@ colemakRules.forEach(rule =>
   })
 )
 
+// vk_none is a no-op key used only to carry a hold_down_milliseconds pause, so hide it from the
+// docs rather than rendering it as if it were a key that gets pressed
+config.profiles[0].complex_modifications.rules.forEach(rule =>
+  rule.manipulators.forEach(manipulator => {
+    if (manipulator.to) {
+      manipulator.to = manipulator.to.filter(to => to.key_code !== 'vk_none')
+    }
+  })
+)
+
 /** Simple string templating. Replaces {{key}} with `value` in a template string for each key-value entry in an object. */
 const template = (s, o) => {
   let output = s
