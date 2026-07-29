@@ -25,6 +25,33 @@ colemakRules.forEach(rule =>
   })
 )
 
+const pointingButtons = {
+  button1: 'Left Click',
+  button2: 'Right Click',
+  button3: 'Middle Click',
+}
+
+/** Describes a 'to' entry that karabiner-config-to-markdown cannot render (i.e. anything other than key_code and shell_command). Returns null if no description is needed. */
+const describeToEntry = entry => {
+  const cursor = entry.software_function && entry.software_function.set_mouse_cursor_position
+  return cursor ? `Move cursor to (${cursor.x}, ${cursor.y})`
+    : entry.pointing_button ? pointingButtons[entry.pointing_button] || entry.pointing_button
+    : null
+}
+
+// karabiner-config-to-markdown renders only key_code and shell_command entries, so mouse
+// entries come out blank; give them a human-readable label in place of the missing key_code
+config.profiles[0].complex_modifications.rules.forEach(rule =>
+  rule.manipulators.forEach(manipulator =>
+    (manipulator.to || []).forEach(entry => {
+      const description = describeToEntry(entry)
+      if (description) {
+        entry.key_code = description
+      }
+    })
+  )
+)
+
 /** Simple string templating. Replaces {{key}} with `value` in a template string for each key-value entry in an object. */
 const template = (s, o) => {
   let output = s
