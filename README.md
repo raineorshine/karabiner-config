@@ -9,9 +9,9 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
 - Claude app: Cmd+J -> Cmd+K, Cmd+3
   - Command + `j` → Command + `n`, Command + `3`
 - Claude app: Cmd+P -> click project selector (physical key r in Colemak)
-  - Command + `r` → `Move cursor to (315, 875)`, `Left Click`
+  - Command + `r` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/restore-mouse-position.js"`, `Move cursor to (315, 875)`, `Left Click`
 - Claude app: Cmd+Shift+P -> click Create PR button (physical key r in Colemak)
-  - Command + Shift + `r` → `Move cursor to (656, 875)`, `Left Click`
+  - Command + Shift + `r` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/restore-mouse-position.js"`, `Move cursor to (656, 875)`, `Left Click`
 - Claude app: Cmd+Shift+G -> click empty sidebar (230, 940), Cmd+Shift+D
   - Command + Shift + `g` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/restore-mouse-position.js"`, `Move cursor to (230, 940)`, `Left Click`, Command + Shift + `d`
 - Claude app: Cmd+B -> Cmd+.
