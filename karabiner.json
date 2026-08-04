@@ -724,6 +724,31 @@
                         ]
                     },
                     {
+                        "comment": "Same Colemak bug as the Cmd+J rule (https://github.com/anthropics/claude-code/issues/68859): the app re-translates Karabiner's output through the macOS Colemak input source, so to send the app Cmd+Shift+U we emit key_code i (Colemak maps the i-position to 'u'). Period is not remapped by Colemak, so the from side is used as-is.",
+                        "description": "Claude app: Cmd+. -> Cmd+Shift+U",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "period",
+                                    "modifiers": { "mandatory": ["command"] }
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "i",
+                                        "modifiers": ["command", "shift"]
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "description": "Claude app: Cmd+T -> Ctrl+` (physical key f in Colemak)",
                         "manipulators": [
                             {

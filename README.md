@@ -16,6 +16,8 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Command + Shift + `g` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/restore-mouse-position.js"`, `Move cursor to (230, 940)`, `Left Click`, Command + Shift + `d`
 - Claude app: Cmd+B -> Cmd+.
   - Command + `b` → Command + `.`
+- Claude app: Cmd+. -> Cmd+Shift+U
+  - Command + `.` → Command + Shift + `i`
 - Claude app: Cmd+T -> Ctrl+` (physical key f in Colemak)
   - Command + `f` → Ctrl + `` ` ``
 - Quick Chars
