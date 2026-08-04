@@ -44,9 +44,20 @@ Only keys that differ are worth memorizing; the rest map to themselves.
 
 Unchanged (physical == virtual): `a b c h m q v w x z`, all digits, and Space/Enter/etc.
 
-## Known exception
+## Exception: the Claude app converts the `to` side too
 
-The `Claude app: Cmd+J -> Cmd+K, Cmd+3` rule converts its **`to`** side too (it emits
-`key_code n` so the app receives `Cmd+K`). That is a workaround for a Colemak bug in
-the Claude app — the app re-translates Karabiner's output through the macOS Colemak
-input source — not the general convention. Don't generalize it to other rules.
+The Claude desktop app (`com.anthropic.claudefordesktop`) re-translates Karabiner's
+output through the macOS Colemak input source
+(https://github.com/anthropics/claude-code/issues/68859). So for any rule scoped to
+the Claude app, convert **both** sides with the table above — the `from` side as
+usual, and the `to` side so the re-translation lands on the intended key. Emitting
+the literal virtual key sends the app the wrong character (e.g. emitting `u` arrives
+as `l`).
+
+- To send the app `Cmd+K`, emit key_code `n` (the `Cmd+J -> Cmd+K, Cmd+3` rule).
+- To send the app `Cmd+Shift+U`, emit key_code `i` (the `Cmd+. -> Cmd+Shift+U` rule).
+
+Keys Colemak leaves unchanged (digits, most symbols, `m`, etc.) look the same either
+way, which can mask a missing conversion — check the table even when a rule "already
+works". This applies **only** to Claude-app rules; everywhere else, leave the `to`
+side as the literal virtual key.
