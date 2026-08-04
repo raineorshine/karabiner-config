@@ -12,6 +12,8 @@ physical key that produces it in Colemak before writing the rule.
 
 - **`from.key_code`** — convert the virtual key I name → physical key (table below).
 - **`to` key_code** — leave as the literal virtual key I name; do **not** convert it.
+  (Exception: some Claude-app shortcuts need the `to` side converted too — see
+  "Exception" below **before** writing any Claude-app rule.)
 - **`to` `shell_command`** — no key involved, nothing to convert.
 - Digits (0–9) and most symbols are **not** remapped by Colemak — use them as-is on
   both sides.
@@ -44,9 +46,25 @@ Only keys that differ are worth memorizing; the rest map to themselves.
 
 Unchanged (physical == virtual): `a b c h m q v w x z`, all digits, and Space/Enter/etc.
 
-## Known exception
+## Exception: some Claude-app shortcuts need the `to` side converted too
 
-The `Claude app: Cmd+J -> Cmd+K, Cmd+3` rule converts its **`to`** side too (it emits
-`key_code n` so the app receives `Cmd+K`). That is a workaround for a Colemak bug in
-the Claude app — the app re-translates Karabiner's output through the macOS Colemak
-input source — not the general convention. Don't generalize it to other rules.
+The Claude desktop app (`com.anthropic.claudefordesktop`) re-translates **some** of
+Karabiner's output through the macOS Colemak input source
+(https://github.com/anthropics/claude-code/issues/68859). For those shortcuts,
+emitting the literal virtual key sends the app the wrong character (emitting `u`
+arrives as `l`), so the `to` side must be converted with the table above:
+
+- To send the app `Cmd+K`, emit key_code `n` (the `Cmd+J -> Cmd+K, Cmd+3` rule).
+- To send the app `Cmd+Shift+U`, emit key_code `i` (the `Cmd+. -> Cmd+Shift+U` rule).
+
+But not every shortcut is affected: the Show Diff rule (`Cmd+Shift+G`) emits a
+literal key_code `d` and the app receives `Cmd+Shift+D`. The app presumably matches
+some shortcuts by character (re-translated) and others by key position (e.g. menu
+accelerators), but which is which is only known empirically.
+
+So when a Claude-app rule's `to` side emits a Colemak-remapped letter: start with the
+converted key (two of the three known cases needed it), test, and record which form
+worked in the rule's comment. Keys Colemak leaves unchanged (digits, most symbols,
+`m`, etc.) look the same either way, which can mask a missing conversion — check the
+table even when a rule "already works". This applies **only** to Claude-app rules;
+everywhere else, leave the `to` side as the literal virtual key.
