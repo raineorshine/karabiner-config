@@ -700,6 +700,48 @@
                         ]
                     },
                     {
+                        "comment": "Clicks the plan usage button at the bottom of the sidebar. Like the Cmd+P, Cmd+Shift+P, and Cmd+Shift+G rules, the Electron renderer exposes no accessibility tree, so the button cannot be targeted by name and the position is hardcoded. Coordinates are absolute on the main display, so this only lands correctly while the Claude window sits in its usual position and size. restore-mouse-position.js saves the cursor position and puts it back afterward, since Karabiner can move the cursor but cannot read it; the 200ms hold gives it time to read the position before the cursor moves, and the 100ms hold keeps the click from racing the cursor move.",
+                        "description": "Claude app: Cmd+Shift+U -> click plan usage button (696, 938) (physical key i in Colemak)",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "i",
+                                    "modifiers": { "mandatory": ["command", "shift"] }
+                                },
+                                "to": [
+                                    {
+                                        "shell_command": "/usr/bin/osascript -l JavaScript \"$HOME/.config/karabiner/scripts/restore-mouse-position.js\""
+                                    },
+                                    {
+                                        "hold_down_milliseconds": 200,
+                                        "key_code": "vk_none"
+                                    },
+                                    {
+                                        "software_function": {
+                                            "set_mouse_cursor_position": {
+                                                "screen": 0,
+                                                "x": 696,
+                                                "y": 938
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "hold_down_milliseconds": 100,
+                                        "key_code": "vk_none"
+                                    },
+                                    { "pointing_button": "button1" }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "description": "Claude app: Cmd+B -> Cmd+.",
                         "manipulators": [
                             {
