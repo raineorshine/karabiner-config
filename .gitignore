@@ -1,3 +1,4 @@
 automatic_backups
 .DS_Store
 node_modules
+.claude
