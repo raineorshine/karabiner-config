@@ -29,9 +29,14 @@
 
   const pageUrl = browser.windows[0].activeTab.url()
 
-  const isAllowedLocalhostUrl = url => /^https:\/\/localhost(?::\d+)?(?:[/?#]|$)/.test(url)
+  // Only clear data on the local dev server and Vercel preview deployments. localhost matches on
+  // either scheme, since the dev server runs over http with HTTP=1; Vercel previews are https-only.
+  // The host must be followed by a port, path, query, hash, or end-of-string so that lookalikes
+  // such as https://vercel.app.example.com do not slip through.
+  const ALLOWED_URL =
+    /^(?:https?:\/\/localhost|https:\/\/[a-z0-9-]+(?:\.[a-z0-9-]+)*\.vercel\.app)(?::\d+)?(?:[/?#]|$)/i
 
-  if (!isAllowedLocalhostUrl(pageUrl)) return
+  if (!ALLOWED_URL.test(pageUrl)) return
 
   // hit escape until the cursor is null, otherwise Cmd + Shift + P will shadow the native shortcut
   systemEvents.keyCode(ESCAPE)
