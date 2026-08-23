@@ -815,6 +815,31 @@
                         ]
                     },
                     {
+                        "comment": "The app matches this shortcut by key position rather than by the re-translated character (like the Cmd+Shift+G Show Diff rule, and unlike the Cmd+J and Cmd+. rules), so the to side emits a literal key_code e and the app receives Cmd+Shift+E. Without the rule the shortcut fires on the physical e position, which types 'f' in Colemak.",
+                        "description": "Claude app: Cmd+Shift+E -> Cmd+Shift+E (physical key k in Colemak)",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "k",
+                                    "modifiers": { "mandatory": ["command", "shift"] }
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "e",
+                                        "modifiers": ["command", "shift"]
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "description": "Quick Chars",
                         "manipulators": [
                             {

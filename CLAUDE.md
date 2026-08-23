@@ -58,13 +58,24 @@ arrives as `l`), so the `to` side must be converted with the table above:
 - To send the app `Cmd+Shift+U`, emit key_code `i` (the `Cmd+. -> Cmd+Shift+U` rule).
 
 But not every shortcut is affected: the Show Diff rule (`Cmd+Shift+G`) emits a
-literal key_code `d` and the app receives `Cmd+Shift+D`. The app presumably matches
-some shortcuts by character (re-translated) and others by key position (e.g. menu
-accelerators), but which is which is only known empirically.
+literal key_code `d` and the app receives `Cmd+Shift+D`, and the `Cmd+Shift+E` rule
+emits a literal key_code `e`. The app presumably matches some shortcuts by character
+(re-translated) and others by key position (e.g. menu accelerators), but which is
+which is only known empirically.
 
-So when a Claude-app rule's `to` side emits a Colemak-remapped letter: start with the
-converted key (two of the three known cases needed it), test, and record which form
-worked in the rule's comment. Keys Colemak leaves unchanged (digits, most symbols,
+**Shortcut: if converting the `to` side would produce the same key_code as the `from`
+side, the app is matching by position — emit the literal virtual key.** A rule whose
+two sides are identical does nothing, so a request to "fix" a shortcut that lands on
+the wrong physical key can only mean position matching. That is the `Cmd+Shift+E`
+rule: I press physical `k` (which types `e`), the app's own shortcut fires on physical
+`e` (which types `f` — the key I'd describe as the "F" key), so the rule maps
+`from` key_code `k` → `to` literal key_code `e`. Requests of the form "map
+Cmd+Shift+<X> (physical) to Cmd+Shift+<Y> (virtual)" where `<Y>` sits on physical
+`<X>` are this same case.
+
+Otherwise, when a Claude-app rule's `to` side emits a Colemak-remapped letter: start
+with the converted key (two of the four known cases needed it), test, and record which
+form worked in the rule's comment. Keys Colemak leaves unchanged (digits, most symbols,
 `m`, etc.) look the same either way, which can mask a missing conversion — check the
 table even when a rule "already works". This applies **only** to Claude-app rules;
 everywhere else, leave the `to` side as the literal virtual key.
