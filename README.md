@@ -70,6 +70,10 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - L-Command + L-Ctrl + L-Option + `k` → `open 'https://github.com/cybersemics/em/issues/'`
 - Chromium DevTools: Clear site data, focus page, and reload: Cmd + Option + r
   - Command + Option + `r` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/clear-site-data.js"`
+- Shortwave: Cmd+B -> Cmd+/
+  - Command + `b` → Command + `slash`
+- Shortwave: Cmd+Option+B -> Cmd+\
+  - Command + Option + `b` → Command + `\`
 
 
 ## karabiner-config-to-markdown
