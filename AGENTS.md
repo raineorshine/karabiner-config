@@ -79,3 +79,8 @@ form worked in the rule's comment. Keys Colemak leaves unchanged (digits, most s
 `m`, etc.) look the same either way, which can mask a missing conversion — check the
 table even when a rule "already works". This applies **only** to Claude-app rules;
 everywhere else, leave the `to` side as the literal virtual key.
+
+## Communication
+
+- Report outcomes tersely: what was found, what was done — "1 instance: AGENTS.md. Removed and amended." Skip process narration and thoroughness reassurances; verify silently and state conclusions.
+- Keep caveats and side observations to one line each.
