@@ -1351,7 +1351,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "/usr/bin/osascript -l JavaScript \"$HOME/.config/karabiner/scripts/notion-archive-notification.js\" 166 135"
+                                        "shell_command": "/usr/bin/osascript -l JavaScript \"$HOME/.config/karabiner/scripts/mouse-click.js\" 166 135"
                                     }
                                 ],
                                 "type": "basic"

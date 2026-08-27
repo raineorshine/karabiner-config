@@ -82,16 +82,24 @@ everywhere else, leave the `to` side as the literal virtual key.
 
 ## Click rules (move the mouse and click)
 
-**Use a script, not Karabiner's cursor moves.** `software_function.set_mouse_cursor_position`
-*warps* the cursor without posting a mouse event. Chromium/Electron apps track their hover target
-from events, not from where the cursor is, so a button that only exists while its row is hovered
-paints as hovered while the click hit-tests against the element underneath and activates that
-instead. Every workaround fails: extra warps, one-point nudges, two-stage hovers, `mouse_key`
-motion, double clicks, and dwell tuning in either direction.
+**Default to Karabiner's own `set_mouse_cursor_position` + `pointing_button`.** It stays inside
+Karabiner, so it is faster than spawning a process, and it is fine for any target that is *already
+on screen* — the four Claude-app click rules work this way.
 
-`scripts/notion-archive-notification.js <x> <y>` walks the pointer there with real `CGEvent`s,
-clicks with the modifier flags cleared, and restores the cursor. It takes coordinates, so reuse it
-for any click rule rather than writing a new cursor-move sequence.
+**Switch to the script when the target only appears on hover.** `set_mouse_cursor_position` *warps*
+the cursor without posting a mouse event, and Chromium/Electron apps track their hover target from
+events rather than from where the cursor is. A button that exists only while its row is hovered
+therefore paints as hovered while the click hit-tests against the element underneath and activates
+that instead. Every workaround fails: extra warps, one-point nudges, two-stage hovers, `mouse_key`
+motion, double clicks, and dwell tuning in either direction (130ms worked, 250ms was flaky, 400ms
+failed outright). Only real motion fixes it.
+
+`scripts/mouse-click.js <x> <y> [--no-click] [--no-restore]` walks the pointer there with real
+`CGEvent`s, clicks with the modifier flags cleared, and restores the cursor. The Notion archive rule
+uses it; it costs roughly 150ms of process startup and settle, which is why it is not the default.
+
+**Diagnosing which case you are in:** click something always-visible nearby with a plain warp and
+click. If that works and your target does not, the target needs the script.
 
 **`CGEventPost` works when Karabiner runs it, not when you do.** Posting CGEvents needs
 Accessibility permission. `osascript` does not have it, but Karabiner does and the processes it
@@ -135,4 +143,7 @@ Learned the slow way on the Notion archive rule:
 ## Communication
 
 - Report outcomes tersely: what was found, what was done — "1 instance: AGENTS.md. Removed and amended." Skip process narration and thoroughness reassurances; verify silently and state conclusions.
+- Report a change as a bulleted list of fragments, not prose. "Default to warp-and-click." — not a paragraph restating what the new guidance says and why it matters.
+- One idea per bullet. Name the change, not its justification: "Cost noted (~150ms)", "Diagnostic added".
+- Do not re-explain reasoning already established in the conversation, and do not re-argue a correction while reporting it. It was agreed; just say what landed.
 - Keep caveats and side observations to one line each.

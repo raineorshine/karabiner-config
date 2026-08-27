@@ -75,7 +75,7 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
 - Shortwave: Cmd+Option+B -> Cmd+\
   - Command + Option + `b` → Command + `\`
 - Notion: Cmd+Shift+E -> click archive on top notification (166, 135) (physical key k in Colemak)
-  - Command + Shift + `k` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/notion-archive-notification.js" 166 135`
+  - Command + Shift + `k` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/mouse-click.js" 166 135`
 
 
 ## karabiner-config-to-markdown
