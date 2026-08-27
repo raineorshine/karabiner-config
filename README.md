@@ -22,8 +22,8 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Command + `.` → Command + Shift + `i`
 - Claude app: Cmd+T -> Ctrl+` (physical key f in Colemak)
   - Command + `f` → Ctrl + `` ` ``
-- Claude app: Cmd+Shift+E -> Cmd+Shift+E (physical key k in Colemak)
-  - Command + Shift + `k` → Command + Shift + `e`
+- Claude app: Cmd+Shift+E -> Cmd+K, type 'archive', Enter (physical key k in Colemak)
+  - Command + Shift + `k` → Command + `n`, `a`, `s`, `c`, `h`, `l`, `v`, `k`, `return_or_enter`
 - Quick Chars
   - L-Option + `'` → `` ` ``
   - L-Option + `t` → `~`
@@ -74,6 +74,8 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Command + `b` → Command + `slash`
 - Shortwave: Cmd+Option+B -> Cmd+\
   - Command + Option + `b` → Command + `\`
+- Notion: Cmd+Shift+E -> click archive on top notification (166, 135) (physical key k in Colemak)
+  - Command + Shift + `k` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/notion-archive-notification.js" 166 135`
 
 
 ## karabiner-config-to-markdown

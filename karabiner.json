@@ -815,8 +815,8 @@
                         ]
                     },
                     {
-                        "comment": "The app matches this shortcut by key position rather than by the re-translated character (like the Cmd+Shift+G Show Diff rule, and unlike the Cmd+J and Cmd+. rules), so the to side emits a literal key_code e and the app receives Cmd+Shift+E. Without the rule the shortcut fires on the physical e position, which types 'f' in Colemak.",
-                        "description": "Claude app: Cmd+Shift+E -> Cmd+Shift+E (physical key k in Colemak)",
+                        "comment": "Archives the current session via the command palette. This replaces the earlier Cmd+Shift+E -> Cmd+Shift+E rule that reached the app's effort picker; the effort picker now stays on its default position (physical e, the key that types 'f' in Colemak). Cmd+K is emitted as key_code n for the same Colemak re-translation bug as the Cmd+J rule (https://github.com/anthropics/claude-code/issues/68859). The letters after it are ordinary text typed into the palette's search field, and text input always goes through the macOS Colemak input source, so each letter is emitted as the physical key that types it: 'archive' = a s c h l v k, with a, c, h, and v unchanged by Colemak. Enter is not remapped by Colemak. The pauses are conservative first guesses, not tuned: 150ms after Cmd+K for the palette to open and focus its search field, and 100ms before Enter so it does not run whatever is selected before the filter catches up to 'archive'; raise them if letters drop or the wrong command runs. The trailing vk_none keeps Enter from being the last event, since Karabiner holds the last event down until the from key is released and a held Enter would repeat into whatever has focus once the palette closes.",
+                        "description": "Claude app: Cmd+Shift+E -> Cmd+K, type 'archive', Enter (physical key k in Colemak)",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -831,8 +831,28 @@
                                 },
                                 "to": [
                                     {
-                                        "key_code": "e",
-                                        "modifiers": ["command", "shift"]
+                                        "key_code": "n",
+                                        "modifiers": ["command"]
+                                    },
+                                    {
+                                        "hold_down_milliseconds": 150,
+                                        "key_code": "vk_none"
+                                    },
+                                    { "key_code": "a" },
+                                    { "key_code": "s" },
+                                    { "key_code": "c" },
+                                    { "key_code": "h" },
+                                    { "key_code": "l" },
+                                    { "key_code": "v" },
+                                    { "key_code": "k" },
+                                    {
+                                        "hold_down_milliseconds": 100,
+                                        "key_code": "vk_none"
+                                    },
+                                    { "key_code": "return_or_enter" },
+                                    {
+                                        "hold_down_milliseconds": 10,
+                                        "key_code": "vk_none"
                                     }
                                 ],
                                 "type": "basic"
@@ -1308,6 +1328,30 @@
                                     {
                                         "key_code": "backslash",
                                         "modifiers": ["command"]
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
+                        "comment": "Archives the top notification in the Inbox side panel by handing the whole gesture to a script, which moves the pointer there with real mouse events and clicks. Karabiner's own set_mouse_cursor_position warps the cursor without posting a mouse-moved event, and that is the root of every problem this rule has had: Chromium does not update its hover target from a warp, so the archive button, which only exists while the row is hovered, is either not armed or no longer armed when the click lands, and the click hit-tests against the row underneath and opens the notification instead. Waiting it out does not work reliably, because the window is bounded at both ends. Measured from the warp, with a single click: 60-80ms is too early and hits the row, 130ms archives, 250ms archives with false negatives, 400-500ms fails outright, and 150ms managed 1 in 4, so the window is narrow, drifts, and is not worth aiming at. An earlier two-click version appeared to work by firing at two offsets and landing one inside the window, which also means it archives twice whenever both land. The script sidesteps the window by walking the pointer in steps with CGEvents, which Chromium treats as genuine motion. Posting CGEvents needs Accessibility permission, which osascript does not have on its own, but Karabiner does and the processes it spawns inherit it; run the same command from a terminal and the events are silently filtered and the pointer never moves. It also clears the modifier flags on the click, since the physical Cmd+Shift are still down and an uncleared click arrives as Shift+Click and extends the text selection across the page, and it restores the cursor itself. Notion has no keyboard shortcut for archiving a single notification, so the mouse is the only route. Coordinates are absolute on the main display and only land correctly while the Notion window is top-left aligned at its usual size with the Inbox panel open; y is measured from the top of the first row rather than its middle, so it holds regardless of how tall the notification is, and the three buttons sit about 10 points apart, so shift x by 10 if the click lands on a neighbor.",
+                        "description": "Notion: Cmd+Shift+E -> click archive on top notification (166, 135) (physical key k in Colemak)",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["notion.id"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "k",
+                                    "modifiers": { "mandatory": ["command", "shift"] }
+                                },
+                                "to": [
+                                    {
+                                        "shell_command": "/usr/bin/osascript -l JavaScript \"$HOME/.config/karabiner/scripts/notion-archive-notification.js\" 166 135"
                                     }
                                 ],
                                 "type": "basic"
