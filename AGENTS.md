@@ -80,6 +80,58 @@ form worked in the rule's comment. Keys Colemak leaves unchanged (digits, most s
 table even when a rule "already works". This applies **only** to Claude-app rules;
 everywhere else, leave the `to` side as the literal virtual key.
 
+## Click rules (move the mouse and click)
+
+**Use a script, not Karabiner's cursor moves.** `software_function.set_mouse_cursor_position`
+*warps* the cursor without posting a mouse event. Chromium/Electron apps track their hover target
+from events, not from where the cursor is, so a button that only exists while its row is hovered
+paints as hovered while the click hit-tests against the element underneath and activates that
+instead. Every workaround fails: extra warps, one-point nudges, two-stage hovers, `mouse_key`
+motion, double clicks, and dwell tuning in either direction.
+
+`scripts/notion-archive-notification.js <x> <y>` walks the pointer there with real `CGEvent`s,
+clicks with the modifier flags cleared, and restores the cursor. It takes coordinates, so reuse it
+for any click rule rather than writing a new cursor-move sequence.
+
+**`CGEventPost` works when Karabiner runs it, not when you do.** Posting CGEvents needs
+Accessibility permission. `osascript` does not have it, but Karabiner does and the processes it
+spawns inherit it. Run the same command from a terminal and the events are silently filtered and
+the cursor never moves — that is *not* evidence the approach fails. Test a mechanism in the context
+where it will actually run before ruling it out.
+
+**If you do write a Karabiner-native click** (`pointing_button`), two non-obvious rules:
+
+- The **last** `to` event is held down until the from key is released, so a trailing
+  `pointing_button` keeps the mouse button down for as long as the chord is held — a press and
+  drag, not a click. Put a `vk_none` after it.
+- Mandatory modifiers are consumed on Karabiner's virtual keyboard, but the physical keys are still
+  down when the click is posted, so it arrives as Shift+Click and extends a text selection across
+  the page. Add `"modifiers": []` to the click.
+
+**Coordinates** are absolute points on the main display, and only land while the target window is in
+its usual position and size — say so in the rule's `comment`. `screencapture -R x,y,w,h` takes
+points and returns a 2x image on this machine, which makes the pixel-to-point mapping explicit;
+eyeballing a pasted screenshot does not.
+
+**Validate before handing it over**: `karabiner_cli --lint-complex-modifications` on a
+`{"title":…,"rules":[…]}` file, and `node build.js karabiner.json` to confirm the README renders.
+
+## Debugging rules that misbehave
+
+Learned the slow way on the Notion archive rule:
+
+- **Use a control.** Clicking an always-visible button (the sidebar search icon) with the same
+  sequence separated "synthetic clicks work in this app" from "this button is special" in a single
+  press, after many rounds of theorizing had not.
+- **Small samples lie near a threshold.** Once failures are probabilistic, "worked every time" over
+  a handful of presses cannot distinguish 100% from 90%. Three configurations passed a short test
+  and then failed in use. Do not tune to the smallest passing value — leave margin, or better,
+  remove the race entirely.
+- **A model that needs revising every round is the signal to stop tuning.** Five plausible models
+  each explained the evidence and then broke. Stop turning knobs and find a decisive measurement.
+- **Measure end-to-end.** A latency figure summed from a script's sleep constants was wrong about
+  where the time actually went; timing the real command settled it in one step.
+
 ## Communication
 
 - Report outcomes tersely: what was found, what was done — "1 instance: AGENTS.md. Removed and amended." Skip process narration and thoroughness reassurances; verify silently and state conclusions.
