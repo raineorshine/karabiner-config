@@ -74,6 +74,8 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Command + `b` → Command + `slash`
 - Shortwave: Cmd+Option+B -> Cmd+\
   - Command + Option + `b` → Command + `\`
+- Shortwave: Option+A -> click Always apply on the label toast (1272, 890)
+  - Option + `a` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/restore-mouse-position.js"`, `Move cursor to (1272, 890)`, `Left Click`
 - Notion: Cmd+Shift+E -> click archive on top notification (166, 135) (physical key k in Colemak)
   - Command + Shift + `k` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/mouse-click.js" 166 135`
 

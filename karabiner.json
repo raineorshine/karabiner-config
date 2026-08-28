@@ -1335,6 +1335,52 @@
                         ]
                     },
                     {
+                        "comment": "Clicks the Always apply link in the toast that Shortwave shows in the bottom-right corner after a label is applied, which promotes that one-off into a standing rule. The toast offers no keyboard shortcut, so the mouse is the only route. The link is visible for as long as the toast is up rather than only on hover, so a plain warp and click lands on it and the slower mouse-click.js walk is not needed. restore-mouse-position.js saves the cursor position and puts it back afterward, since Karabiner can move the cursor but cannot read it; the 200ms hold gives it time to read the position before the cursor moves, and the 100ms hold keeps the click from racing the cursor move. The click clears its modifiers because the physical Option is still down when it is posted, and the trailing vk_none keeps the button press from being the last to event, which would hold the mouse button down until Option+A is released and drag instead of click. Coordinates are absolute on the main display and only land correctly while the Shortwave window sits in its usual position and size and the toast is showing.",
+                        "description": "Shortwave: Option+A -> click Always apply on the label toast (1272, 890)",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "a",
+                                    "modifiers": { "mandatory": ["option"] }
+                                },
+                                "to": [
+                                    {
+                                        "shell_command": "/usr/bin/osascript -l JavaScript \"$HOME/.config/karabiner/scripts/restore-mouse-position.js\""
+                                    },
+                                    {
+                                        "hold_down_milliseconds": 200,
+                                        "key_code": "vk_none"
+                                    },
+                                    {
+                                        "software_function": {
+                                            "set_mouse_cursor_position": {
+                                                "screen": 0,
+                                                "x": 1272,
+                                                "y": 890
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "hold_down_milliseconds": 100,
+                                        "key_code": "vk_none"
+                                    },
+                                    {
+                                        "modifiers": [],
+                                        "pointing_button": "button1"
+                                    },
+                                    { "key_code": "vk_none" }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "comment": "Archives the top notification in the Inbox side panel by handing the whole gesture to a script, which moves the pointer there with real mouse events and clicks. Karabiner's own set_mouse_cursor_position warps the cursor without posting a mouse-moved event, and that is the root of every problem this rule has had: Chromium does not update its hover target from a warp, so the archive button, which only exists while the row is hovered, is either not armed or no longer armed when the click lands, and the click hit-tests against the row underneath and opens the notification instead. Waiting it out does not work reliably, because the window is bounded at both ends. Measured from the warp, with a single click: 60-80ms is too early and hits the row, 130ms archives, 250ms archives with false negatives, 400-500ms fails outright, and 150ms managed 1 in 4, so the window is narrow, drifts, and is not worth aiming at. An earlier two-click version appeared to work by firing at two offsets and landing one inside the window, which also means it archives twice whenever both land. The script sidesteps the window by walking the pointer in steps with CGEvents, which Chromium treats as genuine motion. Posting CGEvents needs Accessibility permission, which osascript does not have on its own, but Karabiner does and the processes it spawns inherit it; run the same command from a terminal and the events are silently filtered and the pointer never moves. It also clears the modifier flags on the click, since the physical Cmd+Shift are still down and an uncleared click arrives as Shift+Click and extends the text selection across the page, and it restores the cursor itself. Notion has no keyboard shortcut for archiving a single notification, so the mouse is the only route. Coordinates are absolute on the main display and only land correctly while the Notion window is top-left aligned at its usual size with the Inbox panel open; y is measured from the top of the first row rather than its middle, so it holds regardless of how tall the notification is, and the three buttons sit about 10 points apart, so shift x by 10 if the click lands on a neighbor.",
                         "description": "Notion: Cmd+Shift+E -> click archive on top notification (166, 135) (physical key k in Colemak)",
                         "manipulators": [
