@@ -84,7 +84,9 @@ everywhere else, leave the `to` side as the literal virtual key.
 
 **Default to Karabiner's own `set_mouse_cursor_position` + `pointing_button`.** It stays inside
 Karabiner, so it is faster than spawning a process, and it is fine for any target that is *already
-on screen* — the four Claude-app click rules work this way.
+on screen*. Done this way a click rule needs no `hold_down_milliseconds` at all: Cmd+P and
+Cmd+Shift+U are a bare warp, click, `vk_none` and fire with no deliberate delay. Cmd+Shift+P and
+Cmd+Shift+G still carry the older spawn-and-hold shape described below.
 
 **Switch to the script when the target only appears on hover.** `set_mouse_cursor_position` *warps*
 the cursor without posting a mouse event, and Chromium/Electron apps track their hover target from
@@ -92,33 +94,58 @@ events rather than from where the cursor is. A button that exists only while its
 therefore paints as hovered while the click hit-tests against the element underneath and activates
 that instead. Every workaround fails: extra warps, one-point nudges, two-stage hovers, `mouse_key`
 motion, double clicks, and dwell tuning in either direction (130ms worked, 250ms was flaky, 400ms
-failed outright). Only real motion fixes it.
+failed outright). Only real motion fixes it — and real motion means posted events, which are not
+always available (below). A hover-revealed target in a context where posting is filtered has no
+route at all: recognise that as a dead end rather than tuning at it.
 
 `scripts/mouse-click.js <x> <y> [--no-click] [--no-restore]` walks the pointer there with real
 `CGEvent`s, clicks with the modifier flags cleared, and restores the cursor. The Notion archive rule
-uses it; it costs roughly 150ms of process startup and settle, which is why it is not the default.
+uses it. Measured: `osascript` is 66ms to start, 77ms with the ObjC imports, 100ms by the time it
+has read the cursor (p50, 400 samples), and ~195ms from spawn to the click landing once its motion
+and 50ms settle are added. That is why it is not the default — and why it cannot rescue a slow rule,
+since the spawn dominates whatever pauses you trim.
 
 **Diagnosing which case you are in:** click something always-visible nearby with a plain warp and
 click. If that works and your target does not, the target needs the script.
 
-**`CGEventPost` works when Karabiner runs it, not when you do.** Posting CGEvents needs
-Accessibility permission. `osascript` does not have it, but Karabiner does and the processes it
-spawns inherit it. Run the same command from a terminal and the events are silently filtered and
-the cursor never moves — that is *not* evidence the approach fails. Test a mechanism in the context
-where it will actually run before ruling it out.
+**Whether a spawned script may post `CGEvent`s is unpredictable — probe it every time.** Posting
+needs Accessibility. Karabiner holds it and its children sometimes inherit it, but not dependably,
+and the failure is silent: the script runs to completion and nothing moves. Three data points so
+far. The Notion archive rule's `mouse-click.js` posts successfully. The Messages tapback rule's
+identical calls were filtered under Karabiner across six traced presses, with `AXIsProcessTrusted()`
+false, every accessibility read null, and `CGWindowListCopyWindowInfo` titles redacted — neither
+Accessibility nor Screen Recording. And the Claude-app click rules were filtered too: a script
+logging its own progress reached the line before its click 14 times while nothing moved on screen.
+Why one rule keeps the permission and another does not is still unresolved.
 
-**But do not assume that inheritance holds — probe it.** In the Messages tapback rule the same
-`CGEventPost` calls were silently filtered *under Karabiner*: a posted mouse-moved event never moved
-the pointer, across six traced presses, while the Notion rule's `mouse-click.js` kept working from an
-identically shaped `shell_command`. That script also saw `AXIsProcessTrusted()` return false, every
-accessibility read return null, and `CGWindowListCopyWindowInfo` come back with window titles
-redacted — so it had neither Accessibility nor Screen Recording. Why one rule keeps the permission
-and the other does not is unresolved. Have the script log what it actually got before building on it.
+**One press settles it, so probe before building rather than after it mysteriously does nothing.**
+Have the rule spawn a script that reads the cursor, posts a mouse-moved 80pt away, re-reads, and
+logs both. `before=238 after=238 moved=0` is the whole answer. A terminal run proves nothing in
+either direction: your shell's permissions are not Karabiner's child's.
+
+**Do not carry a technique across apps on the strength of it working in one.** `mouse-click.js`
+works for Notion; that was taken as reason to expect it in the Claude app, and it does not work
+there. The reverse inference is just as unsafe: its failure there is not evidence the Notion rule
+has stopped working. Each app, each rule, gets its own probe.
 
 **`CGWarpMouseCursorPosition` needs no permission at all.** So a script that only has to *position*
 the pointer can leave the clicking to Karabiner's `pointing_button`, which is posted by Karabiner
 itself and always works. That is the shape the Messages tapback rule uses, and it is the fallback
 whenever posting turns out to be filtered.
+
+**The cursor restore is what drags in the spawn — dropping it removes the whole problem.** Karabiner
+can move the cursor but not read it, so putting it back afterwards needs a spawned script, and the
+rule must then hold long enough for that script to read the position *before* the warp. That hold
+was 200ms of Cmd+P's 300ms and was never big enough (see the tail figures below). Dropping the
+restore deletes the spawn, the hold and the race together: Cmd+P and Cmd+Shift+U went from 300ms to
+no deliberate delay at all. The cost is that the cursor stays on the button. For a shortcut reached
+from the keyboard that is usually the right trade, but it is a visible behaviour change rather than
+a pure optimisation — ask first.
+
+**Measure the warp-to-click gap per target; do not carry a value between rules.** Cmd+P's was 100ms,
+and 0ms opened the project selector 10 times out of 10 — an always-visible button hit-tests
+correctly at the click's own coordinates even though a warp posts no hover event. The Cmd+Shift+P
+Create PR button did need its 100ms. Same app, same mechanism, different answer.
 
 **A popup's position can be read rather than predicted.** `CGWindowListCopyWindowInfo` needs no
 permission either — without Screen Recording it drops window *titles*, but bounds, owner, and layer
@@ -133,6 +160,13 @@ never opened at all.
 bar follows its bubble's width *and* height — do not chase it. A context menu is anchored to the
 click instead, so right-clicking a point you picked makes every position downstream fixed.
 
+**Adjacent `shell_command`s in one `to` array collapse to the last one.** Two spawns back to back
+run once, not twice, and the survivor is the later one — no error, nothing logged. A probe with five
+stamps, the first three adjacent and the last two behind 150ms gaps, recorded only the third, fourth
+and fifth. This silently ate every start-marker added for timing and cost two rounds of presses
+before it was spotted. Separate them with a `hold_down_milliseconds`, or join them into one
+`shell_command` with a `;`.
+
 **If you do write a Karabiner-native click** (`pointing_button`), three non-obvious rules:
 
 - The **last** `to` event is held down until the from key is released, so a trailing
@@ -140,11 +174,13 @@ click instead, so right-clicking a point you picked makes every position downstr
   drag, not a click. Put a `vk_none` after it.
 - Mandatory modifiers are consumed on Karabiner's virtual keyboard, but the physical keys are still
   down when the click is posted, so it arrives as Shift+Click and extends a text selection across
-  the page. Add `"modifiers": []` to the click.
+  the page. Add `"modifiers": []` to the click. This matters more the faster the rule is: 300ms of
+  holds used to give you time to release the keys first, so a rule that drops its holds starts
+  relying on this clause that was previously coasting.
 - A **right-click needs `hold_down_milliseconds`**. The context menu opens on the mouse *down* and
   starts a modal tracking loop; Karabiner releases the button immediately, and an up that lands
   before that loop is installed dismisses the menu again. It failed 5 times in 6 with no hold and 0
-  times in 6 with 150ms. A left click needs no hold, which is why the older rules do not carry one.
+  times in 6 with 150ms. A left click needs no hold at all — Cmd+P clicks with none.
 
 **Coordinates** are absolute points on the main display, and only land while the target window is in
 its usual position and size — say so in the rule's `comment`. `screencapture -R x,y,w,h` takes
@@ -191,10 +227,13 @@ stage before it instead of racing it. The Cmd+Shift+1/2 sidebar-tab rule shipped
 constants were covering nothing. The floor here is zero, not merely small, and a margin over a floor
 of zero would be paying latency on every press to cover a race that was shown not to exist.
 
-This is the opposite of the click rules above, and the distinction is worth holding onto: a
-synthetic click races a live UI that may not have drawn the target yet, so it needs a real wait or a
-poll. A queued key event does not. Before reaching for `hold_down_milliseconds`, ask which of the
-two you are actually in — the constants only belong in the first.
+The distinction worth holding onto is not menus versus clicks, though — both floors turned out to be
+zero. It is whether anything is actually racing. A queued key event waits its turn by construction.
+A click races only when the thing it lands on is not there yet: a hover-revealed button, or a popup
+still drawing. A click at a target that is already on screen races nothing either, which is why
+Cmd+P's warp-to-click gap went to 0 as cleanly as this menu sequence did. Before reaching for
+`hold_down_milliseconds`, name the transition you are waiting on. If you cannot name one, there
+probably is not one.
 
 (The 20 presses were unloaded. If a menu rule ever misfires, suspect a busy renderer delaying the
 menu, and measure before adding a constant back.)
@@ -223,8 +262,8 @@ Learned the slow way on the Notion archive and Messages tapback rules:
   down until it actually fails, with enough trials per value that a probabilistic failure shows up,
   and only then add a fixed margin over the measured floor. Do not hand-wave a split between pauses
   that "wait on a real transition" and ones that do not — measure each.
-- **A pause you cannot point at a measurement for is a race, not a margin.** The 200ms hold the four
-  click rules use to cover `restore-mouse-position.js` reading the cursor measured p50 101ms over 400
+- **A pause you cannot point at a measurement for is a race, not a margin.** The 200ms hold the
+  click rules used to cover `restore-mouse-position.js` reading the cursor measured p50 101ms over 400
   samples — but the tail reached 300ms and once 963ms, so it silently loses a percent or two of
   presses. It reads as a comfortable 2x margin and is really a coin flip against the tail. Measure
   the distribution and size the constant to that, not to the typical case — or remove the spawn the
@@ -238,6 +277,17 @@ Learned the slow way on the Notion archive and Messages tapback rules:
   each explained the evidence and then broke. Stop turning knobs and find a decisive measurement.
 - **Measure end-to-end.** A latency figure summed from a script's sleep constants was wrong about
   where the time actually went; timing the real command settled it in one step.
+- **Karabiner spawns `shell_command` with no `$HOME`.** A helper that builds its log path from
+  `getenv("HOME")` exits non-zero and writes nothing, so the instrumentation fails silently and looks
+  exactly like the rule never firing. Hardcode absolute paths in anything a rule spawns, and check it
+  with `env -i /bin/sh -c '…'` before spending a round of presses on it.
+- **Instrument the config that ships, not a copy of it.** A probe pointing at a scratch copy of
+  `mouse-click.js` failed while the open question was whether the real one worked — that adds a
+  variable instead of removing one. Install the actual candidate and measure that.
+- **A listen-only `CGEventTap` from your own shell is not an instrument here.** `CGEventTapCreate`
+  returns a valid port and then delivers nothing, not even ordinary clicks, so an empty log reads as
+  "the click never happened" when it means "the tap never worked". Prove an instrument sees a known
+  event before trusting its silence. Bracketing the rule with its own timestamps is more reliable.
 - **Two JXA traps that only bite once the call works.** `String(someNSString)` yields the literal
   `[id __NSCFString]` — use `ObjC.unwrap()`; it silently replaced a trace log's contents. And an
   untyped `Ref()` throws `Ref has incompatible type` when an accessibility call *succeeds*, so a
