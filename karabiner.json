@@ -815,8 +815,8 @@
                         ]
                     },
                     {
-                        "comment": "Archives the current session via the command palette. This replaces the earlier Cmd+Shift+E -> Cmd+Shift+E rule that reached the app's effort picker; the effort picker now stays on its default position (physical e, the key that types 'f' in Colemak). Cmd+K is emitted as key_code n for the same Colemak re-translation bug as the Cmd+J rule (https://github.com/anthropics/claude-code/issues/68859). The letters after it are ordinary text typed into the palette's search field, and text input always goes through the macOS Colemak input source, so each letter is emitted as the physical key that types it: 'archive' = a s c h l v k, with a, c, h, and v unchanged by Colemak. Enter is not remapped by Colemak. The pauses are conservative first guesses, not tuned: 150ms after Cmd+K for the palette to open and focus its search field, and 100ms before Enter so it does not run whatever is selected before the filter catches up to 'archive'; raise them if letters drop or the wrong command runs. The trailing vk_none keeps Enter from being the last event, since Karabiner holds the last event down until the from key is released and a held Enter would repeat into whatever has focus once the palette closes.",
-                        "description": "Claude app: Cmd+Shift+E -> Cmd+K, type 'archive', Enter (physical key k in Colemak)",
+                        "comment": "Archives the current session via the command palette. This replaces the earlier Cmd+Shift+E -> Cmd+Shift+E rule that reached the app's effort picker; the effort picker now stays on its default position (physical e, the key that types 'f' in Colemak). Cmd+K is emitted as key_code n for the same Colemak re-translation bug as the Cmd+J rule (https://github.com/anthropics/claude-code/issues/68859). The letters after it are ordinary text typed into the palette's search field, and text input always goes through the macOS Colemak input source, so each letter is emitted as the physical key that types it: 'archive' = a s c h l v k, with a, c, h, and v unchanged by Colemak. Enter is not remapped by Colemak. The pauses are conservative first guesses, not tuned: 150ms after Cmd+K for the palette to open and focus its search field, and 120ms before Enter so it does not run whatever is selected before the filter catches up to 'archive'; raise them if letters drop or the wrong command runs. Cmd+1 afterwards navigates to the first chat, with 150ms after Enter for the archive to complete and the palette to close first, so the shortcut lands on the chat list rather than the closing palette. Digits are not remapped by Colemak, so 1 is emitted as-is. The trailing vk_none keeps Cmd+1 from being the last event, since Karabiner holds the last event down until the from key is released and a held key would repeat into whatever has focus.",
+                        "description": "Claude app: Cmd+Shift+E -> Cmd+K, type 'archive', Enter, Cmd+1 (physical key k in Colemak)",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -850,6 +850,14 @@
                                         "key_code": "vk_none"
                                     },
                                     { "key_code": "return_or_enter" },
+                                    {
+                                        "hold_down_milliseconds": 150,
+                                        "key_code": "vk_none"
+                                    },
+                                    {
+                                        "key_code": "1",
+                                        "modifiers": ["command"]
+                                    },
                                     {
                                         "hold_down_milliseconds": 10,
                                         "key_code": "vk_none"
