@@ -601,7 +601,7 @@
                         ]
                     },
                     {
-                        "comment": "Clicks the Create PR button in the session view. Like the Cmd+P project-selector rule, the Electron renderer exposes no accessibility tree, so the position is hardcoded. Coordinates are absolute on the main display; y matches the project-selector rule, x is the button's position in a 2x Retina screenshot (1313 px) halved to points. restore-mouse-position.js saves the cursor position and puts it back afterward, since Karabiner can move the cursor but cannot read it; the 200ms hold gives it time to read the position before the cursor moves. The 100ms hold is needed because without it the click races the cursor move and the app registers only the hover, so the shortcut had to be pressed twice.",
+                        "comment": "Clicks the Create PR button in the session view. Like the Cmd+P project-selector rule, the Electron renderer exposes no accessibility tree, so the position is hardcoded. Coordinates are absolute on the main display; y matches the project-selector rule, x is the button's position in a 2x Retina screenshot (1313 px) halved to points. The cursor is left on the button rather than restored: restoring it needs a spawned script to read the cursor before Karabiner moves it, and the 200ms hold covering that read measured p50 101ms against a 300ms tail and one 963ms over 400 samples -- a race, not a margin. Dropping the restore removes the spawn, the hold and the race together. The 100ms warp-to-click gap stays: without it the click races the cursor move and the app registers only the hover, so the shortcut had to be pressed twice. Unlike the Cmd+P gap, which measured 0, this one has not been driven to its floor -- the target is the Create PR button, so a binary search would fire it once per press.",
                         "description": "Claude app: Cmd+Shift+P -> click Create PR button (physical key r in Colemak)",
                         "manipulators": [
                             {
@@ -617,13 +617,6 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "/usr/bin/osascript -l JavaScript \"$HOME/.config/karabiner/scripts/restore-mouse-position.js\""
-                                    },
-                                    {
-                                        "hold_down_milliseconds": 200,
-                                        "key_code": "vk_none"
-                                    },
-                                    {
                                         "software_function": {
                                             "set_mouse_cursor_position": {
                                                 "screen": 0,
@@ -636,14 +629,18 @@
                                         "hold_down_milliseconds": 100,
                                         "key_code": "vk_none"
                                     },
-                                    { "pointing_button": "button1" }
+                                    {
+                                        "modifiers": [],
+                                        "pointing_button": "button1"
+                                    },
+                                    { "key_code": "vk_none" }
                                 ],
                                 "type": "basic"
                             }
                         ]
                     },
                     {
-                        "comment": "Show Diff. The app ignores Cmd+Shift+D while the chat box has focus, so the rule first clicks an empty spot in the sidebar to blur it. Like the Cmd+P and Cmd+Shift+P rules, the coordinates are absolute on the main display and only land correctly while the Claude window sits in its usual position and size. restore-mouse-position.js saves the cursor position and puts it back afterward, since Karabiner can move the cursor but cannot read it; the 200ms hold gives it time to read the position before the cursor moves, since Karabiner runs shell_command asynchronously and would otherwise move the cursor first and leave the script saving (230, 940). Script startup measured 70-110ms over five runs, so 200ms is roughly twice the slowest; raise it if the cursor ever ends up parked in the sidebar. The two 100ms holds keep the click from racing the cursor move and give the app time to move focus before the keystroke arrives.",
+                        "comment": "Show Diff. The app ignores Cmd+Shift+D while the chat box has focus, so the rule first clicks an empty spot in the sidebar to blur it. Like the Cmd+P and Cmd+Shift+P rules, the coordinates are absolute on the main display and only land correctly while the Claude window sits in its usual position and size. The cursor is left in the sidebar rather than restored: restoring it needs a spawned script to read the cursor before Karabiner moves it, and the 200ms hold covering that read measured p50 101ms against a 300ms tail and one 963ms over 400 samples -- a race, not a margin. Dropping the restore removes the spawn, the hold and the race together. Neither hold is needed: 0ms for both the warp-to-click gap and the click-to-keystroke gap opened the diff 10 times out of 10. The sidebar spot is always on screen, so the click races nothing, and the Cmd+Shift+D that follows is queued behind the click rather than competing with it -- the same reason the menu-bar sequences need no pauses. The expectation that the second gap was waiting on focus actually moving was wrong.",
                         "description": "Claude app: Cmd+Shift+G -> click empty sidebar (230, 940), Cmd+Shift+D",
                         "manipulators": [
                             {
@@ -659,13 +656,6 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "/usr/bin/osascript -l JavaScript \"$HOME/.config/karabiner/scripts/restore-mouse-position.js\""
-                                    },
-                                    {
-                                        "hold_down_milliseconds": 200,
-                                        "key_code": "vk_none"
-                                    },
-                                    {
                                         "software_function": {
                                             "set_mouse_cursor_position": {
                                                 "screen": 0,
@@ -675,13 +665,8 @@
                                         }
                                     },
                                     {
-                                        "hold_down_milliseconds": 100,
-                                        "key_code": "vk_none"
-                                    },
-                                    { "pointing_button": "button1" },
-                                    {
-                                        "hold_down_milliseconds": 100,
-                                        "key_code": "vk_none"
+                                        "modifiers": [],
+                                        "pointing_button": "button1"
                                     },
                                     {
                                         "key_code": "d",

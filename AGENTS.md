@@ -252,6 +252,30 @@ probably is not one.
 (The 20 presses were unloaded. If a menu rule ever misfires, suspect a busy renderer delaying the
 menu, and measure before adding a constant back.)
 
+## Pauses (`hold_down_milliseconds`)
+
+**Never add a pause on speculation.** Not "just to be safe", not "this probably wants a moment", not
+a round number carried over from a rule that looked similar. A constant in a rule is paid on every
+press, forever, by the person pressing it, and an unnecessary one is invisible: nothing fails, so
+nobody goes back to check. A pause that is genuinely needed announces itself the first time it is
+missing, and costs one round of presses to add.
+
+**Start at zero; adjust up only on evidence.** The default for any new pause is that it does not
+exist. Add one when the rule has been *observed* to fail without it, and size it to the failure that
+was observed rather than to how alarming the failure felt. Err fast in the meantime.
+
+**Measurement has changed every constant it has touched here, in both directions.** Four went to
+zero: the menu-bar sequence shipped at 150/150/150/120ms and passed 20/20 at 0; Cmd+P's warp-to-click
+gap was 100ms and passed 10/10 at 0; Cmd+Shift+G's two gaps were 100ms each and passed 10/10 at 0/0.
+One was too *small*: the 200ms covering a script spawn, measured p50 101ms against a 963ms tail, and
+fixed by removing the spawn rather than by raising it. Exactly one survived contact — the 150ms hold
+on a right-click, which failed 5 times in 6 without it. That is what an earned constant looks like:
+a failure count at a specific value, written next to it.
+
+**Say so when a value is un-searched.** Cmd+Shift+P keeps a 100ms gap not because it was measured but
+because its target is the Create PR button and a binary search would fire it once per press. Its
+comment says that outright, so the number is not mistaken later for a floor.
+
 ## Debugging rules that misbehave
 
 Learned the slow way on the Notion archive and Messages tapback rules:
@@ -269,13 +293,17 @@ Learned the slow way on the Notion archive and Messages tapback rules:
   press, after many rounds of theorizing had not.
 - **Small samples lie near a threshold.** Once failures are probabilistic, "worked every time" over
   a handful of presses cannot distinguish 100% from 90%. Three configurations passed a short test
-  and then failed in use, so a pass at one value is a data point, not a floor.
-- **Seek the floor by binary search; add the margin once, at the end.** Picking a value that feels
-  safe and stopping there is guessing dressed up as caution: it leaves the real cliff unmeasured, so
-  every later misfire reopens the whole question instead of moving a known number. Drive each pause
-  down until it actually fails, with enough trials per value that a probabilistic failure shows up,
-  and only then add a fixed margin over the measured floor. Do not hand-wave a split between pauses
-  that "wait on a real transition" and ones that do not — measure each.
+  and then failed in use, so a pass at one value is a data point, not a floor. This cuts against
+  *removing* a pause on thin evidence as much as against keeping one — the default is zero, but a
+  10/10 at zero is what licenses shipping it, not a hunch that the pause looked pointless.
+- **Seek the floor by binary search, and ship the floor.** Picking a value that feels safe and
+  stopping there is guessing dressed up as caution: it leaves the real cliff unmeasured, so every
+  later misfire reopens the whole question instead of moving a known number. Drive each pause down
+  until it actually fails, with enough trials per value that a probabilistic failure shows up, and
+  use what you measured. Do not hand-wave a split between pauses that "wait on a real transition"
+  and ones that do not; measure each. Cmd+Shift+G's click-to-keystroke gap was predicted to be the
+  real one of its two, on the reasoning that it waits for focus to move. It measured 0/0 alongside
+  the other. A transition being real does not mean anything is racing it.
 - **A pause you cannot point at a measurement for is a race, not a margin.** The 200ms hold the
   click rules used to cover `restore-mouse-position.js` reading the cursor measured p50 101ms over 400
   samples — but the tail reached 300ms and once 963ms, so it silently loses a percent or two of
