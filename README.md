@@ -80,6 +80,8 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Option + `a` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/restore-mouse-position.js"`, `Move cursor to (1272, 890)`, `Left Click`
 - Notion: Cmd+Shift+E -> click archive on top notification (166, 135) (physical key k in Colemak)
   - Command + Shift + `k` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/mouse-click.js" 166 135`
+- Messages: Cmd+E -> open the emoji picker for the last received message (physical key k in Colemak)
+  - Command + `k` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/restore-mouse-position.js" 1.4`, `Move cursor to (360, 890)`, `Right Click`, `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/move-to-tapback-picker.js"`, `Left Click`
 
 
 ## karabiner-config-to-markdown

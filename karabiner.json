@@ -1436,6 +1436,44 @@
                                 "type": "basic"
                             }
                         ]
+                    },
+                    {
+                        "comment": "Opens the emoji picker for the last received message, so any emoji can be sent as a tapback without touching the mouse. The hover tapback bar is anchored to the message bubble, so it moves with the message's width and height and no fixed coordinate can reach its picker. The right-click menu is anchored to the click point instead, so the rule right-clicks a fixed point on the last message and works from there. (360, 890) sits inside the last received bubble whatever its size: received bubbles are left aligned at x 348 so a short message still covers x 360, and the transcript is bottom anchored so the bubble's lower edge stays at y 900 however tall the message is. A sent message is right aligned and will not be hit. move-to-tapback-picker.js then reads the menu's own window frame rather than assuming where it landed, because macOS pins the menu above the bottom of the screen and the height it pins from changes with the menu's items, so a message carrying a link would otherwise be off by the height of the extra ones; if no menu appears it leaves the pointer alone and the click lands back on the message. The right-click is held for 150ms rather than clicked instantly, which is what makes it reliable: the menu opens on the mouse down and starts a modal tracking loop, and an immediate mouse up can arrive before that loop is installed and dismiss it, which failed 5 times in 6 before the hold and 0 times in 6 after. Karabiner posts both clicks itself because it holds Accessibility and the osascript it spawns does not, which is also why the script only warps the pointer. The 200ms hold lets restore-mouse-position.js read the pointer before it moves, the 100ms hold keeps the right-click from racing the cursor move, and the 550ms hold covers osascript startup, measured at 70-110ms, plus the script's 250ms poll for the menu. Coordinates are absolute on the main display and only land correctly while the Messages window sits in its usual position and size with the conversation scrolled to the bottom; a group conversation indents received bubbles past x 360.",
+                        "description": "Messages: Cmd+E -> open the emoji picker for the last received message (physical key k in Colemak)",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.apple.MobileSMS"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "k",
+                                    "modifiers": { "mandatory": ["command"] }
+                                },
+                                "to": [
+                                    {
+                                        "shell_command": "/usr/bin/osascript -l JavaScript \"$HOME/.config/karabiner/scripts/restore-mouse-position.js\" 1.4"
+                                    },
+                                    { "hold_down_milliseconds": 200, "key_code": "vk_none" },
+                                    {
+                                        "software_function": {
+                                            "set_mouse_cursor_position": { "screen": 0, "x": 360, "y": 890 }
+                                        }
+                                    },
+                                    { "hold_down_milliseconds": 100, "key_code": "vk_none" },
+                                    { "hold_down_milliseconds": 150, "modifiers": [], "pointing_button": "button2" },
+                                    {
+                                        "shell_command": "/usr/bin/osascript -l JavaScript \"$HOME/.config/karabiner/scripts/move-to-tapback-picker.js\""
+                                    },
+                                    { "hold_down_milliseconds": 550, "key_code": "vk_none" },
+                                    { "modifiers": [], "pointing_button": "button1" },
+                                    { "key_code": "vk_none" }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
                     }
                 ]
             },
