@@ -41,12 +41,21 @@ const pointingButtons = {
   button3: 'Middle Click',
 }
 
-/** Describes a 'to' entry that karabiner-config-to-markdown cannot render (i.e. anything other than key_code and shell_command). Returns null if no description is needed. */
+// karabiner-config-to-markdown has left_arrow and right_arrow transposed in its key table
+// (left_arrow renders as the right-pointing glyph and vice versa), so substitute the correct
+// glyph here. Its lookup falls back to the key_code as written, so a literal glyph passes
+// through unchanged. Only the 'to' side is corrected, since that is all the hook below walks.
+const arrows = {
+  left_arrow: '\u2190',
+  right_arrow: '\u2192',
+}
+
+/** Describes a 'to' entry that karabiner-config-to-markdown cannot render (i.e. anything other than key_code and shell_command), or renders incorrectly. Returns null if no description is needed. */
 const describeToEntry = entry => {
   const cursor = entry.software_function && entry.software_function.set_mouse_cursor_position
   return cursor ? `Move cursor to (${cursor.x}, ${cursor.y})`
     : entry.pointing_button ? pointingButtons[entry.pointing_button] || entry.pointing_button
-    : null
+    : arrows[entry.key_code] || null
 }
 
 // karabiner-config-to-markdown renders only key_code and shell_command entries, so mouse

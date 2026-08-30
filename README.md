@@ -26,6 +26,9 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Command + `f` → Ctrl + `` ` ``
 - Claude app: Cmd+Shift+E -> Cmd+K, type 'archive', Enter, Cmd+1 (physical key k in Colemak)
   - Command + Shift + `k` → Command + `n`, `a`, `s`, `c`, `h`, `l`, `v`, `k`, `return_or_enter`, Command + `1`
+- Claude app: Cmd+Shift+1 -> menu bar, View > Previous Sidebar Tab; Cmd+Shift+2 -> menu bar, View > Next Sidebar Tab
+  - Command + Shift + `1` → fn + Ctrl + `f2`, `v`, `↓`, `r`, `s`, `k`, `v`, `return_or_enter`
+  - Command + Shift + `2` → fn + Ctrl + `f2`, `v`, `↓`, `j`, `k`, `x`, `f`, `return_or_enter`
 - Quick Chars
   - L-Option + `'` → `` ` ``
   - L-Option + `t` → `~`
@@ -44,8 +47,8 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - L-Shift + L-Option + `;` → `}`
   - L-Command + L-Option + `l` → L-Command + `[`
 - Desktop Navigation: Right shift + brackets
-  - R-Shift + `[` → L-Ctrl + `→`
-  - R-Shift + `]` → L-Ctrl + `←`
+  - R-Shift + `[` → L-Ctrl + `←`
+  - R-Shift + `]` → L-Ctrl + `→`
 - Launch apps: Right shift + letters
   - R-Shift + `a` → `open '/Applications/Utilities/Activity Monitor.app'`
   - R-Shift + `c` → `open '/Applications/Calendar.app'`

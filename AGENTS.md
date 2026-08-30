@@ -172,6 +172,33 @@ me to press a key.
 
 Full procedure: the **test** skill. Landing it on main: the **ship** skill.
 
+## Menu bar rules (drive the app's own menus)
+
+When an app refuses to give a command up — it binds the chord internally and ignores a native macOS
+App Shortcut override — and the menu item's own accelerator collides with something global, the way
+in is the app's own menu. `fn+Ctrl+F2` focuses the menu bar, a letter type-selects the menu title,
+**Down opens it**, more letters type-select the item, and Enter activates it. The Down is not
+optional: type-select only *highlights* a menu title, so without it the item letters keep
+type-selecting along the menu bar row and Enter fires on whichever title is highlighted by then.
+
+The typed letters are ordinary type-select input and go through the macOS Colemak input source, so
+convert each one to the physical key that types it, exactly as for palette text.
+
+**These sequences need no pauses at all, and that is a property of menus rather than luck.** Menu
+tracking runs a modal event loop that consumes the event queue in order, so each event waits for the
+stage before it instead of racing it. The Cmd+Shift+1/2 sidebar-tab rule shipped first with
+150/150/150/120ms; a probe of the same sequence at 0ms then passed 20 of 20 presses, so those
+constants were covering nothing. The floor here is zero, not merely small, and a margin over a floor
+of zero would be paying latency on every press to cover a race that was shown not to exist.
+
+This is the opposite of the click rules above, and the distinction is worth holding onto: a
+synthetic click races a live UI that may not have drawn the target yet, so it needs a real wait or a
+poll. A queued key event does not. Before reaching for `hold_down_milliseconds`, ask which of the
+two you are actually in — the constants only belong in the first.
+
+(The 20 presses were unloaded. If a menu rule ever misfires, suspect a busy renderer delaying the
+menu, and measure before adding a constant back.)
+
 ## Debugging rules that misbehave
 
 Learned the slow way on the Notion archive and Messages tapback rules:
@@ -189,8 +216,24 @@ Learned the slow way on the Notion archive and Messages tapback rules:
   press, after many rounds of theorizing had not.
 - **Small samples lie near a threshold.** Once failures are probabilistic, "worked every time" over
   a handful of presses cannot distinguish 100% from 90%. Three configurations passed a short test
-  and then failed in use. Do not tune to the smallest passing value — leave margin, or better,
-  remove the race entirely.
+  and then failed in use, so a pass at one value is a data point, not a floor.
+- **Seek the floor by binary search; add the margin once, at the end.** Picking a value that feels
+  safe and stopping there is guessing dressed up as caution: it leaves the real cliff unmeasured, so
+  every later misfire reopens the whole question instead of moving a known number. Drive each pause
+  down until it actually fails, with enough trials per value that a probabilistic failure shows up,
+  and only then add a fixed margin over the measured floor. Do not hand-wave a split between pauses
+  that "wait on a real transition" and ones that do not — measure each.
+- **A pause you cannot point at a measurement for is a race, not a margin.** The 200ms hold the four
+  click rules use to cover `restore-mouse-position.js` reading the cursor measured p50 101ms over 400
+  samples — but the tail reached 300ms and once 963ms, so it silently loses a percent or two of
+  presses. It reads as a comfortable 2x margin and is really a coin flip against the tail. Measure
+  the distribution and size the constant to that, not to the typical case — or remove the spawn the
+  constant is covering, which is what actually fixed those rules.
+- **Bisect the underlying UI, not the rule.** Karabiner cannot be triggered synthetically — it grabs
+  the physical device, so injected CGEvents never reach its rules — but the transitions the pauses
+  are covering are plain macOS behaviour and can be replayed with granted synthetic events and
+  bisected automatically. That turns a floor search from dozens of hand presses into an unattended
+  sweep. Detect success from something pollable rather than a screenshot per trial.
 - **A model that needs revising every round is the signal to stop tuning.** Five plausible models
   each explained the evidence and then broke. Stop turning knobs and find a decisive measurement.
 - **Measure end-to-end.** A latency figure summed from a script's sleep constants was wrong about
