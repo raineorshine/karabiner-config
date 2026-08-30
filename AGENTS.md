@@ -107,7 +107,33 @@ spawns inherit it. Run the same command from a terminal and the events are silen
 the cursor never moves — that is *not* evidence the approach fails. Test a mechanism in the context
 where it will actually run before ruling it out.
 
-**If you do write a Karabiner-native click** (`pointing_button`), two non-obvious rules:
+**But do not assume that inheritance holds — probe it.** In the Messages tapback rule the same
+`CGEventPost` calls were silently filtered *under Karabiner*: a posted mouse-moved event never moved
+the pointer, across six traced presses, while the Notion rule's `mouse-click.js` kept working from an
+identically shaped `shell_command`. That script also saw `AXIsProcessTrusted()` return false, every
+accessibility read return null, and `CGWindowListCopyWindowInfo` come back with window titles
+redacted — so it had neither Accessibility nor Screen Recording. Why one rule keeps the permission
+and the other does not is unresolved. Have the script log what it actually got before building on it.
+
+**`CGWarpMouseCursorPosition` needs no permission at all.** So a script that only has to *position*
+the pointer can leave the clicking to Karabiner's `pointing_button`, which is posted by Karabiner
+itself and always works. That is the shape the Messages tapback rule uses, and it is the fallback
+whenever posting turns out to be filtered.
+
+**A popup's position can be read rather than predicted.** `CGWindowListCopyWindowInfo` needs no
+permission either — without Screen Recording it drops window *titles*, but bounds, owner, and layer
+still come back — and a context menu is a window of its own at layer 101. Reading its frame beats
+measuring an offset from the click: macOS pins a menu above the bottom of the screen when it will
+not fit below, and the height it pins from grows with the menu's items, so a message carrying a link
+puts the menu where a measured offset would miss. Poll for the window instead of waiting a fixed
+time — that removes the race rather than tuning it, and a poll that expires tells you the popup
+never opened at all.
+
+**Anchor to something you control.** When the target moves with the content — the Messages tapback
+bar follows its bubble's width *and* height — do not chase it. A context menu is anchored to the
+click instead, so right-clicking a point you picked makes every position downstream fixed.
+
+**If you do write a Karabiner-native click** (`pointing_button`), three non-obvious rules:
 
 - The **last** `to` event is held down until the from key is released, so a trailing
   `pointing_button` keeps the mouse button down for as long as the chord is held — a press and
@@ -115,6 +141,10 @@ where it will actually run before ruling it out.
 - Mandatory modifiers are consumed on Karabiner's virtual keyboard, but the physical keys are still
   down when the click is posted, so it arrives as Shift+Click and extends a text selection across
   the page. Add `"modifiers": []` to the click.
+- A **right-click needs `hold_down_milliseconds`**. The context menu opens on the mouse *down* and
+  starts a modal tracking loop; Karabiner releases the button immediately, and an up that lands
+  before that loop is installed dismisses the menu again. It failed 5 times in 6 with no hold and 0
+  times in 6 with 150ms. A left click needs no hold, which is why the older rules do not carry one.
 
 **Coordinates** are absolute points on the main display, and only land while the target window is in
 its usual position and size — say so in the rule's `comment`. `screencapture -R x,y,w,h` takes
@@ -126,8 +156,16 @@ eyeballing a pasted screenshot does not.
 
 ## Debugging rules that misbehave
 
-Learned the slow way on the Notion archive rule:
+Learned the slow way on the Notion archive and Messages tapback rules:
 
+- **Instrument inside the script.** It runs in the context that holds the permissions, so having it
+  append what it saw — pointer position, whether the popup's window existed, how long it waited —
+  turned "it stops short sometimes" into "the right-click produced no menu in 5 of 6, within 300ms"
+  in a single round of presses. Ask the user for a batch and count, rather than one press at a time.
+- **Capture the screen from your own shell, not from the rule.** The shell has Screen Recording
+  where the Karabiner-spawned script may not, so a capture loop gated on the target app being
+  frontmost collects the pixels to measure while the user drives the UI. Measure the result in
+  code — colour runs along a row and column give exact edges; eyeballing a crop does not.
 - **Use a control.** Clicking an always-visible button (the sidebar search icon) with the same
   sequence separated "synthetic clicks work in this app" from "this button is special" in a single
   press, after many rounds of theorizing had not.
@@ -139,6 +177,10 @@ Learned the slow way on the Notion archive rule:
   each explained the evidence and then broke. Stop turning knobs and find a decisive measurement.
 - **Measure end-to-end.** A latency figure summed from a script's sleep constants was wrong about
   where the time actually went; timing the real command settled it in one step.
+- **Two JXA traps that only bite once the call works.** `String(someNSString)` yields the literal
+  `[id __NSCFString]` — use `ObjC.unwrap()`; it silently replaced a trace log's contents. And an
+  untyped `Ref()` throws `Ref has incompatible type` when an accessibility call *succeeds*, so a
+  probe that returns an error for lack of permission looks healthy and only breaks once granted.
 
 ## Communication
 
