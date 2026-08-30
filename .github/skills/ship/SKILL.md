@@ -90,3 +90,7 @@ MAIN=$(git worktree list | head -1 | awk '{print $1}') && git -C "$MAIN" push or
   ```
 
   Only do this when the user confirms the worktree is no longer needed.
+
+### 7. Print the completion message
+
+Print `🚀 Shipped` as the last line of the response.
