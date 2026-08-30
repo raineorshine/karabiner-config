@@ -391,10 +391,11 @@ Every trial costs a human press, so design for information per press.
 the archive rule a `z`, which only extends the query — and read whether the UI was ready in the frame
 the marker landed in. Read *only* that frame: anything the marker itself changes (the `z` restarts
 the palette's query) makes every later frame a measurement of the probe, which inflated a "the row
-needs 150-300ms" figure here before it was caught. The proxy predicted 3/3 failures that the real
-Enter then reproduced. It has never been confirmed in the passing direction — Enter runs the palette's
-command handler while `z` goes into the text field — so a short real-Enter batch is still owed at
-whatever value ships.
+needs 150-300ms" figure here before it was caught. Check the proxy against the real action in both
+directions before trusting it. Here it predicted 3/3 failures that the real Enter reproduced, and the
+value it produced was then confirmed by hand with the real Enter — worth doing separately, because
+Enter runs the palette's command handler while `z` goes into the text field, so a marker that passes
+is not by itself proof that the real key will.
 
 **One generous delay beats a sweep.** A sweep spends presses to learn one bit each, and censors
 exactly the presses that matter: a press at 50ms can never reveal that it needed 90. Run every press
