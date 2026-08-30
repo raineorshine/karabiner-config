@@ -395,7 +395,8 @@ needs 150-300ms" figure here before it was caught. Check the proxy against the r
 directions before trusting it. Here it predicted 3/3 failures that the real Enter reproduced, and the
 value it produced was then confirmed by hand with the real Enter — worth doing separately, because
 Enter runs the palette's command handler while `z` goes into the text field, so a marker that passes
-is not by itself proof that the real key will.
+is not by itself proof that the real key will. A hand confirmation is a handful of presses, though:
+it rules out a broken proxy, not a rare false negative. Only ordinary use over weeks tests that.
 
 **One generous delay beats a sweep.** A sweep spends presses to learn one bit each, and censors
 exactly the presses that matter: a press at 50ms can never reveal that it needed 90. Run every press
