@@ -268,9 +268,30 @@ was observed rather than to how alarming the failure felt. Err fast in the meant
 zero: the menu-bar sequence shipped at 150/150/150/120ms and passed 20/20 at 0; Cmd+P's warp-to-click
 gap was 100ms and passed 10/10 at 0; Cmd+Shift+G's two gaps were 100ms each and passed 10/10 at 0/0.
 One was too *small*: the 200ms covering a script spawn, measured p50 101ms against a 963ms tail, and
-fixed by removing the spawn rather than by raising it. Exactly one survived contact — the 150ms hold
-on a right-click, which failed 5 times in 6 without it. That is what an earned constant looks like:
-a failure count at a specific value, written next to it.
+fixed by removing the spawn rather than by raising it. Exactly one survived contact unchanged — the
+150ms hold on a right-click, which failed 5 times in 6 without it. That is what an earned constant
+looks like: a failure count at a specific value, written next to it.
+
+**And one turned out not to be a constant problem at all.** The archive rule's 120ms before Enter
+failed 3 times out of 3 under CPU load. It went to 350ms on the first measurement, then back to 120ms
+once the query it types was shortened from `archive` to `arch` — because what it was short against
+was the app's backlog from its own seven keystrokes, and four keystrokes cost less. Ask what a pause
+is waiting *behind*, not only how long the thing it waits *for* takes; the rule's own input is part
+of the answer. A too-short pause also fails intermittently and blames itself on something else, which
+is how that rule went a long time looking like a flaky app rather than a wrong number.
+
+**A hold is not always the slack the app sees — seen in the Claude app, untested elsewhere.**
+`hold_down_milliseconds` delays Karabiner's *emission*, not the app's *processing*. The Claude app
+renders a burst of keystrokes a few at a time (its palette field steps through visibly distinct
+partial widths), so it is still draining them when the next event arrives, and the gap it experiences
+is shorter than the constant — shrinking further under load, exactly when the pause was needed.
+There, under CPU throttle: a 120ms hold after seven letters delivered Enter 67ms after the last
+letter rendered, the other 53ms eaten by backlog; four letters cut that cost to about 30ms. Two
+consequences *in that app*: count the keystrokes a rule sends as part of its cost, and size a hold
+against a measurement taken at the app rather than the number in the config. Whether any other app
+queues input this way has not been checked here, and the menu-bar sequence — which floors at zero
+after 20 presses — is evidence that not everything does. Also measure under load: idle, that rule's
+race did not reproduce at all in 15 presses.
 
 **Say so when a value is un-searched.** Cmd+Shift+P keeps a 100ms gap not because it was measured but
 because its target is the Create PR button and a binary search would fire it once per press. Its
@@ -310,11 +331,18 @@ Learned the slow way on the Notion archive and Messages tapback rules:
   presses. It reads as a comfortable 2x margin and is really a coin flip against the tail. Measure
   the distribution and size the constant to that, not to the typical case — or remove the spawn the
   constant is covering, which is what actually fixed those rules.
-- **Bisect the underlying UI, not the rule.** Karabiner cannot be triggered synthetically — it grabs
-  the physical device, so injected CGEvents never reach its rules — but the transitions the pauses
-  are covering are plain macOS behaviour and can be replayed with granted synthetic events and
-  bisected automatically. That turns a floor search from dozens of hand presses into an unattended
-  sweep. Detect success from something pollable rather than a screenshot per trial.
+- **When the last keystroke is destructive, measure a marker key instead.** That is where the archive
+  rule's floor came from; the method, and the traps in it, are in "Measuring against the Claude app
+  with video" below.
+- **Bisect the underlying UI, not the rule — if you can post events at all, which right now you
+  cannot.** Karabiner cannot be triggered synthetically: it grabs the physical device, so injected
+  CGEvents never reach its rules. The transitions the pauses cover are plain macOS behaviour and
+  could be replayed and bisected automatically, turning a floor search from dozens of hand presses
+  into an unattended sweep — but that needs Accessibility, and this machine does not grant it:
+  `osascript` gets "not allowed to send keystrokes" (System Events error 1002), while Automation to
+  System Events *is* granted, so a harmless call like `get name of first process` succeeds and makes
+  the permission look present. Check with an actual keystroke before planning a sweep around it. When
+  it is unavailable, every trial costs a human press — see the video section for how to spend them.
 - **A model that needs revising every round is the signal to stop tuning.** Five plausible models
   each explained the evidence and then broke. Stop turning knobs and find a decisive measurement.
 - **Measure end-to-end.** A latency figure summed from a script's sleep constants was wrong about
@@ -334,6 +362,88 @@ Learned the slow way on the Notion archive and Messages tapback rules:
   `[id __NSCFString]` — use `ObjC.unwrap()`; it silently replaced a trace log's contents. And an
   untyped `Ref()` throws `Ref has incompatible type` when an accessibility call *succeeds*, so a
   probe that returns an error for lack of permission looks healthy and only breaks once granted.
+
+## Measuring against the Claude app with video
+
+Where the archive rule's floor came from. The capture and analysis mechanics are general; **every
+number and every claim about palette behaviour below is the Claude desktop app only**, and none of it
+has been checked against another app.
+
+**What the palette does (Claude app).** Typing into Cmd+K updates in two stages: the field and the
+quick actions take the query immediately, while the contextual `Archive "<title>"` / `Delete
+"<title>"` rows arrive only once the query resolves. Until they land, Enter belongs to `New chat
+"<query>"` — its Enter badge turns red — and firing it posts the query as the first message of a new
+chat. Lag from the last letter rendering to Archive owning Enter: 0-50ms idle over 15 presses typing
+`archive`, and 17-83ms at 100% CPU load over 19 presses typing `arch`.
+
+**Clicking the row is not the safer alternative there.** When the chat's title matches the query,
+`Delete "<title>"` renders directly under `Archive "<title>"` — Archive spans roughly y 232-255pt and
+Delete starts at ~257pt, with the window at 0,34 735x922. A click 13pt low deletes the chat. Before
+the rows land, that same point is over the inert "Quick actions" header, so the early failure is
+harmless and the late-aim failure is not.
+
+**Presses are the scarce resource; there is no synthetic input.** Karabiner grabs the physical device,
+so injected events never reach its rules, and `osascript` is refused keystroke permission on this
+machine (System Events error 1002 — Automation to System Events is granted, Accessibility is not).
+Every trial costs a human press, so design for information per press.
+
+**Marker probe.** Replace a destructive final keystroke with a harmless one at the same offset — for
+the archive rule a `z`, which only extends the query — and read whether the UI was ready in the frame
+the marker landed in. Read *only* that frame: anything the marker itself changes (the `z` restarts
+the palette's query) makes every later frame a measurement of the probe, which inflated a "the row
+needs 150-300ms" figure here before it was caught. The proxy predicted 3/3 failures that the real
+Enter then reproduced. It has never been confirmed in the passing direction — Enter runs the palette's
+command handler while `z` goes into the text field — so a short real-Enter batch is still owed at
+whatever value ships.
+
+**One generous delay beats a sweep.** A sweep spends presses to learn one bit each, and censors
+exactly the presses that matter: a press at 50ms can never reveal that it needed 90. Run every press
+at a delay high enough that all of them pass, and compute what each one *needed* — nominal minus the
+gap between "ready" and the marker. 15 presses that way gave a full distribution (17-67ms); the
+sweep's 19 gave four buckets of five with the interesting values censored.
+
+**Include an arm that must fail.** The 0ms arm was a positive control. When it *passed*, the detector
+was wrong rather than the app — the red badge's absence covers both "Archive owns Enter" and "the
+palette has not reacted to the query yet". Without that arm the sweep would have read as clean.
+
+**Encode the arm in the pixels.** Timing alone did not separate the delay arms under load; they
+blurred into a continuum. Giving each arm a different number of marker keys (1/2/3/4 `z`s) made the
+final query width name the arm exactly, and cost nothing, since the verdict is read at the first
+marker's frame.
+
+**Capture recipe.**
+
+```
+ffmpeg -f avfoundation -capture_cursor 0 -framerate 60 -i "3:none" \
+  -vf "crop=W:H:X:Y" -c:v libx264 -preset ultrafast -crf 20 out.mp4
+```
+
+Device index from `-f avfoundation -list_devices true -i ""`. Crop in *screen pixels* (2x points on
+this display) to the smallest region that answers the question — 980x210 here. A full-window 60fps
+capture is heavy enough to perturb what it measures, and a `screencapture` shell loop tops out at
+8-10Hz, far too coarse for a 17ms transition. `-vsync` no longer exists; it is `-fps_mode`.
+
+**Extract frames with `-fps_mode passthrough` and take times from pts.** Without it ffmpeg pads to CFR
+and frame indices stop matching `ffprobe -show_entries frame=pts_time` — 8069 against 8033 in one run
+— which silently shifts every measurement. The capture also drops frames under load (51fps of a
+requested 60), so index x 16.7ms is not a clock.
+
+**Detector traps, each of which produced a confident wrong answer first.**
+
+- A row's mean brightness mixes its dark background with its white text and lands *between* the two
+  states. Use the minimum row-mean over the band, so the row's dark padding is what is detected:
+  12 against 29 here, unambiguous.
+- Bound every search to its own trial. A "when did the row appear" search that runs past the palette
+  closing finds the *next* press and reports 1.6s.
+- Walking back from the marker to a plateau finds its last frame, not its first. The reference has to
+  be the first.
+- Content behind the palette imitates a trial. Require a trial to pass through the states a press must
+  pass through — empty field, then the query's width, then the marker — and require the row to start
+  absent.
+
+**What hand pressing cannot reach.** 17ms of resolution at 60fps, and ~20 presses characterise a tail
+to roughly the 1-in-20 level. The far tail is not measurable this way. Say so next to the number
+instead of implying the floor is airtight.
 
 ## Communication
 
