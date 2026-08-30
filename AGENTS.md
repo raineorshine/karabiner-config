@@ -154,6 +154,24 @@ eyeballing a pasted screenshot does not.
 **Validate before handing it over**: `karabiner_cli --lint-complex-modifications` on a
 `{"title":…,"rules":[…]}` file, and `node build.js karabiner.json` to confirm the README renders.
 
+## Testing a change (worktrees + the live-config lock)
+
+`~/.config/karabiner/karabiner.json` is both the main checkout's working file and the only file
+Karabiner-Elements reads. Worktrees keep their own copy, which Karabiner ignores — so **editing is
+parallel, testing is serial**. Testing also contends for my keyboard: two sessions cannot both ask
+me to press a key.
+
+- Develop in a worktree under `.claude/worktrees/`. Leave the main checkout as the live slot.
+- **Never copy a branch config over the live file directly.** Testing goes through the mutex in
+  `scripts/karabiner-test-lock.sh`, which snapshots the live config first and restores it
+  byte-exactly on release — including uncommitted work.
+- Acquire late, release fast: writing the rule, the Colemak conversion, and `npm run build` need
+  no lock. Take it only for the keypress test.
+- Run `./scripts/karabiner-test-lock.sh status` before committing `karabiner.json` from the main
+  checkout. While another worktree holds the lock, the live file contains *their* rules.
+
+Full procedure: the **test** skill. Landing it on main: the **ship** skill.
+
 ## Debugging rules that misbehave
 
 Learned the slow way on the Notion archive and Messages tapback rules:
