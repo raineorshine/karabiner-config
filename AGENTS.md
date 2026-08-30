@@ -88,15 +88,20 @@ on screen*. Done this way a click rule needs no `hold_down_milliseconds` at all:
 Cmd+Shift+U are a bare warp, click, `vk_none` and fire with no deliberate delay. Cmd+Shift+P and
 Cmd+Shift+G still carry the older spawn-and-hold shape described below.
 
-**Switch to the script when the target only appears on hover.** `set_mouse_cursor_position` *warps*
-the cursor without posting a mouse event, and Chromium/Electron apps track their hover target from
-events rather than from where the cursor is. A button that exists only while its row is hovered
-therefore paints as hovered while the click hit-tests against the element underneath and activates
-that instead. Every workaround fails: extra warps, one-point nudges, two-stage hovers, `mouse_key`
-motion, double clicks, and dwell tuning in either direction (130ms worked, 250ms was flaky, 400ms
-failed outright). Only real motion fixes it — and real motion means posted events, which are not
-always available (below). A hover-revealed target in a context where posting is filtered has no
-route at all: recognise that as a dead end rather than tuning at it.
+**A hover-revealed target may need real motion — observed in Notion, and only there.**
+`set_mouse_cursor_position` *warps* the cursor without posting a mouse event. Notion's archive
+button, which exists only while its row is hovered, painted as hovered while the click hit-tested
+against the element underneath and activated that instead. Every workaround failed *there*: extra
+warps, one-point nudges, two-stage hovers, `mouse_key` motion, double clicks, and dwell tuning in
+either direction (130ms worked, 250ms was flaky, 400ms failed outright). Only real motion fixed it.
+
+The explanation usually given — that Chromium/Electron track the hover target from events rather
+than from where the cursor is — is a hypothesis fitted to that one rule in that one app. It has not
+been checked anywhere else, so it is not a reason to expect the same of any other hover-revealed
+button, in Electron or otherwise. Warp and click first; reach for the script when warp-and-click has
+actually been seen to fail on the target in front of you. And note the corner this leaves: if an app
+does need posted motion *and* posting is filtered there (below), there is no route at all —
+recognise that as a dead end rather than tuning at it.
 
 `scripts/mouse-click.js <x> <y> [--no-click] [--no-restore]` walks the pointer there with real
 `CGEvent`s, clicks with the modifier flags cleared, and restores the cursor. The Notion archive rule
@@ -106,7 +111,10 @@ and 50ms settle are added. That is why it is not the default — and why it cann
 since the spawn dominates whatever pauses you trim.
 
 **Diagnosing which case you are in:** click something always-visible nearby with a plain warp and
-click. If that works and your target does not, the target needs the script.
+click. If that works and your target does not, the difference is the target, not the mechanism —
+which narrows it, but does not tell you the script is the fix. That was only ever established for
+Notion's hover-revealed archive button. Confirm posting works at all (below) before assuming the
+script is available as a remedy.
 
 **Whether a spawned script may post `CGEvent`s is unpredictable — probe it every time.** Posting
 needs Accessibility. Karabiner holds it and its children sometimes inherit it, but not dependably,
@@ -123,10 +131,16 @@ Have the rule spawn a script that reads the cursor, posts a mouse-moved 80pt awa
 logs both. `before=238 after=238 moved=0` is the whole answer. A terminal run proves nothing in
 either direction: your shell's permissions are not Karabiner's child's.
 
-**Do not carry a technique across apps on the strength of it working in one.** `mouse-click.js`
-works for Notion; that was taken as reason to expect it in the Claude app, and it does not work
-there. The reverse inference is just as unsafe: its failure there is not evidence the Notion rule
-has stopped working. Each app, each rule, gets its own probe.
+**Do not carry a technique, a mechanism, or a failure mode across apps on the strength of one
+rule.** `mouse-click.js` works for Notion; that was taken as reason to expect it in the Claude app,
+and it does not work there. The reverse inference is just as unsafe: its failure there is not
+evidence the Notion rule has stopped working. This cuts wider than it looks — most findings in this
+section rest on a single rule in a single app (hover-revealed buttons on Notion, filtered posting
+on Messages and Claude, the right-click hold on Messages, the zero-pause menu sequence on Claude).
+Each
+is a real measurement of the case it was taken from and a guess about anywhere else. Read them as
+"here is what to probe for" rather than "here is how apps behave", and write down which app a new
+finding came from.
 
 **`CGWarpMouseCursorPosition` needs no permission at all.** So a script that only has to *position*
 the pointer can leave the clicking to Karabiner's `pointing_button`, which is posted by Karabiner
