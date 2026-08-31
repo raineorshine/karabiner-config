@@ -280,6 +280,15 @@ is waiting *behind*, not only how long the thing it waits *for* takes; the rule'
 of the answer. A too-short pause also fails intermittently and blames itself on something else, which
 is how that rule went a long time looking like a flaky app rather than a wrong number.
 
+**That one then failed in ordinary use, the day it shipped.** 19 hand presses under a deliberate CPU
+throttle put the requirement at 17-83ms and the floor at 100ms; 120ms shipped; a real press beat it
+within hours, and the hold is now 150ms. Nothing in the measurement was wrong — it simply never
+reached the tail, which is the documented limit of ~20 hand presses, and the limit was written next
+to the number before it bit. Two things follow. A measured floor bounds the *typical* case; headroom
+over it is a separate decision, and on a rule whose failure costs something, the floor is the wrong
+place to ship. And when a rule with an earned constant misfires, raise that constant first — the
+floor is not what is in doubt, and re-deriving it burns presses to re-learn what is already known.
+
 **A hold is not always the slack the app sees — seen in the Claude app, untested elsewhere.**
 `hold_down_milliseconds` delays Karabiner's *emission*, not the app's *processing*. The Claude app
 renders a burst of keystrokes a few at a time (its palette field steps through visibly distinct
