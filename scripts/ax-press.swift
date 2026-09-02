@@ -29,8 +29,8 @@
 //   --dry-run         find and report but do not press
 //   --dump            list every element whose label contains <label>, with roles and frames
 //   --prompt          ask macOS for Accessibility with the system dialog if it is not granted
-//   --log <path>      also append the report line to this file (hardcode the path; Karabiner
-//                     spawns commands with no $HOME)
+//   --log             also append the report line to .claude/ax-press.log in the checkout this
+//                     binary lives in (a fixed path, so an argument cannot point it at another file)
 //   --budget-ms <n>   stop searching after this long (default 2000)
 //   --enhanced        also set AXEnhancedUserInterface on the app, the switch VoiceOver uses; only
 //                     if AXManualAccessibility, which is set always, does not make the app expose
@@ -55,8 +55,15 @@
 // near the end of the page, which is where the last response's buttons are, is found after visiting
 // a few dozen elements rather than the whole conversation.
 //
+// A helper that carries its own Accessibility grant is a confused deputy: the disclaim hands the
+// grant to whatever runs the binary, so any process running as the user could press any labelled
+// control in any app. The press is therefore refused unless Karabiner's console_user_server is
+// among this process's ancestors, checked by its full path under root-owned /Library. --dump and
+// --dry-run still work from a shell, so a label can be found without a rule; a real press cannot.
+//
 // Exit codes: 0 pressed, 2 not trusted, 3 app not running, 4 no match, 5 press failed, 6 no window,
-// 7 no match and the window's tree never grew past its own chrome (accessibility not enabled).
+// 7 no match and the window's tree never grew past its own chrome (accessibility not enabled),
+// 8 press refused because Karabiner did not launch this.
 
 import AppKit
 import ApplicationServices
@@ -75,7 +82,7 @@ struct Options {
   var dryRun = false
   var dump = false
   var prompt = false
-  var log: String?
+  var log = false
   var budgetMs = 2000
   var enhanced = false
   var pid: pid_t = 0
@@ -84,7 +91,7 @@ struct Options {
 }
 
 func usage() -> Never {
-  FileHandle.standardError.write("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--dry-run] [--dump] [--prompt] [--log PATH] [--budget-ms N] [--enhanced] [--pid N] [--sibling TEXT]\n".data(using: .utf8)!)
+  FileHandle.standardError.write("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--dry-run] [--dump] [--prompt] [--log] [--budget-ms N] [--enhanced] [--pid N] [--sibling TEXT]\n".data(using: .utf8)!)
   exit(64)
 }
 
@@ -100,7 +107,7 @@ func parse(_ argv: [String]) -> Options {
     case "--dry-run": options.dryRun = true
     case "--dump": options.dump = true
     case "--prompt": options.prompt = true
-    case "--log": i += 1; guard i < argv.count else { usage() }; options.log = argv[i]
+    case "--log": options.log = true
     case "--budget-ms": i += 1; guard i < argv.count, let n = Int(argv[i]) else { usage() }; options.budgetMs = n
     case "--enhanced": options.enhanced = true
     case "--pid": i += 1; guard i < argv.count, let n = Int32(argv[i]) else { usage() }; options.pid = n
@@ -148,6 +155,44 @@ func respawnDisclaimed() -> Never {
   // WIFEXITED / WEXITSTATUS as macros are not importable; decode by hand.
   let exited = (status & 0x7f) == 0
   exit(exited ? (status >> 8) & 0xff : 128 + (status & 0x7f))
+}
+
+// MARK: - Who launched this
+
+@_silgen_name("proc_pidpath")
+func libproc_pidpath(_ pid: Int32, _ buffer: UnsafeMutablePointer<CChar>, _ buffersize: UInt32) -> Int32
+
+/// Karabiner-Elements 15 runs shell_commands from this agent. It lives under root-owned /Library,
+/// which is why matching the full path is worth something and matching the name would not be.
+let karabinerServer = "/Library/Application Support/org.pqrs/Karabiner-Elements/Karabiner-Console-User-Server.app/Contents/MacOS/Karabiner-Console-User-Server"
+
+func parentPid(of pid: pid_t) -> pid_t? {
+  var info = kinfo_proc()
+  var size = MemoryLayout<kinfo_proc>.stride
+  var mib: [Int32] = [CTL_KERN, KERN_PROC, KERN_PROC_PID, pid]
+  guard sysctl(&mib, UInt32(mib.count), &info, &size, nil, 0) == 0, size > 0 else { return nil }
+  return info.kp_eproc.e_ppid
+}
+
+func executablePath(of pid: pid_t) -> String? {
+  var buffer = [CChar](repeating: 0, count: 4096)
+  let length = libproc_pidpath(pid, &buffer, UInt32(buffer.count))
+  return length > 0 ? String(cString: buffer) : nil
+}
+
+/// Walk up from the parent. Under Karabiner the chain is: the first, undisclaimed stage of this
+/// binary, then sh (unless it exec'd its last command), then Karabiner-Console-User-Server.
+func launchedByKarabiner() -> (Bool, [String]) {
+  var chain: [String] = []
+  var pid = getppid()
+  for _ in 0..<8 where pid > 1 {
+    let path = executablePath(of: pid) ?? "?"
+    chain.append((path as NSString).lastPathComponent)
+    if path == karabinerServer { return (true, chain) }
+    guard let next = parentPid(of: pid) else { break }
+    pid = next
+  }
+  return (false, chain)
 }
 
 // MARK: - Accessibility helpers
@@ -290,9 +335,18 @@ func timestamp() -> String {
   return formatter.string(from: Date())
 }
 
+/// The one place this binary writes: <checkout>/.claude/ax-press.log, found from its own location
+/// (<checkout>/scripts/bin/). Fixed on purpose, so no argument can aim an append at another file.
+let logPath: String = {
+  let binary = URL(fileURLWithPath: Bundle.main.executablePath ?? CommandLine.arguments[0]).resolvingSymlinksInPath()
+  return binary.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+    .appendingPathComponent(".claude/ax-press.log").path
+}()
+
 func report(_ options: Options, _ line: String) {
   print(line)
-  guard let path = options.log else { return }
+  guard options.log else { return }
+  let path = logPath
   let entry = "\(timestamp()) \(line)\n"
   if let handle = FileHandle(forWritingAtPath: path) {
     handle.seekToEndOfFile()
@@ -315,6 +369,15 @@ func main() {
   if !trusted {
     report(options, "trusted=false app=\(options.bundleId) total_ms=\(millis(since: start))")
     exit(2)
+  }
+
+  // Reading is allowed from anywhere; pressing only for Karabiner. See the header.
+  if !options.dryRun && !options.dump {
+    let (fromKarabiner, ancestors) = launchedByKarabiner()
+    if !fromKarabiner {
+      report(options, "trusted=true app=\(options.bundleId) refused=not-launched-by-karabiner ancestors=\(ancestors.joined(separator: "<")) total_ms=\(millis(since: start))")
+      exit(8)
+    }
   }
 
   let candidate = options.pid != 0

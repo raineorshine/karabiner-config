@@ -88,7 +88,7 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
 - Messages: Cmd+E -> open the emoji picker for the last received message (physical key k in Colemak)
   - Command + `k` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/restore-mouse-position.js" 1.4`, `Move cursor to (360, 890)`, `Right Click`, `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/move-to-tapback-picker.js"`, `Left Click`
 - ChatGPT: Cmd+Shift+C -> copy the last response (press its Copy button via accessibility)
-  - Command + Shift + `c` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.openai.codex Copy --sibling "Good response" --log /Users/raine/.config/karabiner/.claude/ax-press.log`
+  - Command + Shift + `c` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.openai.codex Copy --sibling "Good response" --log`
 
 
 ## karabiner-config-to-markdown

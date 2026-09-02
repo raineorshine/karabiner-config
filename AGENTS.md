@@ -231,7 +231,17 @@ helpers, so the child is judged as the binary wherever it was launched from: gra
 Settings, it reported trusted=true from a shell and from Karabiner alike. The grant is keyed to the
 binary's ad-hoc signature, so every rebuild needs it granted again — six rebuilds, six regrants in
 the session that built it; `scripts/build-ax-press.sh` has the steps, and a self-signed signing
-certificate is the fix if that ever becomes routine. Name the binary so the
+certificate is the fix if that ever becomes routine.
+
+**A helper that carries its own grant is a confused deputy, so it presses only for Karabiner.** The
+disclaim hands the binary's Accessibility to whatever runs it, which would let any process running as
+the user press any labelled control in any app with no interaction — where abusing Karabiner's own
+input injection at least needs a rule written into `karabiner.json` and a keypress to fire it. So the
+helper refuses to press unless Karabiner's `Karabiner-Console-User-Server` is among its ancestor
+processes (checked by full path, under root-owned `/Library`, not by name), logs to one fixed file
+under `.claude/` rather than a path from its arguments, and leaves `--dump` and `--dry-run` usable
+from a shell, since reading labels is the modest end of what it can do. Testing a real press
+therefore always goes through the rule. Name the binary so the
 Accessibility list says whose it is (`karabiner-config-ax-press`, not `ax-press`), and make the tool
 take everything as arguments so a new rule never needs a rebuild.
 
