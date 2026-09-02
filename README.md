@@ -31,6 +31,8 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
 - Claude app: Cmd+Shift+1 -> menu bar, View > Previous Sidebar Tab; Cmd+Shift+2 -> menu bar, View > Next Sidebar Tab
   - Command + Shift + `1` → fn + Ctrl + `f2`, `v`, `↓`, `r`, `s`, `k`, `v`, `return_or_enter`
   - Command + Shift + `2` → fn + Ctrl + `f2`, `v`, `↓`, `j`, `k`, `x`, `f`, `return_or_enter`
+- Claude app: Cmd+Option+. -> open the current chat's context menu (via accessibility)
+  - Command + Option + `.` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.anthropic.claudefordesktop "More options for {}" --role AXPopUpButton --label-from "{}, rename session" --action AXShowMenu --first --log`
 - Quick Chars
   - L-Option + `'` → `` ` ``
   - L-Option + `t` → `~`

@@ -40,6 +40,17 @@
 //   --sibling <text>  only match a control that shares its parent with a control labelled <text>,
 //                     which tells one "Copy" button from another: the one beneath a ChatGPT
 //                     response sits next to "Good response", a code block's does not
+//   --action <AXAction>
+//                     perform this action instead of AXPress. AXShowMenu opens the control's
+//                     context menu, the same one a right-click would: Chromium implements it for
+//                     every web node by dispatching a contextmenu event at the element
+//   --label-from <pattern>
+//                     fill the {} in <label> from another element on the page. <pattern> is a
+//                     label with one {} in it; the first element in document order, of any role,
+//                     whose label fits the pattern supplies the text. This is how a rule names a
+//                     control that is itself named after something on the page: the Claude app's
+//                     "More options for <chat>" button for the chat whose header button reads
+//                     "<chat>, rename session"
 //
 // Chromium and Electron do not build their accessibility tree until a client asks for it — and what
 // counts as asking is reading the application object's role, which this does first — and they build
@@ -63,7 +74,7 @@
 //
 // Exit codes: 0 pressed, 2 not trusted, 3 app not running, 4 no match, 5 press failed, 6 no window,
 // 7 no match and the window's tree never grew past its own chrome (accessibility not enabled),
-// 8 press refused because Karabiner did not launch this.
+// 8 press refused because Karabiner did not launch this, 9 nothing on the page fits --label-from.
 
 import AppKit
 import ApplicationServices
@@ -87,11 +98,13 @@ struct Options {
   var enhanced = false
   var pid: pid_t = 0
   var sibling: String?
+  var action = "AXPress"
+  var labelFrom: String?
   var worker = false
 }
 
 func usage() -> Never {
-  FileHandle.standardError.write("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--dry-run] [--dump] [--prompt] [--log] [--budget-ms N] [--enhanced] [--pid N] [--sibling TEXT]\n".data(using: .utf8)!)
+  FileHandle.standardError.write("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--dry-run] [--dump] [--prompt] [--log] [--budget-ms N] [--enhanced] [--pid N] [--sibling TEXT] [--action A] [--label-from PATTERN]\n".data(using: .utf8)!)
   exit(64)
 }
 
@@ -112,6 +125,11 @@ func parse(_ argv: [String]) -> Options {
     case "--enhanced": options.enhanced = true
     case "--pid": i += 1; guard i < argv.count, let n = Int32(argv[i]) else { usage() }; options.pid = n
     case "--sibling": i += 1; guard i < argv.count else { usage() }; options.sibling = argv[i]
+    case "--action": i += 1; guard i < argv.count else { usage() }; options.action = argv[i]
+    case "--label-from":
+      i += 1
+      guard i < argv.count, argv[i].components(separatedBy: "{}").count == 2 else { usage() }
+      options.labelFrom = argv[i]
     case "--worker": options.worker = true
     default:
       if argument.hasPrefix("--") { usage() }
@@ -251,6 +269,8 @@ struct ElementKey: Hashable {
 
 final class Search {
   let options: Options
+  /// The label to match: <label> as given, or with its {} filled in by --label-from.
+  var label: String
   let deadline: Date
   var visited = 0
   var timedOut = false
@@ -264,12 +284,13 @@ final class Search {
 
   init(options: Options) {
     self.options = options
+    label = options.label
     deadline = Date().addingTimeInterval(Double(options.budgetMs) / 1000)
   }
 
   func matches(_ element: AXUIElement) -> Bool {
     guard string(element, kAXRoleAttribute) == options.role else { return false }
-    guard labels(element).contains(where: { $0.1 == options.label }) else { return false }
+    guard labels(element).contains(where: { $0.1 == label }) else { return false }
     guard let sibling = options.sibling else { return true }
     guard let parent = attribute(element, kAXParentAttribute), CFGetTypeID(parent) == AXUIElementGetTypeID() else { return false }
     return children(parent as! AXUIElement).contains { labels($0).contains { $0.1 == sibling } }
@@ -307,6 +328,28 @@ final class Search {
     if matches(element) { return element }
     for child in children(element) {
       if let hit = findFirst(child, depth: depth + 1) { return hit }
+    }
+    return nil
+  }
+
+  /// The text one of this element's labels contributes to a pattern with one {} in it, or nil.
+  func fill(_ element: AXUIElement, pattern: String) -> String? {
+    let parts = pattern.components(separatedBy: "{}")
+    guard parts.count == 2 else { return nil }
+    for (_, value) in labels(element)
+    where value.hasPrefix(parts[0]) && value.hasSuffix(parts[1]) && value.count > parts[0].count + parts[1].count {
+      return String(value.dropFirst(parts[0].count).dropLast(parts[1].count))
+    }
+    return nil
+  }
+
+  /// Forward walk for --label-from: the first element in document order whose label fits.
+  func findFill(_ element: AXUIElement, pattern: String, depth: Int = 0) -> String? {
+    guard enter(element, depth: depth) else { return nil }
+    defer { leave(element) }
+    if let text = fill(element, pattern: pattern) { return text }
+    for child in children(element) {
+      if let text = findFill(child, pattern: pattern, depth: depth + 1) { return text }
     }
     return nil
   }
@@ -449,19 +492,37 @@ func main() {
   let retryInterval: UInt32 = 25_000
 
   var hit: AXUIElement?
+  var filled: String?
   var attempts = 0
   while true {
     attempts += 1
     search.visited = 0
-    for window in windows {
-      hit = options.first ? search.findFirst(window) : search.findLast(window)
-      if hit != nil { break }
+    if let pattern = options.labelFrom {
+      filled = nil
+      for window in windows {
+        filled = search.findFill(window, pattern: pattern)
+        if filled != nil { break }
+      }
+      search.label = filled.map { options.label.replacingOccurrences(of: "{}", with: $0) } ?? options.label
+    }
+    if options.labelFrom == nil || filled != nil {
+      for window in windows {
+        hit = options.first ? search.findFirst(window) : search.findLast(window)
+        if hit != nil { break }
+      }
     }
     if hit != nil || search.visited >= unpopulatedElementCount || search.timedOut || Date() > search.deadline { break }
     usleep(retryInterval)
   }
   let findMs = millis(since: start)
-  let stats = "attempts=\(attempts) visited=\(search.visited)\(search.timedOut ? " timed_out=true" : "") app_role=\(appRole) find_ms=\(findMs)"
+  let labelText = options.labelFrom == nil ? "" : " label=\"\(search.label)\""
+  let stats = "attempts=\(attempts) visited=\(search.visited)\(search.timedOut ? " timed_out=true" : "")\(labelText) app_role=\(appRole) find_ms=\(findMs)"
+
+  if options.labelFrom != nil && filled == nil {
+    let unpopulated = search.visited < unpopulatedElementCount
+    report(options, "trusted=true app=\(options.bundleId) found=false filled=false\(unpopulated ? " tree_exposed=false" : "") \(stats) total_ms=\(millis(since: start))")
+    exit(unpopulated ? 7 : 9)
+  }
 
   guard let target = hit else {
     let unpopulated = search.visited < unpopulatedElementCount
@@ -475,9 +536,10 @@ func main() {
     exit(0)
   }
 
-  let pressed = AXUIElementPerformAction(target, kAXPressAction as CFString)
+  let pressed = AXUIElementPerformAction(target, options.action as CFString)
   let ok = pressed == .success
-  report(options, "trusted=true app=\(options.bundleId) found=true pressed=\(ok)\(ok ? "" : " ax_error=\(pressed.rawValue)") \(stats) total_ms=\(millis(since: start)) \(description)")
+  let actionText = options.action == "AXPress" ? "" : " action=\(options.action)"
+  report(options, "trusted=true app=\(options.bundleId) found=true pressed=\(ok)\(actionText)\(ok ? "" : " ax_error=\(pressed.rawValue)") \(stats) total_ms=\(millis(since: start)) \(description)")
   exit(ok ? 0 : 5)
 }
 

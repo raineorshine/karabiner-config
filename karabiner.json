@@ -955,6 +955,30 @@
                         ]
                     },
                     {
+                        "comment": "Opens the right-click menu of the chat shown in the main pane, from the keyboard. The app has no route to it otherwise: nothing in the Cmd+/ list opens it, the menu bar has no session items (so a macOS App Shortcut cannot reach it), and Chromium on macOS compiles out Shift+F10 (web_frame_widget_impl.cc: is_shift_f10 = false under IS_MAC), so the menu was mouse-only -- asked for in anthropics/claude-code#60551 and auto-closed. karabiner-config-ax-press (scripts/ax-press.swift) learns which chat is current from the session header, whose title button is labelled '<chat>, rename session' (--label-from), then performs AXShowMenu on the sidebar row's 'More options for <chat>' AXPopUpButton (--action), which makes Chromium dispatch at that element the contextmenu event a right-click would (browser_accessibility_cocoa.mm: SupportsShowMenuAction is true for every web node and PerformShowMenuAction calls ShowContextMenu). What opens is the menu the right-click opens, so its own keys then work: letters for Pin, Mark as unread, Rename and Delete, arrows into Add to project and Move to group, 1-9 inside them. --first because the sidebar is at the start of the document, so a forward walk reaches the row after the sidebar's ~200 elements rather than after the transcript. Needs the sidebar visible and the row rendered: a chat scrolled out of the list or in a collapsed group is not in the tree. Inspected in the Code tab only; the Chat tab's header was not checked. Two chats with the same title: the first in the sidebar wins. Measured: a contextmenu dispatched at the hover-revealed (opacity-0) More-options button does open the row's menu -- 3 presses, 3 menus, 57-78ms from the helper starting to the event landing, 497 elements visited, the button found again after the row moved between presses (frame y 707 to 738), and a title carrying an emoji prefix derived intact. Three presses cannot tell 100% from 90%; ordinary use is the rest of the test. Fallback if it ever stops opening: --action AXPress on the same button opens its dropdown instead. Logs one line per press to .claude/ax-press.log.",
+                        "description": "Claude app: Cmd+Option+. -> open the current chat's context menu (via accessibility)",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "period",
+                                    "modifiers": { "mandatory": ["command", "option"] }
+                                },
+                                "to": [
+                                    {
+                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.anthropic.claudefordesktop \"More options for {}\" --role AXPopUpButton --label-from \"{}, rename session\" --action AXShowMenu --first --log"
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "description": "Quick Chars",
                         "manipulators": [
                             {
