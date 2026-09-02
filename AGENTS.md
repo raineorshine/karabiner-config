@@ -17,6 +17,10 @@ physical key that produces it in Colemak before writing the rule.
 - **`to` `shell_command`** — no key involved, nothing to convert.
 - Digits (0–9) and most symbols are **not** remapped by Colemak — use them as-is on
   both sides.
+- **Check the earlier manipulators on the same `key_code` before binding a chord.** Karabiner runs
+  the first match, and a `from` with `optional: ["any"]` matches every superset chord: the global
+  Cmd+M disable swallowed Cmd+Shift+M until the Claude app was exempted, while the Claude app's
+  Cmd+. rule has no optional modifiers, which is what lets Cmd+Option+. fall through to a later rule.
 
 Always add a `description` (and a `(physical key <x> in Colemak)` note when it helps,
 like the em-issues rule) so the mapping is self-documenting.
@@ -140,8 +144,7 @@ and it does not work there. The reverse inference is just as unsafe: its failure
 evidence the Notion rule has stopped working. This cuts wider than it looks — most findings in this
 section rest on a single rule in a single app (hover-revealed buttons on Notion, filtered posting
 on Messages and Claude, the right-click hold on Messages, the zero-pause menu sequence on Claude).
-Each
-is a real measurement of the case it was taken from and a guess about anywhere else. Read them as
+Each is a real measurement of the case it was taken from and a guess about anywhere else. Read them as
 "here is what to probe for" rather than "here is how apps behave", and write down which app a new
 finding came from.
 
@@ -214,8 +217,9 @@ The Copy button under ChatGPT's last response sits wherever the response ends, a
 shortcut or menu item for it (its bindable-shortcut registry was searched). `scripts/ax-press.swift`,
 built as `scripts/bin/karabiner-config-ax-press`, finds a control by role and label in the app's
 focused window and `AXPress`es it: no coordinates, no pointer movement, no restore, and the press
-lands on an element scrolled out of view. The ChatGPT Cmd+Shift+C rule is its one user so far —
-29-38ms from the helper starting to the press landing, 88 elements visited of 5297.
+lands on an element scrolled out of view. Two rules use it: ChatGPT's Cmd+Shift+C (29-38ms from the
+helper starting to the press landing, 88 elements visited of 5297) and the Claude app's Cmd+Option+.
+(57-78ms, 497 elements), which performs AXShowMenu rather than AXPress — see "Context menus".
 
 **Chromium puts aria-labels in `AXDescription`; tooltips are not in the tree at all.** The button the
 app's tooltip calls "Copy response" is `AXDescription="Copy"`, and code-block copy buttons carry the
@@ -243,7 +247,9 @@ under `.claude/` rather than a path from its arguments, and leaves `--dump` and 
 from a shell, since reading labels is the modest end of what it can do. Testing a real press
 therefore always goes through the rule. Name the binary so the
 Accessibility list says whose it is (`karabiner-config-ax-press`, not `ax-press`), and make the tool
-take everything as arguments so a new rule never needs a rebuild.
+take everything as arguments so a new rule never needs a rebuild. A new *label* never does; a new
+*capability* does — `--action` and `--label-from` were one — and each rebuild costs a regrant, so add
+an option general enough that the rule after it is arguments again.
 
 **Chromium exposes none of the page until an assistive client shows up, and what counts as showing
 up is asking the *application object* for its role.** A freshly launched ChatGPT — and Brave —
@@ -254,9 +260,12 @@ switch accessibility on in `accessibilityRole`, citing Apple's guidance for non-
 one `AXRole` read of the application element is the switch: the instance that had ignored everything
 else exposed its tree 124ms after it. The helper does this first thing; the sporadic exposures seen
 before it did were other clients on the machine happening to ask. The switches a client used to set
-are dead here — Electron's `AXManualAccessibility` is unsupported (-25205), `AXEnhancedUserInterface`
-returns not-implemented (-25208) in ChatGPT *and* Brave, and Chromium 151 no longer watches it (it
-observes `NSWorkspace.voiceOverEnabled` instead). `--force-renderer-accessibility` on the command
+are dead in ChatGPT *and* Brave — Electron's `AXManualAccessibility` is unsupported (-25205),
+`AXEnhancedUserInterface` returns not-implemented (-25208), and Chromium 151 no longer watches it (it
+observes `NSWorkspace.voiceOverEnabled` instead) — but the Claude desktop app (1.40609.0) still
+accepts `AXManualAccessibility` (returned 0) and exposed its tree between 1 and 2.5s after the first
+query. The app decides; the role read is the only switch known to work everywhere it has been tried,
+and whether a freshly launched Claude app exposes its tree on the first press is untested. `--force-renderer-accessibility` on the command
 line also works; the env var the app reads for extra switches is dev-build-only. Read the source
 before another round of probing: the answer was one fetch of `chrome_browser_application_mac.mm`
 away, after five rebuilds spent guessing. Untested: Chromium can drop accessibility for a web
@@ -283,27 +292,54 @@ with its own `--user-data-dir` (and, for this app, `CODEX_ELECTRON_USER_DATA_PAT
 process singleton, so the user's running instance and its Codex sessions are untouched. It signs into
 the same account, so delete the scratch profile afterwards.
 
-## Testing a change (worktrees + the live-config lock)
+**The tree does not say which item is current when the app keeps that in `data-*` attributes.** The
+Claude app's sidebar rows are identical to accessibility: `AXSelected` 0, `AXARIACurrent` empty, and
+`AXDOMClassList` — Chromium exposes the class attribute, and `AXDOMIdentifier` the id — the same
+Tailwind variant list on every row (`data-[selected=focused]:bg-…`), because the state lives in a
+`data-selected` attribute nothing exposes. What did name the current chat was another labelled
+element: the header's `"<chat>, rename session"` button. `--label-from "{}, rename session"` reads it
+and fills the `{}` in the target label (`"More options for {}"`). When the target is "the current
+X", look for a label elsewhere on the page that spells X out.
 
-`~/.config/karabiner/karabiner.json` is both the main checkout's working file and the only file
-Karabiner-Elements reads. Worktrees keep their own copy, which Karabiner ignores — so **editing is
-parallel, testing is serial**. Testing also contends for my keyboard: two sessions cannot both ask
-me to press a key.
+**Pick the walk direction from where the target sits.** The default reverse walk is right for a
+button under the last response; for a sidebar at the *start* of the document it would cross the
+whole transcript first. `--first` reached the Claude app's row after 497 elements, 57-78ms.
 
-- Develop in a worktree under `.claude/worktrees/`. Leave the main checkout as the live slot.
-- **Never copy a branch config over the live file directly.** Testing goes through the mutex in
-  `scripts/karabiner-test-lock.sh`, which snapshots the live config first and restores it
-  byte-exactly on release — including uncommitted work.
-- Acquire late, release fast: writing the rule, the Colemak conversion, and `npm run build` need
-  no lock. Take it only for the keypress test.
-- Run `./scripts/karabiner-test-lock.sh status` before committing `karabiner.json` from the main
-  checkout. While another worktree holds the lock, the live file contains *their* rules.
-- Run the lock script with an explicit `cd` into the worktree. It derives the owner from the shell's
-  cwd, and the Bash tool's cwd drifts back to the main checkout mid-session: a lock taken from there
-  snapshots the live file, and `install karabiner.json` then compares the live file with itself and
-  reports "already identical" while installing nothing.
+**`--dry-run` from a shell verifies the target before the lock is taken.** It resolves `--label-from`
+and finds the element without pressing, so the live-config lock is held only for the presses
+themselves (110ms, `label="More options for 💰 TSLA exit strategy"`).
 
-Full procedure: the **test** skill. Landing it on main: the **ship** skill.
+**Claude desktop app 1.40609.0, Code tab — what the sidebar looks like to accessibility.** The
+sidebar is an `AXGroup` (subrole `AXLandmarkComplementary`, description `Sidebar`). Each chat row is
+an `AXButton` titled `"<status> <title>"` (`Idle`, `Running`, `Awaiting input`), with an
+`AXPopUpButton` described `"More options for <title>"` beside it — hover-revealed (`opacity-0`,
+`pointer-events-none`) yet present in the tree, and `AXShowMenu` on it opened the row's menu. The
+session header carries an `AXButton` described `"<title>, rename session"`. Titles may begin with an
+emoji. The Chat tab's header was not inspected.
+
+## Context menus (open the right-click menu without the mouse)
+
+macOS offers no keyboard route to a web app's context menu. Chromium compiles Shift+F10 out on Mac
+(`web_frame_widget_impl.cc`: `is_shift_f10 = false` under `BUILDFLAG(IS_MAC)`), a menu bar cannot
+name a context-menu item, and the Claude app's own shortcut list (Cmd+/) has nothing for it — the
+request was anthropics/claude-code#60551, auto-closed. What is left is the accessibility tree.
+
+**`AXShowMenu` is a right-click.** Chromium advertises it on every web-content node
+(`ui/accessibility/platform/browser_accessibility_cocoa.mm`: `SupportsShowMenuAction` is true for
+web content, `PerformShowMenuAction` calls `ShowContextMenu`) and implements it by dispatching a
+`contextmenu` event at the element, which a context-menu component handles exactly as it handles the
+mouse. `ax-press … --action AXShowMenu` is the rule shape; the Claude app's Cmd+Option+. is its one
+user (3 presses, 3 menus). Nothing hovers, nothing moves, and the element may be hidden.
+
+**Once open, the menu is the app's own.** The Claude app's chat menu takes arrows, `1`-`9` inside
+the Add to project and Move to group submenus, and its single-letter accelerators, so opening it was
+the whole gap. Check what the menu already does from the keyboard before building anything past the
+open.
+
+**Untested: the PC Menu key.** Chromium keeps the unmodified `VKEY_APPS` path on Mac (macOS keycode
+0x6E, Karabiner `key_code` `application`), which sends `contextmenu` to the *focused* element. It
+needs the target to hold DOM focus, which a sidebar row does not once the chat is clicked into, so it
+was not tried. It is the route to probe when the target is a focused control.
 
 ## Menu bar rules (drive the app's own menus)
 
@@ -388,6 +424,28 @@ race did not reproduce at all in 15 presses.
 **Say so when a value is un-searched.** Cmd+Shift+P keeps a 100ms gap not because it was measured but
 because its target is the Create PR button and a binary search would fire it once per press. Its
 comment says that outright, so the number is not mistaken later for a floor.
+
+## Testing a change (worktrees + the live-config lock)
+
+`~/.config/karabiner/karabiner.json` is both the main checkout's working file and the only file
+Karabiner-Elements reads. Worktrees keep their own copy, which Karabiner ignores — so **editing is
+parallel, testing is serial**. Testing also contends for my keyboard: two sessions cannot both ask
+me to press a key.
+
+- Develop in a worktree under `.claude/worktrees/`. Leave the main checkout as the live slot.
+- **Never copy a branch config over the live file directly.** Testing goes through the mutex in
+  `scripts/karabiner-test-lock.sh`, which snapshots the live config first and restores it
+  byte-exactly on release — including uncommitted work.
+- Acquire late, release fast: writing the rule, the Colemak conversion, and `npm run build` need
+  no lock. Take it only for the keypress test.
+- Run `./scripts/karabiner-test-lock.sh status` before committing `karabiner.json` from the main
+  checkout. While another worktree holds the lock, the live file contains *their* rules.
+- Run the lock script with an explicit `cd` into the worktree. It derives the owner from the shell's
+  cwd, and the Bash tool's cwd drifts back to the main checkout mid-session: a lock taken from there
+  snapshots the live file, and `install karabiner.json` then compares the live file with itself and
+  reports "already identical" while installing nothing.
+
+Full procedure: the **test** skill. Landing it on main: the **ship** skill.
 
 ## Debugging rules that misbehave
 

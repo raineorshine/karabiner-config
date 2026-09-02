@@ -27,6 +27,7 @@ npm run build
 ```
 
 - `npm run build` — runs `node build.js karabiner.json > README.md`, regenerating `README.md` from the current rules in `karabiner.json`.
+- Works from a worktree without `npm install`: a worktree has no `node_modules`, and node resolves the main checkout's by walking up from `.claude/worktrees/<name>/`.
 
 `README.md` is a **generated file** — never hand-edit it. If a rule's description reads badly in the README, fix the `description` field in `karabiner.json` and rebuild. Prose that is not derived from the rules (the intro, the trailing section) lives in `readme-template.txt`.
 

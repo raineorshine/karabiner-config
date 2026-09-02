@@ -26,7 +26,9 @@ and a lock abandoned by a dead session is still recoverable.
 | `.claude/karabiner-test.lock/` | the mutex + the pre-test snapshot | Held only while actually testing. |
 
 **Acquire late, release fast.** Writing the rule, checking the Colemak mapping, and
-`npm run build` need no lock. Take it only for the keypress test itself.
+`npm run build` need no lock. Take it only for the keypress test itself. An ax-press rule can be
+`--dry-run` from a shell first — it resolves the target without pressing — so acquire only once that
+passes.
 
 ## Procedure
 
