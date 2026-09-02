@@ -265,8 +265,9 @@ are dead in ChatGPT *and* Brave — Electron's `AXManualAccessibility` is unsupp
 observes `NSWorkspace.voiceOverEnabled` instead) — but the Claude desktop app (1.40609.0) still
 accepts `AXManualAccessibility` (returned 0) and exposed its tree between 1 and 2.5s after the first
 query. The app decides; the role read is the only switch known to work everywhere it has been tried,
-and whether a freshly launched Claude app exposes its tree on the first press is untested. `--force-renderer-accessibility` on the command
-line also works; the env var the app reads for extra switches is dev-build-only. Read the source
+and whether a freshly launched Claude app exposes its tree on the first press is untested.
+`--force-renderer-accessibility` on the command line also works; the env var the app reads for extra
+switches is dev-build-only. Read the source
 before another round of probing: the answer was one fetch of `chrome_browser_application_mac.mm`
 away, after five rebuilds spent guessing. Untested: Chromium can drop accessibility for a web
 contents hidden for five minutes or more (`AccessibilityDisabler`), so a press that logs
@@ -444,6 +445,9 @@ me to press a key.
   cwd, and the Bash tool's cwd drifts back to the main checkout mid-session: a lock taken from there
   snapshots the live file, and `install karabiner.json` then compares the live file with itself and
   reports "already identical" while installing nothing.
+- `set -e` is inert in the Bash tool: a failing `false`, or a heredoc'd `python3` that raises, does
+  not stop the rest of the command line (probed both). Chain a check and the steps behind it with
+  `&&`; the learnings commit shipped past its own failed content check this way.
 
 Full procedure: the **test** skill. Landing it on main: the **ship** skill.
 
