@@ -124,7 +124,10 @@ identical calls were filtered under Karabiner across six traced presses, with `A
 false, every accessibility read null, and `CGWindowListCopyWindowInfo` titles redacted — neither
 Accessibility nor Screen Recording. And the Claude-app click rules were filtered too: a script
 logging its own progress reached the line before its click 14 times while nothing moved on screen.
-Why one rule keeps the permission and another does not is still unresolved.
+Why one rule keeps the permission and another does not is still unresolved — but a helper can opt
+out of the question by disclaiming responsibility for itself, so that TCC judges the binary rather
+than its launcher (see "Accessibility rules"). That is the first spawned helper here whose permission
+was the same from a shell and from Karabiner.
 
 **One press settles it, so probe before building rather than after it mysteriously does nothing.**
 Have the rule spawn a script that reads the cursor, posts a mouse-moved 80pt away, re-reads, and
@@ -204,6 +207,72 @@ eyeballing a pasted screenshot does not.
 **Validate before handing it over**: `karabiner_cli --lint-complex-modifications` on a
 `{"title":…,"rules":[…]}` file, and `node build.js karabiner.json` to confirm the README renders.
 
+## Accessibility rules (press a control by name)
+
+**When the target moves with the content, stop chasing coordinates and ask the accessibility tree.**
+The Copy button under ChatGPT's last response sits wherever the response ends, and the app has no
+shortcut or menu item for it (its bindable-shortcut registry was searched). `scripts/ax-press.swift`,
+built as `scripts/bin/karabiner-config-ax-press`, finds a control by role and label in the app's
+focused window and `AXPress`es it: no coordinates, no pointer movement, no restore, and the press
+lands on an element scrolled out of view. The ChatGPT Cmd+Shift+C rule is its one user so far —
+29-38ms from the helper starting to the press landing, 88 elements visited of 5297.
+
+**Chromium puts aria-labels in `AXDescription`; tooltips are not in the tree at all.** The button the
+app's tooltip calls "Copy response" is `AXDescription="Copy"`, and code-block copy buttons carry the
+same label, so the rule discriminates by a sibling (`--sibling "Good response"`), not by depth or
+frame. `--dump` lists every labelled element with roles and frames; read it before guessing a label,
+and query a substring — an empty query matches nothing.
+
+**Accessibility permission goes to the helper itself, which is what makes it predictable.** TCC
+judges a command-line tool by whatever launched it — a terminal, or Karabiner — which is why the same
+script can post events from one rule and not another. The helper re-spawns itself with
+`responsibility_spawnattrs_setdisclaim`, the private posix_spawn attribute Chromium uses for its own
+helpers, so the child is judged as the binary wherever it was launched from: granted once in System
+Settings, it reported trusted=true from a shell and from Karabiner alike. The grant is keyed to the
+binary's ad-hoc signature, so every rebuild needs it granted again — six rebuilds, six regrants in
+the session that built it; `scripts/build-ax-press.sh` has the steps, and a self-signed signing
+certificate is the fix if that ever becomes routine. Name the binary so the
+Accessibility list says whose it is (`karabiner-config-ax-press`, not `ax-press`), and make the tool
+take everything as arguments so a new rule never needs a rebuild.
+
+**Chromium exposes none of the page until an assistive client shows up, and what counts as showing
+up is asking the *application object* for its role.** A freshly launched ChatGPT — and Brave —
+answers with the window chrome only: 12 elements, no `AXWebArea`, and no amount of walking windows,
+reading labels, hit-testing, focusing the window or clicking into it changes that (three fresh
+instances, one watched for twenty minutes). Chrome's and Electron's NSApplication subclasses both
+switch accessibility on in `accessibilityRole`, citing Apple's guidance for non-VoiceOver clients, so
+one `AXRole` read of the application element is the switch: the instance that had ignored everything
+else exposed its tree 124ms after it. The helper does this first thing; the sporadic exposures seen
+before it did were other clients on the machine happening to ask. The switches a client used to set
+are dead here — Electron's `AXManualAccessibility` is unsupported (-25205), `AXEnhancedUserInterface`
+returns not-implemented (-25208) in ChatGPT *and* Brave, and Chromium 151 no longer watches it (it
+observes `NSWorkspace.voiceOverEnabled` instead). `--force-renderer-accessibility` on the command
+line also works; the env var the app reads for extra switches is dev-build-only. Read the source
+before another round of probing: the answer was one fetch of `chrome_browser_application_mac.mm`
+away, after five rebuilds spent guessing. Untested: Chromium can drop accessibility for a web
+contents hidden for five minutes or more (`AccessibilityDisabler`), so a press that logs
+`tree_exposed=false` after the window sat behind others is the first thing to suspect.
+
+**A clipboard write needs the document focused.** AXPress reports success either way, but the page's
+clipboard write is refused when the window is not frontmost, and ChatGPT shows a "couldn't copy"
+toast. A rule triggered from the app itself is fine; a shell test with another app in front does not
+test the copy.
+
+**Two traps in walking the tree.** It is not always a tree: a freshly launched ChatGPT answered with a
+child that led back to an ancestor, and a naive recursion overflowed the stack (SIGSEGV, "excessive
+recursion") — keep the ancestor path and skip anything on it. And an app with no window open answers
+`AXFocusedWindow` with its own application element; insist on `AXRole == AXWindow`.
+
+**Search from the end of the document.** Reverse pre-order — children last to first, then the node —
+returns the last match in document order after visiting the composer and the last turn rather than
+the whole conversation. If the newest turn is a user message or the response is still streaming, the
+previous response's button is the last one; the rule's comment says so rather than guarding it.
+
+**A second instance of the app is a clean process to experiment on.** Launching the binary directly
+with its own `--user-data-dir` (and, for this app, `CODEX_ELECTRON_USER_DATA_PATH`) sidesteps the
+process singleton, so the user's running instance and its Codex sessions are untouched. It signs into
+the same account, so delete the scratch profile afterwards.
+
 ## Testing a change (worktrees + the live-config lock)
 
 `~/.config/karabiner/karabiner.json` is both the main checkout's working file and the only file
@@ -219,6 +288,10 @@ me to press a key.
   no lock. Take it only for the keypress test.
 - Run `./scripts/karabiner-test-lock.sh status` before committing `karabiner.json` from the main
   checkout. While another worktree holds the lock, the live file contains *their* rules.
+- Run the lock script with an explicit `cd` into the worktree. It derives the owner from the shell's
+  cwd, and the Bash tool's cwd drifts back to the main checkout mid-session: a lock taken from there
+  snapshots the live file, and `install karabiner.json` then compares the live file with itself and
+  reports "already identical" while installing nothing.
 
 Full procedure: the **test** skill. Landing it on main: the **ship** skill.
 
@@ -356,10 +429,12 @@ Learned the slow way on the Notion archive and Messages tapback rules:
   each explained the evidence and then broke. Stop turning knobs and find a decisive measurement.
 - **Measure end-to-end.** A latency figure summed from a script's sleep constants was wrong about
   where the time actually went; timing the real command settled it in one step.
-- **Karabiner spawns `shell_command` with no `$HOME`.** A helper that builds its log path from
-  `getenv("HOME")` exits non-zero and writes nothing, so the instrumentation fails silently and looks
-  exactly like the rule never firing. Hardcode absolute paths in anything a rule spawns, and check it
-  with `env -i /bin/sh -c '…'` before spending a round of presses on it.
+- **A helper that builds its log path from `getenv("HOME")` once exited non-zero and wrote nothing,**
+  so the instrumentation failed silently and looked exactly like the rule never firing. The ChatGPT
+  rule's `shell_command` has since logged `HOME=/Users/raine`, so the shell does get `$HOME`; what the
+  earlier helper saw is unexplained. Hardcode absolute paths in anything a rule spawns anyway — it
+  costs nothing — and put a `date >> log` marker in the same `shell_command` (joined with `;`) so
+  "never fired" and "fired and died" are told apart in one press.
 - **Instrument the config that ships, not a copy of it.** A probe pointing at a scratch copy of
   `mouse-click.js` failed while the open question was whether the real one worked — that adds a
   variable instead of removing one. Install the actual candidate and measure that.
