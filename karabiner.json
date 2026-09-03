@@ -889,8 +889,8 @@
                         ]
                     },
                     {
-                        "comment": "Drives the app's own View menu from the menu bar, because neither direct route works: the Claude app holds Cmd+Tab and Ctrl+Tab for Next/Prev Chat and will not give them up to a native macOS App Shortcut override, and emitting the menu items' Cmd+Option+Arrow accelerators collides with Spectacle's global window arrangement shortcuts, which win before the app sees them. fn+Ctrl+F2 moves focus to the menu bar, 'v' type-selects the View menu, Down opens it, 'prev'/'next' type-selects the item, and Enter activates it. The Down is load-bearing and was found empirically: type-select only highlights the menu title, it does not open the menu, so without it the following letters keep type-selecting along the menu bar row and Enter fires on whichever title is highlighted by then (observed: the Window menu opened). Digits are not remapped by Colemak, so the from side is used as-is. The letters are type-select input and so go through the macOS Colemak input source, exactly like the Cmd+Shift+E archive rule's palette text, so each is emitted as the physical key that types it: 'v' is unchanged by Colemak, 'prev' = r s k v, 'next' = j k x f. There are deliberately no pauses between the events. The rule shipped first with 150/150/150/120ms, which worked but felt slow; a probe of the same sequence at 0ms then passed 20 of 20 presses, so those constants were covering nothing. Menu tracking runs a modal event loop that consumes the event queue in order, so each event waits for the stage before it rather than racing it, which is why the floor is zero rather than merely small. No margin was added on top: a margin over a measured floor of zero would be covering a race that was shown not to exist, at the cost of latency on every press. The 20 presses were unloaded, so if this ever misfires, suspect a busy renderer delaying the menu and measure before adding a constant back. The trailing vk_none keeps Enter from being the last event, since Karabiner holds the last event down until the from key is released and a held Enter would repeat into whatever has focus.",
-                        "description": "Claude app: Cmd+Shift+1 -> menu bar, View > Previous Sidebar Tab; Cmd+Shift+2 -> menu bar, View > Next Sidebar Tab",
+                        "comment": "Drives the app's own Go menu from the menu bar, because the Claude app ignores a native macOS App Shortcut override for these items (confirmed again when the rule was briefly removed: the App Shortcuts settings entry did nothing). fn+Ctrl+F2 focuses the menu bar, type-select on 'Go' highlights the menu title, Enter opens it, type-select on the item name highlights it and Enter activates it. The typed letters go through the macOS Colemak input source, so each is the physical key that types it: 'Go' is t, semicolon; 'Chat' is c, h, a, f; 'Code' is c, semicolon, g, k. No pauses: menu tracking runs a modal event loop that consumes the queue in order, so nothing races -- the previous sidebar-tab version of this rule passed 20 of 20 presses at 0ms after shipping with 150ms holds. The trailing vk_none keeps Enter from being the last `to` event, which would hold it down until the chord is released.",
+                        "description": "Claude app: Cmd+Shift+1 -> menu bar, Go > Chat; Cmd+Shift+2 -> menu bar, Go > Code",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -908,12 +908,13 @@
                                         "key_code": "f2",
                                         "modifiers": ["fn", "control"]
                                     },
-                                    { "key_code": "v" },
-                                    { "key_code": "down_arrow" },
-                                    { "key_code": "r" },
-                                    { "key_code": "s" },
-                                    { "key_code": "k" },
-                                    { "key_code": "v" },
+                                    { "key_code": "t" },
+                                    { "key_code": "semicolon" },
+                                    { "key_code": "return_or_enter" },
+                                    { "key_code": "c" },
+                                    { "key_code": "h" },
+                                    { "key_code": "a" },
+                                    { "key_code": "f" },
                                     { "key_code": "return_or_enter" },
                                     {
                                         "hold_down_milliseconds": 10,
@@ -938,12 +939,13 @@
                                         "key_code": "f2",
                                         "modifiers": ["fn", "control"]
                                     },
-                                    { "key_code": "v" },
-                                    { "key_code": "down_arrow" },
-                                    { "key_code": "j" },
+                                    { "key_code": "t" },
+                                    { "key_code": "semicolon" },
+                                    { "key_code": "return_or_enter" },
+                                    { "key_code": "c" },
+                                    { "key_code": "semicolon" },
+                                    { "key_code": "g" },
                                     { "key_code": "k" },
-                                    { "key_code": "x" },
-                                    { "key_code": "f" },
                                     { "key_code": "return_or_enter" },
                                     {
                                         "hold_down_milliseconds": 10,
