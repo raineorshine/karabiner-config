@@ -5,94 +5,94 @@ This is my [Karabiner](https://karabiner-elements.pqrs.org) setup for custom key
 The default config file is located at `~/.config/karabiner/karabiner.json`.
 
 - Disable Cmd+M to minimize globally.
-  - [any] + Command + `m` → Command + Option + Shift + `m`
+  - [any] + Command + `M` → Command + Option + Shift + `M`
 - Claude: ⌘J → ⌘K, ⌘3 (New Session)
-  - Command + `j` → Command + `n`, Command + `3`
+  - Command + `J` → Command + `N`, Command + `3`
 - Claude: ⌥N → New Chat (physical key j in Colemak)
-  - Option + `j` → Command + `n`, `return_or_enter`
+  - Option + `J` → Command + `N`, `return_or_enter`
 - Claude: ⌘P → Choose Project (physical key r in Colemak)
-  - Command + `r` → `Move cursor to (315, 875)`, `Left Click`
+  - Command + `R` → `Move cursor to (315, 875)`, `Left Click`
 - Claude: ⇧⌘P → Create PR (physical key r in Colemak)
-  - Command + Shift + `r` → `Move cursor to (656, 875)`, `Left Click`
+  - Command + Shift + `R` → `Move cursor to (656, 875)`, `Left Click`
 - Claude: ⇧⌘G → Show Diff
-  - Command + Shift + `g` → `Move cursor to (230, 940)`, `Left Click`, Command + Shift + `d`
+  - Command + Shift + `G` → `Move cursor to (230, 940)`, `Left Click`, Command + Shift + `D`
 - Claude: ⇧⌘U → Usage (physical key i in Colemak)
-  - Command + Shift + `i` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.anthropic.claudefordesktop "Usage: {}" --role AXPopUpButton --log`
+  - Command + Shift + `I` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.anthropic.claudefordesktop "Usage: {}" --role AXPopUpButton --log`
 - Claude: ⌘B → ⌘. (Toggle Primary Sidebar)
-  - Command + `b` → Command + `.`
+  - Command + `B` → Command + `.`
 - Claude: ⌥⌘B → ⌘\ (Toggle Secondary Sidebar)
-  - Command + Option + `b` → Command + `\`
+  - Command + Option + `B` → Command + `\`
 - Claude: ⌘. → ⇧⌘U (Choose Model)
-  - Command + `.` → Command + Shift + `i`
+  - Command + `.` → Command + Shift + `I`
 - Claude: ⌘T → ⌃` (Toggle Terminal) (physical key f in Colemak)
-  - Command + `f` → Ctrl + `` ` ``
+  - Command + `F` → Ctrl + `` ` ``
 - Claude: ⇧⌘E → Archive Session (physical key k in Colemak)
-  - Command + Shift + `k` → Command + `n`, `a`, `s`, `c`, `h`, `return_or_enter`, Command + `1`
+  - Command + Shift + `K` → Command + `N`, `A`, `S`, `C`, `H`, `return_or_enter`, Command + `1`
 - Claude: ⇧⌘1 → Go to Chat; ⇧⌘2 → Go to Code
-  - Command + Shift + `1` → fn + Ctrl + `f2`, `t`, `;`, `return_or_enter`, `c`, `h`, `a`, `f`, `return_or_enter`
-  - Command + Shift + `2` → fn + Ctrl + `f2`, `t`, `;`, `return_or_enter`, `c`, `;`, `g`, `k`, `return_or_enter`
+  - Command + Shift + `1` → fn + Ctrl + `f2`, `T`, `;`, `return_or_enter`, `C`, `H`, `A`, `F`, `return_or_enter`
+  - Command + Shift + `2` → fn + Ctrl + `f2`, `T`, `;`, `return_or_enter`, `C`, `;`, `G`, `K`, `return_or_enter`
 - Claude: ⌥⌘. → Chat Context Menu
   - Command + Option + `.` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.anthropic.claudefordesktop "More options for {}" --role AXPopUpButton --label-from "{}, rename session" --action AXShowMenu --first --log`
-- Claude app: Cmd+R -> open the session's PR link (via accessibility) (physical key s in Colemak)
-  - Command + `s` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.anthropic.claudefordesktop "#{}" --role AXLink --log`
+- Claude app: Cmd+R → open the session's PR link (via accessibility) (physical key s in Colemak)
+  - Command + `S` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.anthropic.claudefordesktop "#{}" --role AXLink --log`
 - Quick Chars
   - L-Option + `'` → `` ` ``
-  - L-Option + `t` → `~`
-  - L-Option + `h` → `-`
-  - L-Option + `q` → `=`
-  - L-Shift + L-Option + `q` → `+`
-  - L-Option + `u` → `_`
-  - L-Option + `b` → `|`, `|`
+  - L-Option + `T` → `~`
+  - L-Option + `H` → `-`
+  - L-Option + `Q` → `=`
+  - L-Shift + L-Option + `Q` → `+`
+  - L-Option + `U` → `_`
+  - L-Option + `B` → `|`, `|`
   - [L-Shift] + L-Option + `Space` → `Space`
   - L-Option + `,` → `<`
   - L-Option + `.` → `>`
-- Better Braces: Alt + o/i
-  - L-Option + `l` → `[`
+- Better Braces: Alt + O/I
+  - L-Option + `L` → `[`
   - L-Option + `;` → `]`
-  - L-Shift + L-Option + `l` → `{`
+  - L-Shift + L-Option + `L` → `{`
   - L-Shift + L-Option + `;` → `}`
-  - L-Command + L-Option + `l` → L-Command + `[`
+  - L-Command + L-Option + `L` → L-Command + `[`
 - Desktop Navigation: Right shift + brackets
   - R-Shift + `[` → L-Ctrl + `←`
   - R-Shift + `]` → L-Ctrl + `→`
 - Launch apps: Right shift + letters
-  - R-Shift + `a` → `open '/Applications/Utilities/Activity Monitor.app'`
-  - R-Shift + `c` → `open '/Applications/Calendar.app'`
-  - R-Shift + `e` → `open '/Applications/Sublime Text.app'`
-  - R-Shift + `f` → `open /System/Library/CoreServices/Finder.app`
-  - R-Shift + `g` → `open '/Applications/GitHub Desktop.app'`
-  - R-Shift + `h` → `open '/Applications/Google Chrome.app'`
-  - R-Shift + `n` → `open '/Applications/Notion.app'`
-  - R-Shift + `k` → `open '/Applications/Karabiner-Elements.app'`
-  - R-Shift + `m` → `open '/Applications/Messages.app'`
-  - R-Shift + `s` → `open '/Applications/Spotify.app'`
-  - R-Shift + `t` → `open '/Applications/iTerm.app'`
-  - R-Shift + `v` → `open '/Applications/Brave Browser.app'`
-  - R-Shift + `w` → `open '/Applications/WhatsApp.app'`
-  - R-Shift + `z` → `open '/Applications/zoom.us.app'`
-- Move italic to Cmd + Ctrl + i to make room for easy tab navigation
-  - Command + Ctrl + `l` → Command + `l`
-- Tab Navigation: Cmd + h/i
-  - Command + `h` → Command + L-Shift + `[`
-  - Command + `l` → Command + L-Shift + `]`
-- GitHub notifications: Cmd + Option + t
-  - L-Command + L-Option + `t` → `open 'https://github.com/notifications'`
-- em issues: Cmd + Ctrl + Option + e (physical key k in Colemak)
-  - L-Command + L-Ctrl + L-Option + `k` → `open 'https://github.com/cybersemics/em/issues/'`
-- Chromium DevTools: Clear site data, focus page, and reload: Cmd + Option + r
-  - Command + Option + `r` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/clear-site-data.js"`
-- Shortwave: Cmd+B -> Cmd+/
-  - Command + `b` → Command + `slash`
-- Shortwave: Cmd+Option+B -> Cmd+\
-  - Command + Option + `b` → Command + `\`
-- Shortwave: Option+A -> click Always apply on the label toast (1272, 890)
-  - Option + `a` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/restore-mouse-position.js"`, `Move cursor to (1272, 890)`, `Left Click`
-- Notion: Cmd+Shift+E -> click archive on top notification (166, 135) (physical key k in Colemak)
-  - Command + Shift + `k` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/mouse-click.js" 166 135`
-- Messages: Cmd+E -> open the emoji picker for the last received message (physical key k in Colemak)
-  - Command + `k` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/restore-mouse-position.js" 1.4`, `Move cursor to (360, 890)`, `Right Click`, `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/move-to-tapback-picker.js"`, `Left Click`
-- ChatGPT: Cmd+Shift+C -> copy the last response (press its Copy button via accessibility)
-  - Command + Shift + `c` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.openai.codex Copy --sibling "Good response" --log`
+  - R-Shift + `A` → `open '/Applications/Utilities/Activity Monitor.app'`
+  - R-Shift + `C` → `open '/Applications/Calendar.app'`
+  - R-Shift + `E` → `open '/Applications/Sublime Text.app'`
+  - R-Shift + `F` → `open /System/Library/CoreServices/Finder.app`
+  - R-Shift + `G` → `open '/Applications/GitHub Desktop.app'`
+  - R-Shift + `H` → `open '/Applications/Google Chrome.app'`
+  - R-Shift + `N` → `open '/Applications/Notion.app'`
+  - R-Shift + `K` → `open '/Applications/Karabiner-Elements.app'`
+  - R-Shift + `M` → `open '/Applications/Messages.app'`
+  - R-Shift + `S` → `open '/Applications/Spotify.app'`
+  - R-Shift + `T` → `open '/Applications/iTerm.app'`
+  - R-Shift + `V` → `open '/Applications/Brave Browser.app'`
+  - R-Shift + `W` → `open '/Applications/WhatsApp.app'`
+  - R-Shift + `Z` → `open '/Applications/zoom.us.app'`
+- Move italic to Cmd + Ctrl + I to make room for easy tab navigation
+  - Command + Ctrl + `L` → Command + `L`
+- Tab Navigation: Cmd + H/I
+  - Command + `H` → Command + L-Shift + `[`
+  - Command + `L` → Command + L-Shift + `]`
+- GitHub notifications: Cmd + Option + T
+  - L-Command + L-Option + `T` → `open 'https://github.com/notifications'`
+- em issues: Cmd + Ctrl + Option + E (physical key k in Colemak)
+  - L-Command + L-Ctrl + L-Option + `K` → `open 'https://github.com/cybersemics/em/issues/'`
+- Chromium DevTools: Clear site data, focus page, and reload: Cmd + Option + R
+  - Command + Option + `R` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/clear-site-data.js"`
+- Shortwave: Cmd+B → Cmd+/
+  - Command + `B` → Command + `slash`
+- Shortwave: Cmd+Option+B → Cmd+\
+  - Command + Option + `B` → Command + `\`
+- Shortwave: Option+A → click Always apply on the label toast (1272, 890)
+  - Option + `A` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/restore-mouse-position.js"`, `Move cursor to (1272, 890)`, `Left Click`
+- Notion: Cmd+Shift+E → click archive on top notification (166, 135) (physical key k in Colemak)
+  - Command + Shift + `K` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/mouse-click.js" 166 135`
+- Messages: Cmd+E → open the emoji picker for the last received message (physical key k in Colemak)
+  - Command + `K` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/restore-mouse-position.js" 1.4`, `Move cursor to (360, 890)`, `Right Click`, `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/move-to-tapback-picker.js"`, `Left Click`
+- ChatGPT: Cmd+Shift+C → copy the last response (press its Copy button via accessibility)
+  - Command + Shift + `C` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.openai.codex Copy --sibling "Good response" --log`
 
 
 ## karabiner-config-to-markdown

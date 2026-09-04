@@ -81,6 +81,9 @@ const template = (s, o) => {
 }
 
 const readmeTemplate = fs.readFileSync('./readme-template.txt', 'utf-8')
-const markdown = karabinerConfigToMarkdown(config)
+// karabiner-config-to-markdown renders key_codes verbatim, i.e. lowercase for letter keys; show
+// letter presses uppercase, the way the key is labeled. Only single letters in backticks are
+// touched, so multi-character key_codes (`return_or_enter`, `f2`) and shell commands are unaffected.
+const markdown = karabinerConfigToMarkdown(config).replace(/`([a-z])`/g, (_, letter) => `\`${letter.toUpperCase()}\``)
 const output = template(readmeTemplate, { rules: markdown })
 console.log(output)

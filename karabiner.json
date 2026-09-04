@@ -971,7 +971,7 @@
                     },
                     {
                         "comment": "Opens the PR that the session's PR chip (the bar above the composer: '#<n>  <repo>  <branch>  +a -b  CI') links to, from the keyboard. The chip's number is an AXLink whose label is the PR number ('#5324'), so the rule matches it with the {} wildcard ('#{}' = any AXLink labelled '#' followed by something) and presses it; the default reverse walk finds the last such link in document order, which is the chip's, since the chip sits after the transcript and before the composer -- inline '#5324' links in the transcript come earlier and are skipped. Nothing else in the tree is an AXLink labelled '#...': the sidebar's PR rows are AXButtons ('#5336 · Open ...'). Needs a session with a PR chip; without one the helper reports found=false and nothing happens. AXPress on the link opens the PR in the default browser. Measured: 5 presses, 5 opens, 17-118ms from the helper starting to the press landing, 73-75 elements visited. Five presses cannot tell 100% from 90%; ordinary use is the rest of the test. Logs one line per press to .claude/ax-press.log.",
-                        "description": "Claude app: Cmd+R -> open the session's PR link (via accessibility) (physical key s in Colemak)",
+                        "description": "Claude app: Cmd+R → open the session's PR link (via accessibility) (physical key s in Colemak)",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -1116,7 +1116,7 @@
                         ]
                     },
                     {
-                        "description": "Better Braces: Alt + o/i",
+                        "description": "Better Braces: Alt + O/I",
                         "manipulators": [
                             {
                                 "from": {
@@ -1324,7 +1324,7 @@
                         ]
                     },
                     {
-                        "description": "Move italic to Cmd + Ctrl + i to make room for easy tab navigation",
+                        "description": "Move italic to Cmd + Ctrl + I to make room for easy tab navigation",
                         "manipulators": [
                             {
                                 "from": {
@@ -1342,7 +1342,7 @@
                         ]
                     },
                     {
-                        "description": "Tab Navigation: Cmd + h/i",
+                        "description": "Tab Navigation: Cmd + H/I",
                         "manipulators": [
                             {
                                 "from": {
@@ -1373,7 +1373,7 @@
                         ]
                     },
                     {
-                        "description": "GitHub notifications: Cmd + Option + t",
+                        "description": "GitHub notifications: Cmd + Option + T",
                         "manipulators": [
                             {
                                 "from": {
@@ -1386,7 +1386,7 @@
                         ]
                     },
                     {
-                        "description": "em issues: Cmd + Ctrl + Option + e (physical key k in Colemak)",
+                        "description": "em issues: Cmd + Ctrl + Option + E (physical key k in Colemak)",
                         "manipulators": [
                             {
                                 "from": {
@@ -1399,7 +1399,7 @@
                         ]
                     },
                     {
-                        "description": "Chromium DevTools: Clear site data, focus page, and reload: Cmd + Option + r",
+                        "description": "Chromium DevTools: Clear site data, focus page, and reload: Cmd + Option + R",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -1421,7 +1421,7 @@
                         ]
                     },
                     {
-                        "description": "Shortwave: Cmd+B -> Cmd+/",
+                        "description": "Shortwave: Cmd+B → Cmd+/",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -1445,7 +1445,7 @@
                         ]
                     },
                     {
-                        "description": "Shortwave: Cmd+Option+B -> Cmd+\\",
+                        "description": "Shortwave: Cmd+Option+B → Cmd+\\",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -1470,7 +1470,7 @@
                     },
                     {
                         "comment": "Clicks the Always apply link in the toast that Shortwave shows in the bottom-right corner after a label is applied, which promotes that one-off into a standing rule. The toast offers no keyboard shortcut, so the mouse is the only route. The link is visible for as long as the toast is up rather than only on hover, so a plain warp and click lands on it and the slower mouse-click.js walk is not needed. The cursor is left on the button rather than returned: restoring it needs a spawned script to read the cursor before Karabiner moves it, and the hold covering that read measured p50 101ms against a 300ms tail and one 963ms over 400 samples -- a race, not a margin, and 200 of the rule's former 300ms. mouse-click.js is not an option here: a Karabiner-spawned script's CGEventPost does not move the pointer on this machine (probed: posted a move 80pt away, cursor did not move), though CGWarpMouseCursorPosition and reads both work. The warp-to-click gap was 100ms and is now 0 -- 0ms opened the selector 10 times out of 10, and an always-visible target hit-tests correctly even though a warp posts no hover event. The click clears its modifiers because the physical Command is still down when it is posted, and the trailing vk_none keeps the button from being the last `to` event, which would hold it down and drag. The click clears its modifiers because the physical Option is still down when it is posted, and the trailing vk_none keeps the button press from being the last to event, which would hold the mouse button down until Option+A is released and drag instead of click. Coordinates are absolute on the main display and only land correctly while the Shortwave window sits in its usual position and size and the toast is showing.",
-                        "description": "Shortwave: Option+A -> click Always apply on the label toast (1272, 890)",
+                        "description": "Shortwave: Option+A → click Always apply on the label toast (1272, 890)",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -1516,7 +1516,7 @@
                     },
                     {
                         "comment": "Archives the top notification in the Inbox side panel by handing the whole gesture to a script, which moves the pointer there with real mouse events and clicks. Karabiner's own set_mouse_cursor_position warps the cursor without posting a mouse-moved event, and that is the root of every problem this rule has had: Chromium does not update its hover target from a warp, so the archive button, which only exists while the row is hovered, is either not armed or no longer armed when the click lands, and the click hit-tests against the row underneath and opens the notification instead. Waiting it out does not work reliably, because the window is bounded at both ends. Measured from the warp, with a single click: 60-80ms is too early and hits the row, 130ms archives, 250ms archives with false negatives, 400-500ms fails outright, and 150ms managed 1 in 4, so the window is narrow, drifts, and is not worth aiming at. An earlier two-click version appeared to work by firing at two offsets and landing one inside the window, which also means it archives twice whenever both land. The script sidesteps the window by walking the pointer in steps with CGEvents, which Chromium treats as genuine motion. Posting CGEvents needs Accessibility permission, which osascript does not have on its own, but Karabiner does and the processes it spawns inherit it; run the same command from a terminal and the events are silently filtered and the pointer never moves. It also clears the modifier flags on the click, since the physical Cmd+Shift are still down and an uncleared click arrives as Shift+Click and extends the text selection across the page, and it restores the cursor itself. Notion has no keyboard shortcut for archiving a single notification, so the mouse is the only route. Coordinates are absolute on the main display and only land correctly while the Notion window is top-left aligned at its usual size with the Inbox panel open; y is measured from the top of the first row rather than its middle, so it holds regardless of how tall the notification is, and the three buttons sit about 10 points apart, so shift x by 10 if the click lands on a neighbor.",
-                        "description": "Notion: Cmd+Shift+E -> click archive on top notification (166, 135) (physical key k in Colemak)",
+                        "description": "Notion: Cmd+Shift+E → click archive on top notification (166, 135) (physical key k in Colemak)",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -1540,7 +1540,7 @@
                     },
                     {
                         "comment": "Opens the emoji picker for the last received message, so any emoji can be sent as a tapback without touching the mouse. The hover tapback bar is anchored to the message bubble, so it moves with the message's width and height and no fixed coordinate can reach its picker. The right-click menu is anchored to the click point instead, so the rule right-clicks a fixed point on the last message and works from there. (360, 890) sits inside the last received bubble whatever its size: received bubbles are left aligned at x 348 so a short message still covers x 360, and the transcript is bottom anchored so the bubble's lower edge stays at y 900 however tall the message is. A sent message is right aligned and will not be hit. move-to-tapback-picker.js then reads the menu's own window frame rather than assuming where it landed, because macOS pins the menu above the bottom of the screen and the height it pins from changes with the menu's items, so a message carrying a link would otherwise be off by the height of the extra ones; if no menu appears it leaves the pointer alone and the click lands back on the message. The right-click is held for 150ms rather than clicked instantly, which is what makes it reliable: the menu opens on the mouse down and starts a modal tracking loop, and an immediate mouse up can arrive before that loop is installed and dismiss it, which failed 5 times in 6 before the hold and 0 times in 6 after. Karabiner posts both clicks itself because it holds Accessibility and the osascript it spawns does not, which is also why the script only warps the pointer. The 200ms hold lets restore-mouse-position.js read the pointer before it moves, the 100ms hold keeps the right-click from racing the cursor move, and the 550ms hold covers osascript startup, measured at 70-110ms, plus the script's 250ms poll for the menu. Coordinates are absolute on the main display and only land correctly while the Messages window sits in its usual position and size with the conversation scrolled to the bottom; a group conversation indents received bubbles past x 360.",
-                        "description": "Messages: Cmd+E -> open the emoji picker for the last received message (physical key k in Colemak)",
+                        "description": "Messages: Cmd+E → open the emoji picker for the last received message (physical key k in Colemak)",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -1578,7 +1578,7 @@
                     },
                     {
                         "comment": "Copies the last response by pressing its Copy button through the accessibility tree rather than clicking it. The button sits beneath the response, so its position moves with the length of the response and of everything above it, and no fixed coordinate can reach it; the app offers no shortcut or menu item for it either (searched the bundle: 'Copy response' exists only as the button's tooltip, and the bindable-shortcut registry has no copy command). karabiner-config-ax-press (scripts/ax-press.swift) finds the last AXButton labelled 'Copy' in the focused window that has a 'Good response' sibling -- code-block copy buttons carry the same label, and the sibling is what tells the response's own button apart -- walking the document from its end so the search touches the composer and the last turn rather than the whole conversation (88 elements visited of 5297; 29-38ms from the helper starting to the press landing, over three presses), then AXPresses it: no pointer movement, no cursor restore. The window must be frontmost: the copy is a web clipboard write, which the page refuses when its document is not focused (pressed from a shell with another app in front, the button reported success and ChatGPT showed a 'couldn't copy' toast). Accessibility is granted to the helper itself rather than to Karabiner -- it re-spawns as its own responsible process so TCC judges the binary whoever launched it, which is what made earlier spawned scripts' permissions unpredictable -- and the grant is keyed to the binary's ad-hoc signature, so a rebuild needs it granted again (scripts/build-ax-press.sh). Because that grant would otherwise go to whatever process runs the binary, it presses only when Karabiner-Console-User-Server is among its ancestor processes; --dump and --dry-run work from a shell. Chromium exposes none of the page until an assistive client shows up, and what counts as showing up is asking the application object for its role (Chrome's and Electron's NSApplication subclasses both switch accessibility on there, following Apple's guidance for non-VoiceOver clients); the helper asks first thing, and a freshly launched instance that had ignored everything else for twenty minutes exposed its tree 124ms later, so the first press after ChatGPT relaunches should work too. While the tree is still only the window chrome the helper keeps looking for up to 2s, a budget sized for that first press on a long conversation rather than measured against one. If the newest turn is a user message, or the response is still streaming, the previous response's button is the last one and is pressed instead. Logs one line per press to .claude/ax-press.log.",
-                        "description": "ChatGPT: Cmd+Shift+C -> copy the last response (press its Copy button via accessibility)",
+                        "description": "ChatGPT: Cmd+Shift+C → copy the last response (press its Copy button via accessibility)",
                         "manipulators": [
                             {
                                 "conditions": [
