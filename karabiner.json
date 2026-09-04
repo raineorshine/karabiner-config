@@ -981,6 +981,30 @@
                         ]
                     },
                     {
+                        "comment": "Opens the PR that the session's PR chip (the bar above the composer: '#<n>  <repo>  <branch>  +a -b  CI') links to, from the keyboard. The chip's number is an AXLink whose label is the PR number ('#5324'), so the rule matches it with the {} wildcard ('#{}' = any AXLink labelled '#' followed by something) and presses it; the default reverse walk finds the last such link in document order, which is the chip's, since the chip sits after the transcript and before the composer -- inline '#5324' links in the transcript come earlier and are skipped. Nothing else in the tree is an AXLink labelled '#...': the sidebar's PR rows are AXButtons ('#5336 · Open ...'). Needs a session with a PR chip; without one the helper reports found=false and nothing happens. AXPress on the link opens the PR in the default browser. Measured: 5 presses, 5 opens, 17-118ms from the helper starting to the press landing, 73-75 elements visited. Five presses cannot tell 100% from 90%; ordinary use is the rest of the test. Logs one line per press to .claude/ax-press.log.",
+                        "description": "Claude app: Cmd+R -> open the session's PR link (via accessibility) (physical key s in Colemak)",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "s",
+                                    "modifiers": { "mandatory": ["command"] }
+                                },
+                                "to": [
+                                    {
+                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.anthropic.claudefordesktop \"#{}\" --role AXLink --log"
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "description": "Quick Chars",
                         "manipulators": [
                             {

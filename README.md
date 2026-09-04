@@ -33,6 +33,8 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Command + Shift + `2` → fn + Ctrl + `f2`, `t`, `;`, `return_or_enter`, `c`, `;`, `g`, `k`, `return_or_enter`
 - Claude app: Cmd+Option+. -> open the current chat's context menu (via accessibility)
   - Command + Option + `.` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.anthropic.claudefordesktop "More options for {}" --role AXPopUpButton --label-from "{}, rename session" --action AXShowMenu --first --log`
+- Claude app: Cmd+R -> open the session's PR link (via accessibility) (physical key s in Colemak)
+  - Command + `s` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.anthropic.claudefordesktop "#{}" --role AXLink --log`
 - Quick Chars
   - L-Option + `'` → `` ` ``
   - L-Option + `t` → `~`

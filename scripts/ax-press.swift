@@ -52,14 +52,17 @@
 //                     "More options for <chat>" button for the chat whose header button reads
 //                     "<chat>, rename session"
 //
+// Without --label-from, a {} in <label> is a wildcard: the label matches any non-empty text between
+// its prefix and suffix. "#{}" is the Claude app's PR-chip link, whose label is the PR number.
+//
 // Chromium and Electron do not build their accessibility tree until a client asks for it — and what
 // counts as asking is reading the application object's role, which this does first — and they build
 // it asynchronously, so the first search after that can see nothing but the window chrome. The
 // search therefore retries, briefly, while the window's tree is that small (124ms measured on a
 // freshly launched ChatGPT).
 //
-// The label matches AXDescription, AXTitle, AXHelp or AXIdentifier exactly, which is where Chromium
-// puts aria-label, visible text, title and id respectively. --dump matches any of them as a
+// The label matches AXDescription, AXTitle, AXHelp or AXIdentifier exactly (or by its {} wildcard),
+// which is where Chromium puts aria-label, visible text, title and id respectively. --dump matches any of them as a
 // case-insensitive substring, to find out which one a control actually uses.
 //
 // The search walks the focused window's tree from the end of the document backwards, so a control
@@ -288,9 +291,16 @@ final class Search {
     deadline = Date().addingTimeInterval(Double(options.budgetMs) / 1000)
   }
 
+  /// True when <label> is a wildcard pattern: it has a {} and nothing fills it.
+  var wildcard: Bool { options.labelFrom == nil && label.components(separatedBy: "{}").count == 2 }
+
   func matches(_ element: AXUIElement) -> Bool {
     guard string(element, kAXRoleAttribute) == options.role else { return false }
-    guard labels(element).contains(where: { $0.1 == label }) else { return false }
+    if wildcard {
+      guard fill(element, pattern: label) != nil else { return false }
+    } else {
+      guard labels(element).contains(where: { $0.1 == label }) else { return false }
+    }
     guard let sibling = options.sibling else { return true }
     guard let parent = attribute(element, kAXParentAttribute), CFGetTypeID(parent) == AXUIElementGetTypeID() else { return false }
     return children(parent as! AXUIElement).contains { labels($0).contains { $0.1 == sibling } }
