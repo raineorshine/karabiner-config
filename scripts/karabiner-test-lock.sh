@@ -11,7 +11,10 @@
 # release restores byte-exactly whatever was there (committed or not), and a
 # lock abandoned by a dead session can still be recovered by `break`.
 #
-#   acquire [label]   take the lock and snapshot the live config
+#   acquire [label] [session]
+#                     take the lock and snapshot the live config; `session` names
+#                     the Claude session holding it, so a denied request can say
+#                     which chat to go to (falls back to $KARABINER_SESSION)
 #   install <file>    replace the live config (atomic; waits for reload)
 #   release           restore the snapshot and drop the lock
 #                     --keep   drop the lock, leave the live config as it is
@@ -29,6 +32,11 @@ LOG="${KARABINER_LOG:-$HOME/.local/share/karabiner/log/console_user_server.log}"
 
 SELF=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 NOW=$(date +%s)
+# The worktree identifies the lock's owner, but the user's question when a
+# request is denied is "which of my chats is that?" -- so record the session
+# too. The id is in the environment; the human-readable title is not, so the
+# caller passes it (the `test` skill reads it from get_session "self").
+SESSION_ID=${CLAUDE_CODE_HOST_SESSION_ID:-${CLAUDE_SESSION_ID:-}}
 
 die() { printf '%s\n' "$*" >&2; exit 1; }
 field() { cat "$LOCK/$1" 2>/dev/null || printf '(unknown)'; }
@@ -38,6 +46,8 @@ age() {
 }
 holder_report() {
   printf 'held by   %s\n' "$(field label)"
+  printf 'session   %s\n' "$(field session)"
+  if [ -s "$LOCK/session_id" ]; then printf 'session id %s\n' "$(field session_id)"; fi
   printf 'worktree  %s\n' "$(field worktree)"
   printf 'branch    %s\n' "$(field branch)"
   printf 'age       %sm (stale after %sm)\n' "$(( $(age) / 60 ))" "$(( STALE_SECONDS / 60 ))"
@@ -89,6 +99,8 @@ case "$cmd" in
       printf '%s\n' "$SELF" > "$LOCK/worktree"
       printf '%s\n' "$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '(detached)')" > "$LOCK/branch"
       printf '%s\n' "${2:-$(basename "$SELF")}" > "$LOCK/label"
+      printf '%s\n' "${3:-${KARABINER_SESSION:-(unnamed session)}}" > "$LOCK/session"
+      printf '%s\n' "$SESSION_ID" > "$LOCK/session_id"
       printf '%s\n' "$NOW" > "$LOCK/acquired"
       printf 'acquired -- live config snapshotted\n'
     elif owned; then
@@ -96,7 +108,7 @@ case "$cmd" in
       # config and the real pre-test state would be lost.
       printf 'already held by this worktree (snapshot preserved)\n'
     else
-      printf 'LOCKED -- another session is testing.\n' >&2
+      printf 'LOCKED -- the session "%s" is testing.\n' "$(field session)" >&2
       holder_report >&2
       is_stale && printf '\nLock is stale; `break` it after confirming with the user.\n' >&2
       exit 1

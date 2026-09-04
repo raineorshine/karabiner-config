@@ -38,15 +38,21 @@ passes.
 ./scripts/karabiner-test-lock.sh status
 ```
 
-If another session holds it, **do not wait in a loop.** Report who holds it and how long they
-have had it, then either continue with lock-free work on this branch or ask the user — they are
-the one pressing keys, so they know whether a test is genuinely in flight.
+If another session holds it, **do not wait in a loop.** The lock names the holding session, so
+tell the user which chat it is and how long it has held the lock, then either continue with
+lock-free work on this branch or ask the user — they are the one pressing keys, so they know
+whether a test is genuinely in flight.
 
 ### 2. Acquire
 
 ```bash
-./scripts/karabiner-test-lock.sh acquire "what you are testing"
+./scripts/karabiner-test-lock.sh acquire "what you are testing" "<this session's title>"
 ```
+
+Pass this session's title as the third argument (read it from `get_session` with `"self"`, or set
+`$KARABINER_SESSION`). It is recorded alongside the host session id, so a session denied the lock
+can name the chat that holds it instead of only its worktree. Omitting it records
+`(unnamed session)`.
 
 Snapshots the live config into the lock. Re-running from the same worktree is a no-op and will
 not re-snapshot, so an interrupted session can safely resume.
