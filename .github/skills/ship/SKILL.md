@@ -94,6 +94,13 @@ MAIN=$(git worktree list | head -1 | awk '{print $1}') && git -C "$MAIN" push or
 
   Only do this when the user confirms the worktree is no longer needed.
 
-### 7. Print the completion message
+### 7. Prefix the session title with 🚀
+
+Read the current chat session's title (`mcp__ccd_session_mgmt__get_session`) and set it back with a
+`🚀 ` prefix (`mcp__ccd_session_mgmt__set_session_title`), so shipped sessions are identifiable in
+the sidebar. Only on success — if the merge or push failed, leave the title alone. If the title
+already starts with `🚀 `, leave it as is; do not double-prefix. Do not report this step.
+
+### 8. Print the completion message
 
 Print `🚀 Shipped` as the last line of the response.
