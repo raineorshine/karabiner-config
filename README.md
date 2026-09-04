@@ -17,7 +17,7 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
 - Claude: ⇧⌘G → Show Diff
   - Command + Shift + `g` → `Move cursor to (230, 940)`, `Left Click`, Command + Shift + `d`
 - Claude: ⇧⌘U → Usage (physical key i in Colemak)
-  - Command + Shift + `i` → `Move cursor to (696, 938)`, `Left Click`
+  - Command + Shift + `i` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.anthropic.claudefordesktop "Usage: {}" --role AXPopUpButton --log`
 - Claude: ⌘B → ⌘. (Toggle Primary Sidebar)
   - Command + `b` → Command + `.`
 - Claude: ⌥⌘B → ⌘\ (Toggle Secondary Sidebar)
