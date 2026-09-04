@@ -17,8 +17,9 @@
 #                     which chat to go to (falls back to $KARABINER_SESSION)
 #   install <file>    replace the live config (atomic; waits for reload)
 #   release           restore the snapshot and drop the lock
-#                     --keep   drop the lock, leave the live config as it is
-#                     --force  restore even if the live config changed
+#                     --keep     drop the lock, leave the live config as it is
+#                     --force    restore even if the live config changed
+#                     --if-mine  no-op unless this session took the lock
 #   status            who holds it, since when, whether stale
 #   break             force-release a lock left behind by a dead session
 set -eu
@@ -128,6 +129,13 @@ case "$cmd" in
 
   release)
     mode=${2:-}
+    # `ship` releases only a lock this session took. A branch that was never
+    # tested holds no lock, and another session's lock is theirs to restore --
+    # neither is worth a message, so both exit quietly.
+    if [ "$mode" = "--if-mine" ]; then
+      [ -n "$SESSION_ID" ] && [ -d "$LOCK" ] && [ "$(field session_id)" = "$SESSION_ID" ] || exit 0
+      mode=
+    fi
     [ -d "$LOCK" ] || { printf 'no lock held\n'; exit 0; }
     owned || { printf 'lock held by another session; refusing to release:\n' >&2; holder_report >&2; exit 1; }
     [ -f "$BACKUP" ] || die 'snapshot missing -- refusing to release; restore the live config by hand'

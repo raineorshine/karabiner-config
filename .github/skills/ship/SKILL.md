@@ -12,13 +12,15 @@ Solo-developer workflow for this Karabiner config repo. Take the current branch 
 ### 0. Release the test lock
 
 ```bash
-./scripts/karabiner-test-lock.sh release
+./scripts/karabiner-test-lock.sh release --if-mine
 ```
 
 If this branch was tested via the `test` skill, its config is still installed in the live slot and
 the lock is still held. Merging would fail at step 5 on your own installed config, so release
-first. Harmless to run when no lock is held. Ship the rule you *tested* — if the branch changed
-after the last test, re-test before shipping.
+first. `--if-mine` releases only a lock *this session* took: no lock means the branch needed no
+testing (a typo fix) and is safe to ship, and another session's lock is theirs. Both are silent
+no-ops — do not report them. Ship the rule you *tested* — if the branch changed after the last
+test, re-test before shipping.
 
 ### 1. Build the README (must run before committing)
 
