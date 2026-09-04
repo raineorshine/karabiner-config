@@ -538,7 +538,7 @@
                     },
                     {
                         "comment": "Workaround for a Colemak bug in the Claude app: https://github.com/anthropics/claude-code/issues/68859. Note: the macOS Colemak input source re-translates Karabiner's output, so to send the app Cmd+K we emit key_code n (Colemak maps the n-position to 'k'). Digits are not remapped by Colemak, so Cmd+3 is emitted as-is.",
-                        "description": "Claude app: Cmd+J -> Cmd+K, Cmd+3",
+                        "description": "Claude: ⌘J → ⌘K, ⌘3 (New Session)",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -567,7 +567,7 @@
                     },
                     {
                         "comment": "Opens the command palette and fires its first entry. key_code n is how the app is sent Cmd+K: it re-translates Karabiner's output through the macOS Colemak input source (https://github.com/anthropics/claude-code/issues/68859), and physical n types 'k'. Enter follows with no hold -- untested, so if it ever fires the wrong palette entry, the palette had not finished opening and this wants a measured pause.",
-                        "description": "Claude app: Alt+N -> Cmd+K, Enter (physical key j in Colemak)",
+                        "description": "Claude: ⌥N → New Chat (physical key j in Colemak)",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -595,7 +595,7 @@
                     },
                     {
                         "comment": "Clicks the project selector on the New Conversation screen. Claude's Electron renderer exposes no accessibility tree, so the button cannot be targeted by name and the position is hardcoded. Coordinates are absolute on the main display, so this only lands correctly while the Claude window sits in its usual position and size. The cursor is left on the button rather than returned: restoring it needs a spawned script to read the cursor before Karabiner moves it, and the hold covering that read measured p50 101ms against a 300ms tail and one 963ms over 400 samples -- a race, not a margin, and 200 of the rule's former 300ms. mouse-click.js is not an option here: a Karabiner-spawned script's CGEventPost does not move the pointer on this machine (probed: posted a move 80pt away, cursor did not move), though CGWarpMouseCursorPosition and reads both work. The warp-to-click gap was 100ms and is now 0 -- 0ms opened the selector 10 times out of 10, and an always-visible target hit-tests correctly even though a warp posts no hover event. The click clears its modifiers because the physical Command is still down when it is posted, and the trailing vk_none keeps the button from being the last `to` event, which would hold it down and drag.",
-                        "description": "Claude app: Cmd+P -> click project selector (physical key r in Colemak)",
+                        "description": "Claude: ⌘P → Choose Project (physical key r in Colemak)",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -630,7 +630,7 @@
                     },
                     {
                         "comment": "Clicks the Create PR button in the session view. Like the Cmd+P project-selector rule, the Electron renderer exposes no accessibility tree, so the position is hardcoded. Coordinates are absolute on the main display; y matches the project-selector rule, x is the button's position in a 2x Retina screenshot (1313 px) halved to points. The cursor is left on the button rather than restored: restoring it needs a spawned script to read the cursor before Karabiner moves it, and the 200ms hold covering that read measured p50 101ms against a 300ms tail and one 963ms over 400 samples -- a race, not a margin. Dropping the restore removes the spawn, the hold and the race together. The 100ms warp-to-click gap stays: without it the click races the cursor move and the app registers only the hover, so the shortcut had to be pressed twice. Unlike the Cmd+P gap, which measured 0, this one has not been driven to its floor -- the target is the Create PR button, so a binary search would fire it once per press.",
-                        "description": "Claude app: Cmd+Shift+P -> click Create PR button (physical key r in Colemak)",
+                        "description": "Claude: ⇧⌘P → Create PR (physical key r in Colemak)",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -669,7 +669,7 @@
                     },
                     {
                         "comment": "Show Diff. The app ignores Cmd+Shift+D while the chat box has focus, so the rule first clicks an empty spot in the sidebar to blur it. Like the Cmd+P and Cmd+Shift+P rules, the coordinates are absolute on the main display and only land correctly while the Claude window sits in its usual position and size. The cursor is left in the sidebar rather than restored: restoring it needs a spawned script to read the cursor before Karabiner moves it, and the 200ms hold covering that read measured p50 101ms against a 300ms tail and one 963ms over 400 samples -- a race, not a margin. Dropping the restore removes the spawn, the hold and the race together. Neither hold is needed: 0ms for both the warp-to-click gap and the click-to-keystroke gap opened the diff 10 times out of 10. The sidebar spot is always on screen, so the click races nothing, and the Cmd+Shift+D that follows is queued behind the click rather than competing with it -- the same reason the menu-bar sequences need no pauses. The expectation that the second gap was waiting on focus actually moving was wrong.",
-                        "description": "Claude app: Cmd+Shift+G -> click empty sidebar (230, 940), Cmd+Shift+D",
+                        "description": "Claude: ⇧⌘G → Show Diff",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -707,7 +707,7 @@
                     },
                     {
                         "comment": "Clicks the plan usage button at the bottom of the sidebar. Like the Cmd+P, Cmd+Shift+P, and Cmd+Shift+G rules, the Electron renderer exposes no accessibility tree, so the button cannot be targeted by name and the position is hardcoded. Coordinates are absolute on the main display, so this only lands correctly while the Claude window sits in its usual position and size. The cursor is left on the button rather than returned: restoring it needs a spawned script to read the cursor before Karabiner moves it, and the hold covering that read measured p50 101ms against a 300ms tail and one 963ms over 400 samples -- a race, not a margin, and 200 of the rule's former 300ms. mouse-click.js is not an option here: a Karabiner-spawned script's CGEventPost does not move the pointer on this machine (probed: posted a move 80pt away, cursor did not move), though CGWarpMouseCursorPosition and reads both work. The warp-to-click gap was 100ms and is now 0 -- 0ms opened the selector 10 times out of 10, and an always-visible target hit-tests correctly even though a warp posts no hover event. The click clears its modifiers because the physical Command is still down when it is posted, and the trailing vk_none keeps the button from being the last `to` event, which would hold it down and drag.",
-                        "description": "Claude app: Cmd+Shift+U -> click plan usage button (696, 938) (physical key i in Colemak)",
+                        "description": "Claude: ⇧⌘U → Usage (physical key i in Colemak)",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -741,7 +741,7 @@
                         ]
                     },
                     {
-                        "description": "Claude app: Cmd+B -> Cmd+.",
+                        "description": "Claude: ⌘B → ⌘. (Toggle Primary Sidebar)",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -766,7 +766,7 @@
                     },
                     {
                         "comment": "Backslash is not remapped by Colemak, so no conversion is needed on either side.",
-                        "description": "Claude app: Cmd+Option+B -> Cmd+\\",
+                        "description": "Claude: ⌥⌘B → ⌘\\ (Toggle Secondary Sidebar)",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -791,7 +791,7 @@
                     },
                     {
                         "comment": "Same Colemak bug as the Cmd+J rule (https://github.com/anthropics/claude-code/issues/68859): the app re-translates Karabiner's output through the macOS Colemak input source, so to send the app Cmd+Shift+U we emit key_code i (Colemak maps the i-position to 'u'). Period is not remapped by Colemak, so the from side is used as-is.",
-                        "description": "Claude app: Cmd+. -> Cmd+Shift+U",
+                        "description": "Claude: ⌘. → ⇧⌘U (Choose Model)",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -815,7 +815,7 @@
                         ]
                     },
                     {
-                        "description": "Claude app: Cmd+T -> Ctrl+` (physical key f in Colemak)",
+                        "description": "Claude: ⌘T → ⌃` (Toggle Terminal) (physical key f in Colemak)",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -840,7 +840,7 @@
                     },
                     {
                         "comment": "Archives the current session via the command palette. This replaces the earlier Cmd+Shift+E -> Cmd+Shift+E rule that reached the app's effort picker; the effort picker now stays on its default position (physical e, the key that types 'f' in Colemak). Cmd+K is emitted as key_code n for the same Colemak re-translation bug as the Cmd+J rule (https://github.com/anthropics/claude-code/issues/68859). The letters after it are ordinary text typed into the palette's search field, and text input always goes through the macOS Colemak input source, so each letter is emitted as the physical key that types it: 'arch' = a s c h, with a, c and h unchanged by Colemak. Enter is not remapped by Colemak. The query is 'arch' rather than 'archive' because every letter costs: each one is a render the app owes before it will look at Enter, and the shorter query measured about 50ms less input backlog while still putting the Archive row first. The 150ms after Cmd+K gives the palette time to open and focus its search field; it is unmeasured, but it held at 100% CPU load, and it is the one to raise if letters ever land in the composer instead of the palette. The 150ms before Enter is the whole point of the rule. The palette inserts its contextual Archive '<title>' row asynchronously, once the query resolves; until that lands the primary action is New chat '<query>' (its Enter badge turns red), so an early Enter creates a chat and sends the query as its first message instead of archiving anything. How it was measured, without spending a real archive per trial: swap the Enter for a harmless marker key at the same offset, record at 60fps, and read whether the Archive row was present in the frame the marker landed in. Each press then yields not just pass/fail but the delay it actually needed -- nominal minus the gap between the row appearing and the marker landing -- so a batch run at a generous 300ms measures the whole distribution uncensored, which a sweep cannot: a press at 50ms can never reveal that it needed 90. At 100% CPU load that requirement was 17-83ms over 19 presses (one further press at 100ms nominal landed in the same frame as the marker, so 83-117ms), and the 60fps capture resolves to 17ms, which put the measured floor at 100ms. The rule shipped at 120ms on that basis and then failed in ordinary use within the day, which is the far tail those 19 presses were never going to see -- the comment at the time said as much, and said to raise this hold rather than suspect the rest of the sequence, which is what 150ms is. The extra 30ms is not itself a measured value: searching it would cost a real archive or a junk chat per press, and the thing being searched for is a rare event that a short batch cannot resolve either way. So treat 150ms as a floor of 100ms plus headroom sized by one real failure, and if it misfires again, raise it again rather than re-deriving the floor -- the floor is not what is in doubt. Worth noting for scale: the old rule typed seven letters and failed at 120ms constantly, this one types four, so the letters bought more than the 30ms did. On how the floor was measured: a marker keystroke stood in for Enter at the same offset, which made each trial free to run. That proxy was checked against the real rule in both directions -- it predicted 3 failures out of 3 that the real Enter then reproduced, and 120ms was afterwards confirmed by hand with the real Enter -- over few enough presses that a rare false negative would not have surfaced, which is exactly what then happened in ordinary use. Cmd+1 afterwards navigates to the first chat, with 150ms after Enter for the archive to complete and the palette to close first, so the shortcut lands on the chat list rather than the closing palette. Digits are not remapped by Colemak, so 1 is emitted as-is. The trailing vk_none keeps Cmd+1 from being the last event, since Karabiner holds the last event down until the from key is released and a held key would repeat into whatever has focus.",
-                        "description": "Claude app: Cmd+Shift+E -> Cmd+K, type 'arch', Enter, Cmd+1 (physical key k in Colemak)",
+                        "description": "Claude: ⇧⌘E → Archive Session (physical key k in Colemak)",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -890,7 +890,7 @@
                     },
                     {
                         "comment": "Drives the app's own Go menu from the menu bar, because the Claude app ignores a native macOS App Shortcut override for these items (confirmed again when the rule was briefly removed: the App Shortcuts settings entry did nothing). fn+Ctrl+F2 focuses the menu bar, type-select on 'Go' highlights the menu title, Enter opens it, type-select on the item name highlights it and Enter activates it. The typed letters go through the macOS Colemak input source, so each is the physical key that types it: 'Go' is t, semicolon; 'Chat' is c, h, a, f; 'Code' is c, semicolon, g, k. No pauses: menu tracking runs a modal event loop that consumes the queue in order, so nothing races -- the previous sidebar-tab version of this rule passed 20 of 20 presses at 0ms after shipping with 150ms holds. The trailing vk_none keeps Enter from being the last `to` event, which would hold it down until the chord is released.",
-                        "description": "Claude app: Cmd+Shift+1 -> menu bar, Go > Chat; Cmd+Shift+2 -> menu bar, Go > Code",
+                        "description": "Claude: ⇧⌘1 → Go to Chat; ⇧⌘2 → Go to Code",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -958,7 +958,7 @@
                     },
                     {
                         "comment": "Opens the right-click menu of the chat shown in the main pane, from the keyboard. The app has no route to it otherwise: nothing in the Cmd+/ list opens it, the menu bar has no session items (so a macOS App Shortcut cannot reach it), and Chromium on macOS compiles out Shift+F10 (web_frame_widget_impl.cc: is_shift_f10 = false under IS_MAC), so the menu was mouse-only -- asked for in anthropics/claude-code#60551 and auto-closed. karabiner-config-ax-press (scripts/ax-press.swift) learns which chat is current from the session header, whose title button is labelled '<chat>, rename session' (--label-from), then performs AXShowMenu on the sidebar row's 'More options for <chat>' AXPopUpButton (--action), which makes Chromium dispatch at that element the contextmenu event a right-click would (browser_accessibility_cocoa.mm: SupportsShowMenuAction is true for every web node and PerformShowMenuAction calls ShowContextMenu). What opens is the menu the right-click opens, so its own keys then work: letters for Pin, Mark as unread, Rename and Delete, arrows into Add to project and Move to group, 1-9 inside them. --first because the sidebar is at the start of the document, so a forward walk reaches the row after the sidebar's ~200 elements rather than after the transcript. Needs the sidebar visible and the row rendered: a chat scrolled out of the list or in a collapsed group is not in the tree. Inspected in the Code tab only; the Chat tab's header was not checked. Two chats with the same title: the first in the sidebar wins. Measured: a contextmenu dispatched at the hover-revealed (opacity-0) More-options button does open the row's menu -- 3 presses, 3 menus, 57-78ms from the helper starting to the event landing, 497 elements visited, the button found again after the row moved between presses (frame y 707 to 738), and a title carrying an emoji prefix derived intact. Three presses cannot tell 100% from 90%; ordinary use is the rest of the test. Fallback if it ever stops opening: --action AXPress on the same button opens its dropdown instead. Logs one line per press to .claude/ax-press.log.",
-                        "description": "Claude app: Cmd+Option+. -> open the current chat's context menu (via accessibility)",
+                        "description": "Claude: ⌥⌘. → Chat Context Menu",
                         "manipulators": [
                             {
                                 "conditions": [

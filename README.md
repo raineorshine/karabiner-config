@@ -6,32 +6,32 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
 
 - Disable Cmd+M to minimize globally.
   - [any] + Command + `m` → Command + Option + Shift + `m`
-- Claude app: Cmd+J -> Cmd+K, Cmd+3
+- Claude: ⌘J → ⌘K, ⌘3 (New Session)
   - Command + `j` → Command + `n`, Command + `3`
-- Claude app: Alt+N -> Cmd+K, Enter (physical key j in Colemak)
+- Claude: ⌥N → New Chat (physical key j in Colemak)
   - Option + `j` → Command + `n`, `return_or_enter`
-- Claude app: Cmd+P -> click project selector (physical key r in Colemak)
+- Claude: ⌘P → Choose Project (physical key r in Colemak)
   - Command + `r` → `Move cursor to (315, 875)`, `Left Click`
-- Claude app: Cmd+Shift+P -> click Create PR button (physical key r in Colemak)
+- Claude: ⇧⌘P → Create PR (physical key r in Colemak)
   - Command + Shift + `r` → `Move cursor to (656, 875)`, `Left Click`
-- Claude app: Cmd+Shift+G -> click empty sidebar (230, 940), Cmd+Shift+D
+- Claude: ⇧⌘G → Show Diff
   - Command + Shift + `g` → `Move cursor to (230, 940)`, `Left Click`, Command + Shift + `d`
-- Claude app: Cmd+Shift+U -> click plan usage button (696, 938) (physical key i in Colemak)
+- Claude: ⇧⌘U → Usage (physical key i in Colemak)
   - Command + Shift + `i` → `Move cursor to (696, 938)`, `Left Click`
-- Claude app: Cmd+B -> Cmd+.
+- Claude: ⌘B → ⌘. (Toggle Primary Sidebar)
   - Command + `b` → Command + `.`
-- Claude app: Cmd+Option+B -> Cmd+\
+- Claude: ⌥⌘B → ⌘\ (Toggle Secondary Sidebar)
   - Command + Option + `b` → Command + `\`
-- Claude app: Cmd+. -> Cmd+Shift+U
+- Claude: ⌘. → ⇧⌘U (Choose Model)
   - Command + `.` → Command + Shift + `i`
-- Claude app: Cmd+T -> Ctrl+` (physical key f in Colemak)
+- Claude: ⌘T → ⌃` (Toggle Terminal) (physical key f in Colemak)
   - Command + `f` → Ctrl + `` ` ``
-- Claude app: Cmd+Shift+E -> Cmd+K, type 'arch', Enter, Cmd+1 (physical key k in Colemak)
+- Claude: ⇧⌘E → Archive Session (physical key k in Colemak)
   - Command + Shift + `k` → Command + `n`, `a`, `s`, `c`, `h`, `return_or_enter`, Command + `1`
-- Claude app: Cmd+Shift+1 -> menu bar, Go > Chat; Cmd+Shift+2 -> menu bar, Go > Code
+- Claude: ⇧⌘1 → Go to Chat; ⇧⌘2 → Go to Code
   - Command + Shift + `1` → fn + Ctrl + `f2`, `t`, `;`, `return_or_enter`, `c`, `h`, `a`, `f`, `return_or_enter`
   - Command + Shift + `2` → fn + Ctrl + `f2`, `t`, `;`, `return_or_enter`, `c`, `;`, `g`, `k`, `return_or_enter`
-- Claude app: Cmd+Option+. -> open the current chat's context menu (via accessibility)
+- Claude: ⌥⌘. → Chat Context Menu
   - Command + Option + `.` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.anthropic.claudefordesktop "More options for {}" --role AXPopUpButton --label-from "{}, rename session" --action AXShowMenu --first --log`
 - Claude app: Cmd+R -> open the session's PR link (via accessibility) (physical key s in Colemak)
   - Command + `s` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.anthropic.claudefordesktop "#{}" --role AXLink --log`
