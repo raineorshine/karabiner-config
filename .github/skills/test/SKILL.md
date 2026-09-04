@@ -57,6 +57,10 @@ can name the chat that holds it instead of only its worktree. Omitting it record
 Snapshots the live config into the lock. Re-running from the same worktree is a no-op and will
 not re-snapshot, so an interrupted session can safely resume.
 
+Then prefix this session's title with `🔒 ` (`set_session_title`, replacing any existing lifecycle
+prefix — see AGENTS.md "Session titles"), so a session denied the lock can spot the holder in the
+sidebar. Do not report this.
+
 ### 3. Install this branch's config
 
 ```bash
@@ -91,6 +95,9 @@ debugging loop costs one acquire and one release no matter how many rounds it ta
 
 Restores the snapshot and drops the lock. Do this as soon as the last press is done — do not hold
 it while writing up results or shipping.
+
+Retitle this session in the same breath: `🧪 ` if the rule passed and is worth shipping without
+re-testing, otherwise drop the `🔒 ` prefix entirely. Do not report this.
 
 If the live config changed underneath you, release refuses rather than discarding the change, and
 offers `--keep` (drop the lock, leave the live config alone) or `--force` (restore anyway). That

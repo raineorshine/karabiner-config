@@ -98,8 +98,9 @@ MAIN=$(git worktree list | head -1 | awk '{print $1}') && git -C "$MAIN" push or
 
 Read the current chat session's title (`mcp__ccd_session_mgmt__get_session`) and set it back with a
 `🚀 ` prefix (`mcp__ccd_session_mgmt__set_session_title`), so shipped sessions are identifiable in
-the sidebar. Only on success — if the merge or push failed, leave the title alone. If the title
-already starts with `🚀 `, leave it as is; do not double-prefix. Do not report this step.
+the sidebar. Replace any existing lifecycle prefix rather than stacking — a shipped session was
+usually `🧪 ` a moment ago, and 🚀 supersedes it. See AGENTS.md "Session titles" for the full set.
+Only on success — if the merge or push failed, leave the title alone. Do not report this step.
 
 ### 8. Print the completion message
 
