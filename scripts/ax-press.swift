@@ -32,6 +32,19 @@
 //   --log             also append the report line to .claude/ax-press.log in the checkout this
 //                     binary lives in (a fixed path, so an argument cannot point it at another file)
 //   --budget-ms <n>   stop searching after this long (default 2000)
+//   --key <chord>     after the press, post this key chord to the session (a CGEvent, which the
+//                     Accessibility grant allows) once the pressed control has left the tree, which
+//                     is how a menu item reports that its click was handled: the menu closes. A
+//                     control still present when the budget runs out means the key is not posted
+//                     and the report says so. <chord> is modifiers and a key joined by +, e.g.
+//                     cmd+1 or cmd+shift+return: cmd, shift, option, ctrl; a digit, a letter by its
+//                     ANSI (QWERTY) position, return, escape, tab, space, or a macOS virtual key
+//                     code as a number. Karabiner's own key events cannot be sequenced behind a
+//                     shell_command without a fixed hold, which is what this exists to avoid
+//   --wait            keep looking until the control appears or the budget runs out, for a target
+//                     that a previous action is still bringing on screen: the Archive item of a
+//                     context menu that an AXShowMenu a moment earlier is still opening. Without
+//                     it a miss in a populated tree is final; with it the search polls every 25ms
 //   --enhanced        also set AXEnhancedUserInterface on the app, the switch VoiceOver uses; only
 //                     if AXManualAccessibility, which is set always, does not make the app expose
 //                     its web content (Chromium treats the enhanced flag as a screen reader running)
@@ -77,7 +90,8 @@
 //
 // Exit codes: 0 pressed, 2 not trusted, 3 app not running, 4 no match, 5 press failed, 6 no window,
 // 7 no match and the window's tree never grew past its own chrome (accessibility not enabled),
-// 8 press refused because Karabiner did not launch this, 9 nothing on the page fits --label-from.
+// 8 press refused because Karabiner did not launch this, 9 nothing on the page fits --label-from,
+// 10 pressed but the --key chord was not posted (the control never left the tree, or the post failed).
 
 import AppKit
 import ApplicationServices
@@ -98,6 +112,8 @@ struct Options {
   var prompt = false
   var log = false
   var budgetMs = 2000
+  var wait = false
+  var key: (code: CGKeyCode, flags: CGEventFlags)?
   var enhanced = false
   var pid: pid_t = 0
   var sibling: String?
@@ -107,7 +123,7 @@ struct Options {
 }
 
 func usage() -> Never {
-  FileHandle.standardError.write("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--dry-run] [--dump] [--prompt] [--log] [--budget-ms N] [--enhanced] [--pid N] [--sibling TEXT] [--action A] [--label-from PATTERN]\n".data(using: .utf8)!)
+  FileHandle.standardError.write("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--dry-run] [--dump] [--prompt] [--log] [--budget-ms N] [--wait] [--key CHORD] [--enhanced] [--pid N] [--sibling TEXT] [--action A] [--label-from PATTERN]\n".data(using: .utf8)!)
   exit(64)
 }
 
@@ -125,6 +141,8 @@ func parse(_ argv: [String]) -> Options {
     case "--prompt": options.prompt = true
     case "--log": options.log = true
     case "--budget-ms": i += 1; guard i < argv.count, let n = Int(argv[i]) else { usage() }; options.budgetMs = n
+    case "--wait": options.wait = true
+    case "--key": i += 1; guard i < argv.count, let chord = parseChord(argv[i]) else { usage() }; options.key = chord
     case "--enhanced": options.enhanced = true
     case "--pid": i += 1; guard i < argv.count, let n = Int32(argv[i]) else { usage() }; options.pid = n
     case "--sibling": i += 1; guard i < argv.count else { usage() }; options.sibling = argv[i]
@@ -144,6 +162,45 @@ func parse(_ argv: [String]) -> Options {
   options.bundleId = positional[0]
   options.label = positional[1]
   return options
+}
+
+/// ANSI key codes for the names a chord may use. Letters are by physical (QWERTY) position, the
+/// same convention as Karabiner's key_code, not by the character a Colemak input source types.
+let keyCodes: [String: CGKeyCode] = [
+  "a": 0, "s": 1, "d": 2, "f": 3, "h": 4, "g": 5, "z": 6, "x": 7, "c": 8, "v": 9, "b": 11, "q": 12,
+  "w": 13, "e": 14, "r": 15, "y": 16, "t": 17, "1": 18, "2": 19, "3": 20, "4": 21, "6": 22, "5": 23,
+  "9": 25, "7": 26, "8": 28, "0": 29, "o": 31, "u": 32, "i": 34, "p": 35, "return": 36, "l": 37,
+  "j": 38, "k": 40, "n": 45, "m": 46, "tab": 48, "space": 49, "escape": 53,
+]
+
+func parseChord(_ spec: String) -> (code: CGKeyCode, flags: CGEventFlags)? {
+  var flags: CGEventFlags = []
+  var code: CGKeyCode?
+  for part in spec.lowercased().split(separator: "+").map(String.init) {
+    switch part {
+    case "cmd", "command": flags.insert(.maskCommand)
+    case "shift": flags.insert(.maskShift)
+    case "option", "opt", "alt": flags.insert(.maskAlternate)
+    case "ctrl", "control": flags.insert(.maskControl)
+    default:
+      guard code == nil, let found = keyCodes[part] ?? UInt16(part) else { return nil }
+      code = found
+    }
+  }
+  guard let key = code else { return nil }
+  return (key, flags)
+}
+
+/// Post a key chord to the login session. The physical modifiers of the chord that spawned this
+/// process may still be down, so the flags are set on the events explicitly rather than inherited.
+func postKey(_ chord: (code: CGKeyCode, flags: CGEventFlags)) -> Bool {
+  guard let down = CGEvent(keyboardEventSource: nil, virtualKey: chord.code, keyDown: true),
+        let up = CGEvent(keyboardEventSource: nil, virtualKey: chord.code, keyDown: false) else { return false }
+  down.flags = chord.flags
+  up.flags = chord.flags
+  down.post(tap: .cgSessionEventTap)
+  up.post(tap: .cgSessionEventTap)
+  return true
 }
 
 // MARK: - Re-spawn with responsibility disclaimed
@@ -497,7 +554,8 @@ func main() {
 
   // A window whose tree is only its own chrome is a dozen elements; once the web area has been
   // built it is hundreds. Below this, a miss means the tree is not there yet rather than that the
-  // control is absent, so the search waits and looks again until the budget runs out.
+  // control is absent, so the search waits and looks again until the budget runs out. --wait
+  // keeps looking after a miss in a populated tree too, for a control that is still on its way.
   let unpopulatedElementCount = 50
   let retryInterval: UInt32 = 25_000
 
@@ -521,7 +579,7 @@ func main() {
         if hit != nil { break }
       }
     }
-    if hit != nil || search.visited >= unpopulatedElementCount || search.timedOut || Date() > search.deadline { break }
+    if hit != nil || (search.visited >= unpopulatedElementCount && !options.wait) || search.timedOut || Date() > search.deadline { break }
     usleep(retryInterval)
   }
   let findMs = millis(since: start)
@@ -549,8 +607,36 @@ func main() {
   let pressed = AXUIElementPerformAction(target, options.action as CFString)
   let ok = pressed == .success
   let actionText = options.action == "AXPress" ? "" : " action=\(options.action)"
-  report(options, "trusted=true app=\(options.bundleId) found=true pressed=\(ok)\(actionText)\(ok ? "" : " ax_error=\(pressed.rawValue)") \(stats) total_ms=\(millis(since: start)) \(description)")
-  exit(ok ? 0 : 5)
+
+  // --key: wait for the pressed control to leave the tree, then post the chord. Re-running the same
+  // search is the check; the walk is short while the control is there and full once it is gone.
+  var keyText = ""
+  var keyOk = true
+  if ok, let chord = options.key {
+    let pressedAt = Date()
+    var gone = false
+    while Date() < search.deadline {
+      search.visited = 0
+      var still: AXUIElement?
+      for window in windows {
+        still = options.first ? search.findFirst(window) : search.findLast(window)
+        if still != nil { break }
+      }
+      if still == nil && !search.timedOut { gone = true; break }
+      if search.timedOut { break }
+      usleep(retryInterval)
+    }
+    let goneMs = millis(since: pressedAt)
+    if gone {
+      keyOk = postKey(chord)
+      keyText = " gone_ms=\(goneMs) key_posted=\(keyOk)"
+    } else {
+      keyOk = false
+      keyText = " gone=false gone_ms=\(goneMs) key_posted=false"
+    }
+  }
+  report(options, "trusted=true app=\(options.bundleId) found=true pressed=\(ok)\(actionText)\(ok ? "" : " ax_error=\(pressed.rawValue)")\(keyText) \(stats) total_ms=\(millis(since: start)) \(description)")
+  exit(ok ? (keyOk ? 0 : 10) : 5)
 }
 
 main()

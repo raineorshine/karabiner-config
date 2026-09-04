@@ -248,8 +248,16 @@ from a shell, since reading labels is the modest end of what it can do. Testing 
 therefore always goes through the rule. Name the binary so the
 Accessibility list says whose it is (`karabiner-config-ax-press`, not `ax-press`), and make the tool
 take everything as arguments so a new rule never needs a rebuild. A new *label* never does; a new
-*capability* does — `--action` and `--label-from` were one — and each rebuild costs a regrant, so add
-an option general enough that the rule after it is arguments again.
+*capability* does — `--action` and `--label-from` were one, `--wait` and `--key` another — and each rebuild costs a
+regrant, so add an option general enough that the rule after it is arguments again.
+
+**Sequencing anything after a helper call is the helper's job.** Karabiner cannot wait on a
+`shell_command`, so a key_code after one is only ever a fixed hold behind a spawn — the race the helper
+was brought in to remove. Two calls joined with `&&` in one `shell_command` sequence themselves, and
+`--wait` lets the second poll for a control the first is still bringing on screen (the Archive item of
+a dropdown, found 16-31ms in). A trailing key chord goes through `--key`, which the helper posts as a
+CGEvent (its Accessibility grant covers posting) once the pressed control has left the tree — the menu
+closing is the click having been handled, 118-580ms after the press in the Claude app.
 
 **Chromium exposes none of the page until an assistive client shows up, and what counts as showing
 up is asking the *application object* for its role.** A freshly launched ChatGPT — and Brave —
@@ -315,7 +323,12 @@ sidebar is an `AXGroup` (subrole `AXLandmarkComplementary`, description `Sidebar
 an `AXButton` titled `"<status> <title>"` (`Idle`, `Running`, `Awaiting input`), with an
 `AXPopUpButton` described `"More options for <title>"` beside it — hover-revealed (`opacity-0`,
 `pointer-events-none`) yet present in the tree, and `AXShowMenu` on it opened the row's menu. The
-session header carries an `AXButton` described `"<title>, rename session"`. Titles may begin with an
+session header carries an `AXButton` described `"<title>, rename session"` and, at the top right of
+the main pane, an `AXPopUpButton` described `"More options for <title>"` -- the **same label as the
+sidebar row's button**, so a `--first` search for it finds the row while the sidebar is visible and the
+header button once it is hidden; `AXShowMenu` on the header button gets Electron's default
+Copy/Select All menu, not the chat's. `AXPress` on it opens the chat's dropdown (Archive and the rest)
+with no sidebar needed, which is what the Cmd+Shift+E archive rule uses. Titles may begin with an
 emoji. The Chat tab's header was not inspected.
 
 ## Context menus (open the right-click menu without the mouse)
