@@ -8,8 +8,13 @@
 # Accessibility grant to that signature, so every rebuild needs the grant made again (confirmed: a
 # rebuild of changed source went straight from trusted=true to trusted=false) in
 # System Settings > Privacy & Security > Accessibility: remove the stale karabiner-config-ax-press
-# entry, then run `scripts/bin/karabiner-config-ax-press com.openai.codex "Copy response" --dry-run
-# --prompt` to be asked again, and toggle the new entry on.
+# entry, then run
+#
+#   scripts/bin/karabiner-config-ax-press org.pqrs.Karabiner-Elements.Settings "Simple Modifications" \
+#     --role AXStaticText --dry-run --prompt | grep "trusted=\w*"
+#
+# to be asked again, and toggle the new entry on. The grep is what makes the answer readable: the
+# helper prints a long single line and `trusted=` is the only field this probe is asking about.
 set -eu
 
 ROOT=${KARABINER_ROOT:-$(git worktree list --porcelain | head -1 | sed 's/^worktree //')}
