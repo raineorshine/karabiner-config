@@ -493,10 +493,11 @@ comment says that outright, so the number is not mistaken later for a floor.
 
 **Do not round-trip the file through a JSON serializer.** Karabiner-Elements writes it in its own
 style — short objects on one line (`"modifiers": { "mandatory": ["command"] }`), literal non-ASCII in
-descriptions — and `json.dump` reformats all 1500 lines, burying the rule you added in a diff nobody
-can review. Insert the new rule as text at the surrounding indentation, and use the parser to
-*validate* rather than to write. Line numbers from `sed -n` and from a Python `split("\n")` index
-have bitten this: find the insertion point by matching content, not by a remembered number.
+descriptions — and `json.dump` reformats all 1500 lines: a 40-line rule addition became a 1446-line
+diff. Nothing breaks, and Karabiner rewrites the file in its own style eventually anyway; what is
+lost is the diff, which is the only review surface a commit has, and clean hunk-level merging between
+the worktrees that ship into this file in parallel. Insert the new rule as text at the surrounding
+indentation, and use the parser to *validate* rather than to write.
 
 ## Testing a change (worktrees + the live-config lock)
 
