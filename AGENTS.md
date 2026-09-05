@@ -88,8 +88,8 @@ everywhere else, leave the `to` side as the literal virtual key.
 
 **Check the accessibility tree before writing a click rule at all.** Shortwave's Always apply toast
 was a coordinate warp-and-click until the tree was dumped, and the target turned out to be an
-`AXButton` titled "Always apply" — `karabiner-config-ax-press` reaches it in 26 elements and 29ms,
-with no coordinates, no pointer movement, and no dependence on the window's position. See
+`AXButton` titled "Always apply", which `karabiner-config-ax-press` presses with no coordinates, no
+pointer movement, and no dependence on the window's position. See
 "Accessibility rules". What follows is for targets the tree does not name.
 
 **Default to Karabiner's own `set_mouse_cursor_position` + `pointing_button`.** It stays inside
@@ -240,10 +240,10 @@ enough that the rule needs no `--wait`. Query one letter (`a`) when the wording 
 the dumps for what appeared. The empty query is the trap the paragraph above names: a first run of
 400 dumps passed `""` and could not have found anything.
 
-**Shortwave (`com.electron.shortwave`) exposes its web content like any Chromium tree** — 1122-1450
-elements, `AXWebArea` present, `AXButton AXTitle="Compose"`, `AXImage AXDescription="Avatar for …"`.
-The Always apply toast's button is titled "Always apply" and is unique in the window; it sits at the
-end of the document (element ~1128 of ~1200 forward), so the default reverse walk finds it in 26.
+**Shortwave (`com.electron.shortwave`) exposes its web content like any Chromium tree**, and labels
+its own controls: `AXButton AXTitle="Compose"`, `AXImage AXDescription="Avatar for …"`, and the
+Always apply toast's `AXButton AXTitle="Always apply"`. So a target there is worth dumping for before
+any coordinate is measured.
 
 **SwiftUI puts a native label in `AXValue`, and the control that acts is often not the labelled
 one.** Karabiner-Elements' own settings sidebar is an AXOutline whose rows each hold an AXImage (the
