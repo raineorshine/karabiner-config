@@ -238,6 +238,14 @@ same label, so the rule discriminates by a sibling (`--sibling "Good response"`)
 frame. `--dump` lists every labelled element with roles and frames; read it before guessing a label,
 and query a substring — an empty query matches nothing.
 
+**A dump is filtered and it is a snapshot; both mislead quietly.** The query hides every element
+whose labels do not contain it, so a row read through one letter looks shorter than it is — a
+control was concluded absent this way, and it was there the whole time under a label the query did
+not match. Dump a row through more than one query before believing what is not in it. And the app
+moves while you work: between two of these dumps the user navigated, and the second was a different
+screen with no marker saying so. Say which screen a label came from, and re-dump rather than
+reasoning across two dumps taken minutes apart.
+
 **A target that exists for only a few seconds is inspected by polling `--dump` while it is up.** A
 toast cannot be dumped on demand, so loop the dump (~1.1s per pass here) and ask for one press that
 triggers it. Shortwave's Always apply toast stayed in the tree for 44 consecutive dumps (~45s), wide
@@ -278,6 +286,13 @@ Settings, it reported trusted=true from a shell and from Karabiner alike. The gr
 binary's ad-hoc signature, so every rebuild needs it granted again — six rebuilds, six regrants in
 the session that built it; `scripts/build-ax-press.sh` has the steps, and a self-signed signing
 certificate is the fix if that ever becomes routine.
+
+**The binary is shared across worktrees; the source is not.** `scripts/build-ax-press.sh` writes to
+the *main* checkout's `scripts/bin/` whichever worktree it runs from, because that is where the
+rules point. A build from a branch behind `main` therefore replaces the live binary with one missing
+whatever options landed meanwhile, and a rule that passes a dropped option fails as an ordinary
+miss — nothing says the option is gone. Rebase before building, or pay a second regrant to rebuild
+after the rebase, which is what happened here.
 
 **A rebuild blinds you until the regrant, so learn everything first and build once.** `--dump` and
 `--dry-run` report `trusted=false` too, so the tool cannot be used to work out what to build next,
@@ -362,6 +377,16 @@ X", look for a label elsewhere on the page that spells X out.
 **Pick the walk direction from where the target sits.** The default reverse walk is right for a
 button under the last response; for a sidebar at the *start* of the document it would cross the
 whole transcript first. `--first` reached the Claude app's row after 497 elements, 57-78ms.
+
+**Direction is not a discriminator, and neither is `--sibling`, when the rivals share a parent.**
+`--sibling` asks whether *some* child of the match's parent carries the label, so it selects a whole
+row at once rather than a member of it — and if the row's parent also holds unrelated controls, they
+are in the set too, which is how a reverse walk aimed at a folder row landed on the usage meter.
+When two controls share their role, their parent, and a label that is plain varying text — the
+Claude app's folder row puts a local/cloud popup immediately before the project picker — only their
+order separates them, and `--nth` takes the nth match in walk order, counted per window. Reach for
+it last: an ordinal breaks silently when the app inserts a control ahead of the target, so a label,
+a distinct role or a sibling outside the row is worth more when one exists.
 
 **`--dry-run` from a shell verifies the target before the lock is taken.** It resolves `--label-from`
 and finds the element without pressing, so the live-config lock is held only for the presses
