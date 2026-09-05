@@ -46,7 +46,7 @@ whether a test is genuinely in flight.
 ### 2. Acquire
 
 Prefix this session's title with `🔒 ` first (`set_session_title`, replacing any existing lifecycle
-prefix — see AGENTS.md "Session titles"), so a session denied the lock can spot the holder in the
+prefix — see docs/workflow.md "Session titles"), so a session denied the lock can spot the holder in the
 sidebar. Set it before the acquire, not after: if the acquire is denied, drop the prefix again. Do
 not report this.
 
@@ -80,7 +80,7 @@ file — just hold the lock so no worktree installs over you mid-test.
 ### 4. Test with the user
 
 Ask the user to press the key, and say what you expect to happen. Karabiner rules are global, so
-also name the app the rule is scoped to. Per AGENTS.md: a handful of presses cannot tell 100%
+also name the app the rule is scoped to. Per docs/debugging.md: a handful of presses cannot tell 100%
 from 90% — if the behavior is at all probabilistic, say so rather than declaring it fixed.
 
 ### 5. Iterate without releasing

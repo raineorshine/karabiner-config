@@ -17,7 +17,7 @@ Read the session's title (`mcp__ccd_session_mgmt__get_session` with `"self"`) an
 `🚀 ` prefix (`mcp__ccd_session_mgmt__set_session_title`), replacing any existing lifecycle prefix
 rather than stacking — a shipping session was usually `🧪 ` a moment ago. Do this **now**, before any
 of the work: the sidebar should say what the session is doing while it is doing it. Step 8 puts the
-title back if the ship does not land. Do not report either. See AGENTS.md "Session titles".
+title back if the ship does not land. Do not report either. See docs/workflow.md "Session titles".
 
 ```bash
 ./scripts/karabiner-test-lock.sh release --if-mine
