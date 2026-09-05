@@ -245,6 +245,25 @@ elements, `AXWebArea` present, `AXButton AXTitle="Compose"`, `AXImage AXDescript
 The Always apply toast's button is titled "Always apply" and is unique in the window; it sits at the
 end of the document (element ~1128 of ~1200 forward), so the default reverse walk finds it in 26.
 
+**SwiftUI puts a native label in `AXValue`, and the control that acts is often not the labelled
+one.** Karabiner-Elements' own settings sidebar is an AXOutline whose rows each hold an AXImage (the
+SF Symbol, `AXIdentifier="gearshape"`) and an AXStaticText carrying the section name — in `AXValue`,
+so a search over the Chromium-shaped attributes found *nothing at all*, not a wrong element. AXValue
+is a label attribute now; it also carries a text field's contents, so pair a label that could be
+something typed with a `--role`. The row is what selects, and it has no AXPress: its only actions are
+AXShowDefaultUI and AXShowAlternateUI. So `--ancestor AXRow` climbs from the match by AXParent to the
+enclosing role, and `--set AXSelected=true` writes an attribute instead of performing an action —
+which is what navigates. Ten sections, 14-58 elements, 15-96ms.
+
+**Ask System Events before touching the helper's source.** `osascript` UI scripting is granted here
+for reads *and* attribute writes — only synthetic keystrokes are refused (System Events error 1002),
+which is easy to mistake for the whole permission being absent. `entire contents of window 1` names
+every element by its path, `name of every action of row 2` says what a control can do, `properties
+of` dumps its attributes, and `set selected of row 3 to true` *proved* that writing AXSelected
+navigates — all before a line of Swift changed. The helper only ever shows you elements labelled the
+way it already knows how to look; System Events shows the tree as it is. It is an inspector, not a
+rule mechanism: a Karabiner-spawned `osascript`'s permissions are the unpredictable case above.
+
 **Accessibility permission goes to the helper itself, which is what makes it predictable.** TCC
 judges a command-line tool by whatever launched it — a terminal, or Karabiner — which is why the same
 script can post events from one rule and not another. The helper re-spawns itself with
@@ -254,6 +273,13 @@ Settings, it reported trusted=true from a shell and from Karabiner alike. The gr
 binary's ad-hoc signature, so every rebuild needs it granted again — six rebuilds, six regrants in
 the session that built it; `scripts/build-ax-press.sh` has the steps, and a self-signed signing
 certificate is the fix if that ever becomes routine.
+
+**A rebuild blinds you until the regrant, so learn everything first and build once.** `--dump` and
+`--dry-run` report `trusted=false` too, so the tool cannot be used to work out what to build next,
+and the user has to remove the stale Accessibility entry and re-approve before anything works again —
+including every rule already relying on the helper. The Karabiner-settings work read the tree with
+System Events, decided on two new capabilities (`--ancestor`, `--set`) plus AXValue, and spent one
+rebuild.
 
 **A helper that carries its own grant is a confused deputy, so it presses only for Karabiner.** The
 disclaim hands the binary's Accessibility to whatever runs it, which would let any process running as
@@ -375,6 +401,12 @@ was not tried. It is the route to probe when the target is a focused control.
 
 ## Menu bar rules (drive the app's own menus)
 
+**One `osascript` line says whether this route exists at all.** `tell application "System Events" to
+tell process "<app>" to get name of every menu item of menu 1 of menu bar item "View" of menu bar 1`.
+Karabiner-Elements' own settings answers `Enter Full Screen` and nothing else — no menu names its
+sidebar sections, so there was nothing to type-select and the rule went through accessibility
+instead.
+
 When an app refuses to give a command up — it binds the chord internally and ignores a native macOS
 App Shortcut override — and the menu item's own accelerator collides with something global, the way
 in is the app's own menu. `fn+Ctrl+F2` focuses the menu bar, a letter type-selects the menu title,
@@ -457,6 +489,15 @@ race did not reproduce at all in 15 presses.
 because its target is the Create PR button and a binary search would fire it once per press. Its
 comment says that outright, so the number is not mistaken later for a floor.
 
+## Editing `karabiner.json`
+
+**Do not round-trip the file through a JSON serializer.** Karabiner-Elements writes it in its own
+style — short objects on one line (`"modifiers": { "mandatory": ["command"] }`), literal non-ASCII in
+descriptions — and `json.dump` reformats all 1500 lines, burying the rule you added in a diff nobody
+can review. Insert the new rule as text at the surrounding indentation, and use the parser to
+*validate* rather than to write. Line numbers from `sed -n` and from a Python `split("\n")` index
+have bitten this: find the insertion point by matching content, not by a remembered number.
+
 ## Testing a change (worktrees + the live-config lock)
 
 `~/.config/karabiner/karabiner.json` is both the main checkout's working file and the only file
@@ -484,6 +525,10 @@ me to press a key.
 - `set -e` is inert in the Bash tool: a failing `false`, or a heredoc'd `python3` that raises, does
   not stop the rest of the command line (probed both). Chain a check and the steps behind it with
   `&&`; the learnings commit shipped past its own failed content check this way.
+- Shipping pushes to `origin/main` from the worktree, so a main checkout dirty with someone else's
+  installed test config no longer blocks landing. The local `main` fast-forwards whenever it next
+  can, and until it does, the live file lags the rule that was shipped — worth saying, since that is
+  the one consequence the user cannot see.
 
 Full procedure: the **test** skill. Landing it on main: the **ship** skill.
 
