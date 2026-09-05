@@ -45,10 +45,9 @@ whether a test is genuinely in flight.
 
 ### 2. Acquire
 
-Prefix this session's title with `🔒 ` first (`set_session_title`, replacing any existing lifecycle
-prefix — see docs/workflow.md "Session titles"), so a session denied the lock can spot the holder in the
-sidebar. Set it before the acquire, not after: if the acquire is denied, drop the prefix again. Do
-not report this.
+Prefix this session's title with `🔓 ` first (`set_session_title`, replacing any existing lifecycle
+prefix — see docs/workflow.md "Session titles"). Set it before the acquire, not after: if the acquire
+is denied, drop the prefix again. Do not report this.
 
 ```bash
 ./scripts/karabiner-test-lock.sh acquire "what you are testing" "<this session's title>"
@@ -61,6 +60,9 @@ can name the chat that holds it instead of only its worktree. Omitting it record
 
 Snapshots the live config into the lock. Re-running from the same worktree is a no-op and will
 not re-snapshot, so an interrupted session can safely resume.
+
+Once the acquire succeeds, swap the prefix to `🔒 ` — the lock is now actually held, so a session
+denied the lock can spot the holder in the sidebar. Do not report this.
 
 ### 3. Install this branch's config
 
@@ -90,6 +92,8 @@ debugging loop costs one acquire and one release no matter how many rounds it ta
 
 ### 6. Release
 
+Swap the prefix to `🔓 ` before releasing. Do not report this.
+
 ```bash
 ./scripts/karabiner-test-lock.sh release
 ```
@@ -97,8 +101,8 @@ debugging loop costs one acquire and one release no matter how many rounds it ta
 Restores the snapshot and drops the lock. Do this as soon as the last press is done — do not hold
 it while writing up results or shipping.
 
-Retitle this session in the same breath: `📦 ` if the rule passed and is worth shipping without
-re-testing, otherwise drop the `🔒 ` prefix entirely. Do not report this.
+Once it is released, retitle again: `📦 ` if the rule passed and is worth shipping without
+re-testing, otherwise drop the `🔓 ` prefix entirely. Do not report this.
 
 If the live config changed underneath you, release refuses rather than discarding the change, and
 offers `--keep` (drop the lock, leave the live config alone) or `--force` (restore anyway). That

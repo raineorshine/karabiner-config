@@ -62,6 +62,7 @@ what the app cannot know: where the work stands.
 | Prefix | Means |
 |---|---|
 | ⏳ | implementing — after the opening prompt, before anything is shipped |
+| 🔓 | acquiring or releasing the live-config test lock |
 | 🔒 | holds the live-config test lock right now |
 | 📦 | done on the branch — ready to commit, or ready to ship |
 | 🚀 | shipping to `main`, or shipped |
@@ -78,9 +79,10 @@ and correct it if the stage falls over. A title that only becomes true at the en
 whole stretch the sidebar is there to describe. Only one reads cleanly at sidebar width, and 🚀 after
 📦 is noise — the later stage implies the earlier.
 
-The lifecycle 🔒 → 📦 → 🚀 is set by skills (`test` acquires and releases; `ship` merges), so it
-stays true on its own: `test` sets 🔒 before it acquires and drops it if denied, `ship` sets 🚀 before
-it builds and puts it back if the push fails. 📚 is set by hand the moment the `learn` skill is
+The lifecycle 🔓 → 🔒 → 📦 → 🚀 is set by skills (`test` acquires and releases; `ship` merges), so it
+stays true on its own: `test` sets 🔓 before it acquires and drops it if denied, swaps to 🔒 once the
+lock is actually held, and goes back to 🔓 while releasing; `ship` sets 🚀 before it builds and puts
+it back if the push fails. 📚 is set by hand the moment the `learn` skill is
 invoked — before reading anything or making any edit. The rest are set by hand when they apply, and
 nothing reconciles a title against reality — an abandoned session keeps whatever prefix it had. 🚙 in
 particular is worth setting before handing back on a long-running investigation: the idle dot cannot
