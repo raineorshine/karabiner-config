@@ -82,6 +82,14 @@ including every rule already relying on the helper. The Karabiner-settings work 
 System Events, decided on two new capabilities (`--ancestor`, `--set`) plus AXValue, and spent one
 rebuild.
 
+**Regranting means deleting the entry, and the deletion empties the list, so run the helper again.**
+Toggling the existing `karabiner-config-ax-press` entry off and on again does not re-request: the
+stale signature is still what the entry records. The user removes the row with `-`, which leaves
+nothing to toggle — the row comes back only when the binary next asks for Accessibility. So after
+the user says the entry is deleted, run the helper once (`--dump` from a shell is enough) to re-add
+it, then wait for them to switch the fresh entry on. And do not read the first run's output as the
+grant taking effect: that run is what registers the entry, and it reports `trusted=false`.
+
 **A helper that carries its own grant is a confused deputy, so it presses only for Karabiner.** The
 disclaim hands the binary's Accessibility to whatever runs it, which would let any process running as
 the user press any labelled control in any app with no interaction — where abusing Karabiner's own
