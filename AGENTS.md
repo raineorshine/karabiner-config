@@ -546,15 +546,17 @@ what the app cannot know: where the work stands.
 | 🚀 | merged to `main` and pushed |
 | 🚙 | parked: the work is sound and waiting on the user (a decision, a batch of presses) |
 | 🪦 | dead end — kept for the findings, not to resume |
-| 📚 | learnings written into AGENTS.md; nothing left to extract |
+| 📚 | extracting learnings into AGENTS.md, or done extracting them |
 
 These are **stages, not flags**: exactly one prefix at a time, and setting a new one replaces
 whatever was there. Only one reads cleanly at sidebar width, and 🚀 after 🧪 is noise — the later
 stage implies the earlier.
 
 The lifecycle 🔒 → 🧪 → 🚀 is set by skills (`test` acquires and releases; `ship` merges), so it
-stays true on its own. The rest are set by hand when they apply, and nothing reconciles a title
-against reality — an abandoned session keeps whatever prefix it had. 🚙 in particular is worth
+stays true on its own. 📚 is set by hand the moment the `learn` skill is invoked — before reading
+anything or making any edit — so the sidebar says what the session has turned into while it is still
+working, not only once it lands. The rest are set by hand when they apply, and nothing reconciles a
+title against reality — an abandoned session keeps whatever prefix it had. 🚙 in particular is worth
 setting before handing back on a long-running investigation: the idle dot cannot tell "waiting on
 you" from "given up on".
 
