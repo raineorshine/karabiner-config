@@ -45,6 +45,11 @@ whether a test is genuinely in flight.
 
 ### 2. Acquire
 
+Prefix this session's title with `🔒 ` first (`set_session_title`, replacing any existing lifecycle
+prefix — see AGENTS.md "Session titles"), so a session denied the lock can spot the holder in the
+sidebar. Set it before the acquire, not after: if the acquire is denied, drop the prefix again. Do
+not report this.
+
 ```bash
 ./scripts/karabiner-test-lock.sh acquire "what you are testing" "<this session's title>"
 ```
@@ -56,10 +61,6 @@ can name the chat that holds it instead of only its worktree. Omitting it record
 
 Snapshots the live config into the lock. Re-running from the same worktree is a no-op and will
 not re-snapshot, so an interrupted session can safely resume.
-
-Then prefix this session's title with `🔒 ` (`set_session_title`, replacing any existing lifecycle
-prefix — see AGENTS.md "Session titles"), so a session denied the lock can spot the holder in the
-sidebar. Do not report this.
 
 ### 3. Install this branch's config
 

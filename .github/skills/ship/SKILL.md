@@ -11,7 +11,13 @@ Solo-developer workflow for this Karabiner config repo. Take the current branch 
 
 ## Procedure
 
-### 0. Release the test lock
+### 0. Prefix the session title with 🚀, then release the test lock
+
+Read the session's title (`mcp__ccd_session_mgmt__get_session` with `"self"`) and set it back with a
+`🚀 ` prefix (`mcp__ccd_session_mgmt__set_session_title`), replacing any existing lifecycle prefix
+rather than stacking — a shipping session was usually `🧪 ` a moment ago. Do this **now**, before any
+of the work: the sidebar should say what the session is doing while it is doing it. Step 8 puts the
+title back if the ship does not land. Do not report either. See AGENTS.md "Session titles".
 
 ```bash
 ./scripts/karabiner-test-lock.sh release --if-mine
@@ -97,13 +103,12 @@ Whoever fast-forwards next picks up every commit that accumulated on `origin/mai
 
   Only do this when the user confirms the worktree is no longer needed. `git branch -d` refuses while local `main` is behind the pushed commit; `git branch -d` against `origin/main` is not a thing, so wait for step 6 to land rather than forcing with `-D`.
 
-### 8. Prefix the session title with 🚀
+### 8. Correct the title if the ship did not land
 
-Read the current chat session's title (`mcp__ccd_session_mgmt__get_session`) and set it back with a
-`🚀 ` prefix (`mcp__ccd_session_mgmt__set_session_title`), so shipped sessions are identifiable in
-the sidebar. Replace any existing lifecycle prefix rather than stacking — a shipped session was
-usually `🧪 ` a moment ago, and 🚀 supersedes it. See AGENTS.md "Session titles" for the full set.
-Only on success — the push in step 5 is what counts as shipped, whether or not step 6 could fast-forward. If the push failed, leave the title alone. Do not report this step.
+The push in step 5 is what counts as shipped, whether or not step 6 could fast-forward. If it
+succeeded, the `🚀 ` from step 0 is already right — leave it. If it failed, or the ship was abandoned
+before the push, put the title back to the prefix that is true now (`🧪 ` for a tested branch, none
+otherwise). Do not report this step.
 
 ### 9. Print the completion message
 
