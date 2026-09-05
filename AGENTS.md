@@ -86,17 +86,21 @@ everywhere else, leave the `to` side as the literal virtual key.
 
 ## Click rules (move the mouse and click)
 
-**Check the accessibility tree before writing a click rule at all.** Shortwave's Always apply toast
-was a coordinate warp-and-click until the tree was dumped, and the target turned out to be an
-`AXButton` titled "Always apply", which `karabiner-config-ax-press` presses with no coordinates, no
-pointer movement, and no dependence on the window's position. See
-"Accessibility rules". What follows is for targets the tree does not name.
+**Check the accessibility tree before writing a click rule at all.** A click rule is a coordinate
+pair that holds only while the window is in its usual position and size, a cursor left somewhere it
+was not, and — whenever the target is not already on screen — a race to tune. `ax-press` has none of
+those: it names the control, costs 29-78ms, and reaches an element scrolled out of view. Shortwave's
+Always apply toast was a coordinate warp-and-click until the tree was dumped, and the target turned
+out to be an `AXButton` titled "Always apply". See "Accessibility rules". What follows is for targets
+the tree does not name — an unlabelled control, a point on a canvas, an app that exposes nothing
+useful. The rules that already click work; this governs new ones.
 
-**Default to Karabiner's own `set_mouse_cursor_position` + `pointing_button`.** It stays inside
-Karabiner, so it is faster than spawning a process, and it is fine for any target that is *already
-on screen*. Done this way a click rule needs no `hold_down_milliseconds` at all: Cmd+P and
-Cmd+Shift+U are a bare warp, click, `vk_none` and fire with no deliberate delay. Cmd+Shift+P and
-Cmd+Shift+G still carry the older spawn-and-hold shape described below.
+**Once you are clicking, default to Karabiner's own `set_mouse_cursor_position` +
+`pointing_button`.** It stays inside Karabiner, so it is faster than spawning a process, and it is
+fine for any target that is *already on screen*. Done this way a click rule needs no
+`hold_down_milliseconds` at all: Cmd+P and Cmd+Shift+U are a bare warp, click, `vk_none` and fire
+with no deliberate delay. Cmd+Shift+P and Cmd+Shift+G still carry the older spawn-and-hold shape
+described below.
 
 **A hover-revealed target may need real motion — observed in Notion, and only there.**
 `set_mouse_cursor_position` *warps* the cursor without posting a mouse event. Notion's archive
@@ -218,9 +222,10 @@ eyeballing a pasted screenshot does not.
 
 ## Accessibility rules (press a control by name)
 
-**When the target moves with the content, stop chasing coordinates and ask the accessibility tree.**
-The Copy button under ChatGPT's last response sits wherever the response ends, and the app has no
-shortcut or menu item for it (its bindable-shortcut registry was searched). `scripts/ax-press.swift`,
+**This is the first thing to try for any control, not the fallback once coordinates have failed.** A
+target that moves with the content is merely where the difference is starkest: the Copy button
+under ChatGPT's last response sits wherever the response ends, and the app has no shortcut or menu
+item for it (its bindable-shortcut registry was searched). `scripts/ax-press.swift`,
 built as `scripts/bin/karabiner-config-ax-press`, finds a control by role and label in the app's
 focused window and `AXPress`es it: no coordinates, no pointer movement, no restore, and the press
 lands on an element scrolled out of view. Two rules use it: ChatGPT's Cmd+Shift+C (29-38ms from the
