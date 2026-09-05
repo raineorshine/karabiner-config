@@ -8,6 +8,12 @@ Learned the slow way on the Notion archive and Messages tapback rules:
   append what it saw — pointer position, whether the popup's window existed, how long it waited —
   turned "it stops short sometimes" into "the right-click produced no menu in 5 of 6, within 300ms"
   in a single round of presses. Ask the user for a batch and count, rather than one press at a time.
+- **To learn what the app does *to itself* after a press, have the rule dump in a loop.** One
+  keypress then buys the whole timeline. A build that archived and then wrote about forty passes of
+  `--dump` to a file showed the app's own navigation landing after the rule's last press, and what it
+  landed on — neither of which the press's own log line can show. A dump is a read, so it needs no
+  permission the rule does not already have, and it costs one press instead of a round of presses per
+  hypothesis.
 - **Capture the screen from your own shell, not from the rule.** The shell has Screen Recording
   where the Karabiner-spawned script may not, so a capture loop gated on the target app being
   frontmost collects the pixels to measure while the user drives the UI. Measure the result in

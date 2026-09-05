@@ -112,6 +112,21 @@ a dropdown, found 16-31ms in). A trailing key chord goes through `--key`, which 
 CGEvent (its Accessibility grant covers posting) once the pressed control has left the tree — the menu
 closing is the click having been handled, 118-580ms after the press in the Claude app.
 
+**But waiting only helps when the target outlives the wait.** A press that mutates a list makes the
+app react, and the control you meant to press next can be *gone* rather than merely late: archiving a
+chat took its project's whole sidebar group away, + button included, so no amount of sequencing
+behind the app's own navigation could reach it and the press had to happen before the archive
+instead. Ask what the tree looks like after the first press before reaching for `--wait`, and reorder
+when the answer is that the second target no longer exists.
+
+**Count the helper launches; that is what a rule costs.** A call is about 100ms wall on this machine
+against the 10-50ms of searching its log reports, because the helper re-spawns itself to disclaim
+responsibility and so pays two process launches every time. A script interpreting a dump adds its
+interpreter's startup on top (node, ~70ms). So a rule that reads the tree to decide something costs
+a dump call plus an interpreter — roughly two more presses' worth — and the question is not whether
+the decision is worth having but whether it is worth doubling the rule: Cmd+Option+. archives a chat
+in one launch plus the menu's own accelerator, and the same archive choosing its successor took four.
+
 **Chromium exposes none of the page until an assistive client shows up, and what counts as showing
 up is asking the *application object* for its role.** A freshly launched ChatGPT — and Brave —
 answers with the window chrome only: 12 elements, no `AXWebArea`, and no amount of walking windows,
@@ -192,7 +207,10 @@ sidebar row's button**, so a `--first` search for it finds the row while the sid
 header button once it is hidden; `AXShowMenu` on the header button gets Electron's default
 Copy/Select All menu, not the chat's. `AXPress` on it opens the chat's dropdown (Archive and the rest)
 with no sidebar needed, which is what the Cmd+Shift+E archive rule uses. Titles may begin with an
-emoji. The Chat tab's header was not inspected.
+emoji, and they are **not unique** — two projects can each hold a chat with the same title, so a
+title does not identify a row and a search for one lands on whichever comes first. What does say
+which project the current chat is in is the header again: beside the rename button it carries an
+`AXPopUpButton` titled with the project's own name. The Chat tab's header was not inspected.
 
 ## Context menus (open the right-click menu without the mouse)
 
