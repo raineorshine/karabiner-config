@@ -549,6 +549,9 @@ what the app cannot know: where the work stands.
 | 🪦 | dead end — kept for the findings, not to resume |
 | 📚 | extracting learnings into AGENTS.md, or done extracting them |
 
+**Never mention a prefix in the response** — not what it was set to, not that it was already right,
+not that it was left alone. It is sidebar state; say nothing about it unless asked.
+
 These are **stages, not flags**: exactly one prefix at a time, and setting a new one replaces
 whatever was there. Set a prefix **optimistically** — when the stage *starts*, not when it succeeds —
 and correct it if the stage falls over. A title that only becomes true at the end is blank for the
