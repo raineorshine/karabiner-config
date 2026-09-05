@@ -520,9 +520,10 @@ me to press a key.
   reports "already identical" while installing nothing.
 - **Edit `karabiner.json` in place; never reformat it.** The file is Karabiner's own 4-space format
   with short arrays inline, and both `json.dump` and `prettier` (the repo's `.prettierrc.json` is
-  2-space) rewrote the whole file — 2016 insertions for a 4-line change. Patch the lines, and find a
-  block's closing bracket by counting brackets: matching an indented `]` finds the wrong one and
-  silently eats the lines between.
+  2-space) rewrote the whole file — 2016 insertions for a 4-line change. `.prettierignore` now lists
+  `karabiner.json`, so prettier leaves it alone; `json.dump` and any other serializer still will not.
+  Patch the lines, and find a block's closing bracket by counting brackets: matching an indented `]`
+  finds the wrong one and silently eats the lines between.
 - `set -e` is inert in the Bash tool: a failing `false`, or a heredoc'd `python3` that raises, does
   not stop the rest of the command line (probed both). Chain a check and the steps behind it with
   `&&`; the learnings commit shipped past its own failed content check this way.
