@@ -97,7 +97,7 @@ debugging loop costs one acquire and one release no matter how many rounds it ta
 Restores the snapshot and drops the lock. Do this as soon as the last press is done — do not hold
 it while writing up results or shipping.
 
-Retitle this session in the same breath: `🧪 ` if the rule passed and is worth shipping without
+Retitle this session in the same breath: `📦 ` if the rule passed and is worth shipping without
 re-testing, otherwise drop the `🔒 ` prefix entirely. Do not report this.
 
 If the live config changed underneath you, release refuses rather than discarding the change, and

@@ -15,7 +15,7 @@ Solo-developer workflow for this Karabiner config repo. Take the current branch 
 
 Read the session's title (`mcp__ccd_session_mgmt__get_session` with `"self"`) and set it back with a
 `🚀 ` prefix (`mcp__ccd_session_mgmt__set_session_title`), replacing any existing lifecycle prefix
-rather than stacking — a shipping session was usually `🧪 ` a moment ago. Do this **now**, before any
+rather than stacking — a shipping session was usually `📦 ` a moment ago. Do this **now**, before any
 of the work: the sidebar should say what the session is doing while it is doing it. Step 8 puts the
 title back if the ship does not land. Do not report either. See docs/workflow.md "Session titles".
 
@@ -107,7 +107,7 @@ Whoever fast-forwards next picks up every commit that accumulated on `origin/mai
 
 The push in step 5 is what counts as shipped, whether or not step 6 could fast-forward. If it
 succeeded, the `🚀 ` from step 0 is already right — leave it. If it failed, or the ship was abandoned
-before the push, put the title back to the prefix that is true now (`🧪 ` for a tested branch, none
+before the push, put the title back to the prefix that is true now (`📦 ` for a tested branch, none
 otherwise). Do not report this step.
 
 ### 9. Print the completion message
