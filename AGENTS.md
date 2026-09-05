@@ -86,6 +86,12 @@ everywhere else, leave the `to` side as the literal virtual key.
 
 ## Click rules (move the mouse and click)
 
+**Check the accessibility tree before writing a click rule at all.** Shortwave's Always apply toast
+was a coordinate warp-and-click until the tree was dumped, and the target turned out to be an
+`AXButton` titled "Always apply" — `karabiner-config-ax-press` reaches it in 26 elements and 29ms,
+with no coordinates, no pointer movement, and no dependence on the window's position. See
+"Accessibility rules". What follows is for targets the tree does not name.
+
 **Default to Karabiner's own `set_mouse_cursor_position` + `pointing_button`.** It stays inside
 Karabiner, so it is faster than spawning a process, and it is fine for any target that is *already
 on screen*. Done this way a click rule needs no `hold_down_milliseconds` at all: Cmd+P and
@@ -226,6 +232,18 @@ app's tooltip calls "Copy response" is `AXDescription="Copy"`, and code-block co
 same label, so the rule discriminates by a sibling (`--sibling "Good response"`), not by depth or
 frame. `--dump` lists every labelled element with roles and frames; read it before guessing a label,
 and query a substring — an empty query matches nothing.
+
+**A target that exists for only a few seconds is inspected by polling `--dump` while it is up.** A
+toast cannot be dumped on demand, so loop the dump (~1.1s per pass here) and ask for one press that
+triggers it. Shortwave's Always apply toast stayed in the tree for 44 consecutive dumps (~45s), wide
+enough that the rule needs no `--wait`. Query one letter (`a`) when the wording is unknown and diff
+the dumps for what appeared. The empty query is the trap the paragraph above names: a first run of
+400 dumps passed `""` and could not have found anything.
+
+**Shortwave (`com.electron.shortwave`) exposes its web content like any Chromium tree** — 1122-1450
+elements, `AXWebArea` present, `AXButton AXTitle="Compose"`, `AXImage AXDescription="Avatar for …"`.
+The Always apply toast's button is titled "Always apply" and is unique in the window; it sits at the
+end of the document (element ~1128 of ~1200 forward), so the default reverse walk finds it in 26.
 
 **Accessibility permission goes to the helper itself, which is what makes it predictable.** TCC
 judges a command-line tool by whatever launched it — a terminal, or Karabiner — which is why the same
@@ -458,6 +476,11 @@ me to press a key.
   cwd, and the Bash tool's cwd drifts back to the main checkout mid-session: a lock taken from there
   snapshots the live file, and `install karabiner.json` then compares the live file with itself and
   reports "already identical" while installing nothing.
+- **Edit `karabiner.json` in place; never reformat it.** The file is Karabiner's own 4-space format
+  with short arrays inline, and both `json.dump` and `prettier` (the repo's `.prettierrc.json` is
+  2-space) rewrote the whole file — 2016 insertions for a 4-line change. Patch the lines, and find a
+  block's closing bracket by counting brackets: matching an indented `]` finds the wrong one and
+  silently eats the lines between.
 - `set -e` is inert in the Bash tool: a failing `false`, or a heredoc'd `python3` that raises, does
   not stop the rest of the command line (probed both). Chain a check and the steps behind it with
   `&&`; the learnings commit shipped past its own failed content check this way.
