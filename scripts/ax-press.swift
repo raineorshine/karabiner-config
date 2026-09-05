@@ -26,6 +26,14 @@
 //
 //   --role <AXRole>   role to match (default AXButton)
 //   --first           press the first match in document order instead of the last
+//   --nth <n>         press the nth match in walk order rather than the first one found (1-based,
+//                     default 1). The walk direction still decides what "first" means, so
+//                     --first --nth 2 is the second match in document order and --nth 2 alone is
+//                     the second from the end. This is what names a control that shares its role,
+//                     its label shape and its parent with the one beside it: the Claude app's
+//                     folder row carries a local/cloud AXPopUpButton and then the project picker,
+//                     both titled with plain varying text, so no label or sibling tells them apart
+//                     -- only their order does. Counted per window
 //   --dry-run         find and report but do not press
 //   --dump            list every element whose label contains <label>, with roles and frames
 //   --prompt          ask macOS for Accessibility with the system dialog if it is not granted
@@ -120,6 +128,7 @@ struct Options {
   var label = ""
   var role = "AXButton"
   var first = false
+  var nth = 1
   var dryRun = false
   var dump = false
   var prompt = false
@@ -138,7 +147,7 @@ struct Options {
 }
 
 func usage() -> Never {
-  FileHandle.standardError.write("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--dry-run] [--dump] [--prompt] [--log] [--budget-ms N] [--wait] [--key CHORD] [--enhanced] [--pid N] [--sibling TEXT] [--action A] [--label-from PATTERN] [--ancestor ROLE] [--set ATTR=VALUE]\n".data(using: .utf8)!)
+  FileHandle.standardError.write("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--nth N] [--dry-run] [--dump] [--prompt] [--log] [--budget-ms N] [--wait] [--key CHORD] [--enhanced] [--pid N] [--sibling TEXT] [--action A] [--label-from PATTERN] [--ancestor ROLE] [--set ATTR=VALUE]\n".data(using: .utf8)!)
   exit(64)
 }
 
@@ -151,6 +160,10 @@ func parse(_ argv: [String]) -> Options {
     switch argument {
     case "--role": i += 1; guard i < argv.count else { usage() }; options.role = argv[i]
     case "--first": options.first = true
+    case "--nth":
+      i += 1
+      guard i < argv.count, let n = Int(argv[i]), n > 0 else { usage() }
+      options.nth = n
     case "--dry-run": options.dryRun = true
     case "--dump": options.dump = true
     case "--prompt": options.prompt = true
@@ -362,6 +375,8 @@ final class Search {
   // with a depth cap as a backstop; the deepest element seen in a real conversation was at 25.
   var path = Set<ElementKey>()
   let maxDepth = 256
+  /// Matches passed over so far in the current walk, for --nth. Reset when a walk starts.
+  var seen = 0
 
   init(options: Options) {
     self.options = options
@@ -402,18 +417,25 @@ final class Search {
   /// order. Children are visited before their parent to keep the traversal an exact reversal of
   /// document order.
   func findLast(_ element: AXUIElement, depth: Int = 0) -> AXUIElement? {
+    if depth == 0 { seen = 0 }
     guard enter(element, depth: depth) else { return nil }
     defer { leave(element) }
     for child in children(element).reversed() {
       if let hit = findLast(child, depth: depth + 1) { return hit }
     }
-    return matches(element) ? element : nil
+    guard matches(element) else { return nil }
+    seen += 1
+    return seen >= options.nth ? element : nil
   }
 
   func findFirst(_ element: AXUIElement, depth: Int = 0) -> AXUIElement? {
+    if depth == 0 { seen = 0 }
     guard enter(element, depth: depth) else { return nil }
     defer { leave(element) }
-    if matches(element) { return element }
+    if matches(element) {
+      seen += 1
+      if seen >= options.nth { return element }
+    }
     for child in children(element) {
       if let hit = findFirst(child, depth: depth + 1) { return hit }
     }

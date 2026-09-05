@@ -517,6 +517,13 @@ me to press a key.
   byte-exactly on release — including uncommitted work.
 - Acquire late, release fast: writing the rule, the Colemak conversion, and `npm run build` need
   no lock. Take it only for the keypress test.
+- **Finish the dry run before handing the turn back.** Handing over a rule whose target has not
+  been resolved reads as "ready to test", so the next thing I do is invoke the test skill and wait
+  for the lock — and the turn is spent discovering the dry run fails. If the dry run needs
+  something only I can do (a particular screen open, an Accessibility regrant after a rebuild), ask
+  for exactly that, in those words, and say the dry run is what it unblocks. By the time the turn
+  comes back to me the rule is either dry-run clean and ready to lock, or the ask is a specific
+  action, not a status report.
 - Run `./scripts/karabiner-test-lock.sh status` before committing `karabiner.json` from the main
   checkout. While another worktree holds the lock, the live file contains *their* rules.
 - Run the lock script with an explicit `cd` into the worktree. It derives the owner from the shell's

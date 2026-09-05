@@ -11,7 +11,7 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
 - Claude: ⌥N → New Chat (physical key j in Colemak)
   - Option + `J` → Command + `N`, `return_or_enter`
 - Claude: ⌘P → Choose Project (physical key r in Colemak)
-  - Command + `R` → `Move cursor to (315, 875)`, `Left Click`
+  - Command + `R` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.anthropic.claudefordesktop "{}" --role AXPopUpButton --sibling "Add another folder" --first --nth 2 --log`
 - Claude: ⇧⌘P → Create PR (physical key r in Colemak)
   - Command + Shift + `R` → `Move cursor to (656, 875)`, `Left Click`
 - Claude: ⇧⌘G → Show Diff

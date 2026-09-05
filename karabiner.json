@@ -594,7 +594,7 @@
                         ]
                     },
                     {
-                        "comment": "Clicks the project selector on the New Conversation screen. Claude's Electron renderer exposes no accessibility tree, so the button cannot be targeted by name and the position is hardcoded. Coordinates are absolute on the main display, so this only lands correctly while the Claude window sits in its usual position and size. The cursor is left on the button rather than returned: restoring it needs a spawned script to read the cursor before Karabiner moves it, and the hold covering that read measured p50 101ms against a 300ms tail and one 963ms over 400 samples -- a race, not a margin, and 200 of the rule's former 300ms. mouse-click.js is not an option here: a Karabiner-spawned script's CGEventPost does not move the pointer on this machine (probed: posted a move 80pt away, cursor did not move), though CGWarpMouseCursorPosition and reads both work. The warp-to-click gap was 100ms and is now 0 -- 0ms opened the selector 10 times out of 10, and an always-visible target hit-tests correctly even though a warp posts no hover event. The click clears its modifiers because the physical Command is still down when it is posted, and the trailing vk_none keeps the button from being the last `to` event, which would hold it down and drag.",
+                        "comment": "Opens the project picker on the New Conversation screen by pressing it through the accessibility tree rather than clicking a hardcoded coordinate. The folder row is a local/cloud AXPopUpButton titled \"Local\", then the project picker, then a branch AXComboBox, a worktree checkbox and an AXButton described \"Add another folder\". Both popups carry nothing but an AXTitle of plain varying text, so no label tells them apart and --sibling cannot either -- they share a parent, and so do the Model, Effort and Usage popups further down, which is why the default reverse walk lands on Usage. Only their order separates them: --first --nth 2 is the second match in document order, the picker. The coordinate this replaces was (315, 875); the picker measured (299,872 112x18) here, so the click was still landing, but only while the Claude window sat in its usual position and size, and it left the cursor sitting on the button. Logs one line per press to .claude/ax-press.log.",
                         "description": "Claude: ⌘P → Choose Project (physical key r in Colemak)",
                         "manipulators": [
                             {
@@ -610,26 +610,15 @@
                                 },
                                 "to": [
                                     {
-                                        "software_function": {
-                                            "set_mouse_cursor_position": {
-                                                "screen": 0,
-                                                "x": 315,
-                                                "y": 875
-                                            }
-                                        }
-                                    },
-                                    {
-                                        "modifiers": [],
-                                        "pointing_button": "button1"
-                                    },
-                                    { "key_code": "vk_none" }
+                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.anthropic.claudefordesktop \"{}\" --role AXPopUpButton --sibling \"Add another folder\" --first --nth 2 --log"
+                                    }
                                 ],
                                 "type": "basic"
                             }
                         ]
                     },
                     {
-                        "comment": "Clicks the Create PR button in the session view. Like the Cmd+P project-selector rule, the Electron renderer exposes no accessibility tree, so the position is hardcoded. Coordinates are absolute on the main display; y matches the project-selector rule, x is the button's position in a 2x Retina screenshot (1313 px) halved to points. The cursor is left on the button rather than restored: restoring it needs a spawned script to read the cursor before Karabiner moves it, and the 200ms hold covering that read measured p50 101ms against a 300ms tail and one 963ms over 400 samples -- a race, not a margin. Dropping the restore removes the spawn, the hold and the race together. The 100ms warp-to-click gap stays: without it the click races the cursor move and the app registers only the hover, so the shortcut had to be pressed twice. Unlike the Cmd+P gap, which measured 0, this one has not been driven to its floor -- the target is the Create PR button, so a binary search would fire it once per press.",
+                        "comment": "Clicks the Create PR button in the session view. The position is hardcoded, which the Electron renderer no longer forces: it does expose an accessibility tree, and the Cmd+P project-selector rule beside this one now presses its target through it. Converting this one means finding a discriminator for a button labelled \"Create PR\", and every dry run of that fires a PR. Coordinates are absolute on the main display; y matches the project-selector rule, x is the button's position in a 2x Retina screenshot (1313 px) halved to points. The cursor is left on the button rather than restored: restoring it needs a spawned script to read the cursor before Karabiner moves it, and the 200ms hold covering that read measured p50 101ms against a 300ms tail and one 963ms over 400 samples -- a race, not a margin. Dropping the restore removes the spawn, the hold and the race together. The 100ms warp-to-click gap stays: without it the click races the cursor move and the app registers only the hover, so the shortcut had to be pressed twice. Unlike the gap Cmd+P used to have, which measured 0, this one has not been driven to its floor -- the target is the Create PR button, so a binary search would fire it once per press.",
                         "description": "Claude: ⇧⌘P → Create PR (physical key r in Colemak)",
                         "manipulators": [
                             {
@@ -668,7 +657,7 @@
                         ]
                     },
                     {
-                        "comment": "Show Diff. The app ignores Cmd+Shift+D while the chat box has focus, so the rule first clicks an empty spot in the sidebar to blur it. Like the Cmd+P and Cmd+Shift+P rules, the coordinates are absolute on the main display and only land correctly while the Claude window sits in its usual position and size. The cursor is left in the sidebar rather than restored: restoring it needs a spawned script to read the cursor before Karabiner moves it, and the 200ms hold covering that read measured p50 101ms against a 300ms tail and one 963ms over 400 samples -- a race, not a margin. Dropping the restore removes the spawn, the hold and the race together. Neither hold is needed: 0ms for both the warp-to-click gap and the click-to-keystroke gap opened the diff 10 times out of 10. The sidebar spot is always on screen, so the click races nothing, and the Cmd+Shift+D that follows is queued behind the click rather than competing with it -- the same reason the menu-bar sequences need no pauses. The expectation that the second gap was waiting on focus actually moving was wrong.",
+                        "comment": "Show Diff. The app ignores Cmd+Shift+D while the chat box has focus, so the rule first clicks an empty spot in the sidebar to blur it. Like the Cmd+Shift+P rule, the coordinates are absolute on the main display and only land correctly while the Claude window sits in its usual position and size. The cursor is left in the sidebar rather than restored: restoring it needs a spawned script to read the cursor before Karabiner moves it, and the 200ms hold covering that read measured p50 101ms against a 300ms tail and one 963ms over 400 samples -- a race, not a margin. Dropping the restore removes the spawn, the hold and the race together. Neither hold is needed: 0ms for both the warp-to-click gap and the click-to-keystroke gap opened the diff 10 times out of 10. The sidebar spot is always on screen, so the click races nothing, and the Cmd+Shift+D that follows is queued behind the click rather than competing with it -- the same reason the menu-bar sequences need no pauses. The expectation that the second gap was waiting on focus actually moving was wrong.",
                         "description": "Claude: ⇧⌘G → Show Diff",
                         "manipulators": [
                             {
