@@ -107,15 +107,18 @@ way.
 
 ### 7. Ship
 
-Release first, then follow the `ship` skill. Merging to `main` in the main checkout updates the
-live config automatically, because that working tree *is* the live file.
+Release first, then follow the `ship` skill. It pushes to `origin/main` and then fast-forwards the
+main checkout if that checkout is clean — which is what puts the rule in the live config, because
+that working tree *is* the live file. While another worktree holds the lock the fast-forward waits;
+the ship has still happened.
 
 ## Hazards
 
 - **Do not commit `karabiner.json` from the main checkout while another worktree holds the lock.**
   The live file contains *their* rules, and staging it would land those on `main`. Run `status`
-  first. (`git merge --ff-only` protects itself — it refuses to overwrite the installed test
-  config — so a `ship` that fails this way is correct; retry after the holder releases.)
+  first. (Shipping itself is unaffected: it pushes to `origin/main` from the worktree. What defers
+  is the main checkout's local fast-forward, which refuses to overwrite the installed test config
+  and lands once the holder releases.)
 - **Do not change anything in the Karabiner settings window while a lock is held.** Karabiner
   writes profile and device settings into the same file, so the edit lands on the test config and
   is caught as drift on release.

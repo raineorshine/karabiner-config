@@ -1,11 +1,13 @@
 ---
 name: ship
-description: 'Finish a change in this karabiner config repo: regenerate README.md from karabiner.json, commit, rebase on main, squash, fast-forward merge into main, and push. Use when done with a key binding change and want it on main without opening a PR.'
+description: 'Finish a change in this karabiner config repo: regenerate README.md from karabiner.json, commit, rebase on origin/main, squash, push to origin/main, and fast-forward the local main if it can. Use when done with a key binding change and want it landed without opening a PR.'
 ---
 
 # Ship (finish feature → merge to main)
 
-Solo-developer workflow for this Karabiner config repo. Take the current branch (possibly in a worktree), regenerate the docs, land it on `main` as a single commit via fast-forward merge, and push to `origin`. No PR.
+Solo-developer workflow for this Karabiner config repo. Take the current branch (possibly in a worktree), regenerate the docs, squash it to a single commit, and push it to `origin/main`. No PR.
+
+`origin/main` is the source of truth, not the local `main` ref — the main checkout is also the live config slot, so it can be dirty (another worktree mid-test) exactly when you want to land. Pushing from the worktree keeps shipping independent of that, the way a contributor pushes without touching anyone else's checkout; the local `main` catches up whenever it can fast-forward.
 
 ## Procedure
 
@@ -16,8 +18,8 @@ Solo-developer workflow for this Karabiner config repo. Take the current branch 
 ```
 
 If this branch was tested via the `test` skill, its config is still installed in the live slot and
-the lock is still held. Merging would fail at step 5 on your own installed config, so release
-first. `--if-mine` releases only a lock *this session* took: no lock means the branch needed no
+the lock is still held. The local fast-forward in step 6 would fail on your own installed config,
+so release first. `--if-mine` releases only a lock *this session* took: no lock means the branch needed no
 testing (a typo fix) and is safe to ship, and another session's lock is theirs. Both are silent
 no-ops — do not report them. Ship the rule you *tested* — if the branch changed after the last
 test, re-test before shipping.
@@ -41,67 +43,68 @@ Generate a commit message from the diff. Use an imperative, sentence-case subjec
 
 Note that Karabiner-Elements rewrites `karabiner.json` itself (reformatting, `automatic_backups/`), so check `git diff` for incidental changes you did not make and leave them out of the commit if they are unrelated.
 
-### 3. Rebase on main
+### 3. Rebase on origin/main
 
 ```bash
-git rebase main
+git fetch origin && git rebase origin/main
 ```
+
+Rebase on `origin/main`, not the local `main` ref: another session may have pushed without the main checkout being able to fast-forward, so local `main` can be behind what you must land on.
 
 If the rebase hits conflicts: resolve them (prefer the branch changes unless clearly wrong), `git add` the resolved files, `git rebase --continue`, and repeat until it completes. On a `README.md` conflict, don't resolve it by hand — take either side, finish the rebase, and re-run `npm run build` to regenerate it from the merged `karabiner.json`.
 
-Skip this step and steps 4–5 if you are already on `main` in the main checkout; go straight to step 6.
+Skip this step and step 4 if you are already on `main` in the main checkout; commit there and go straight to step 5.
 
 ### 4. Squash all commits into one
 
 ```bash
-git reset --soft main && git commit -m "subject" -m "body"
+git reset --soft origin/main && git commit -m "subject" -m "body"
 ```
 
 Use a single message that describes the overall diff.
 
-### 5. Fast-forward merge into main
-
-Use this exactly — it resolves the branch and main-worktree paths, so nothing is hardcoded:
+### 5. Push to origin/main
 
 ```bash
-BRANCH=$(git branch --show-current) && MAIN=$(git worktree list | head -1 | awk '{print $1}') && git -C "$MAIN" merge --ff-only "$BRANCH"
+git push origin HEAD:main
 ```
 
-**If the merge fails with "Your local changes … would be overwritten":** another worktree is mid-test and has installed its config into the live slot. Nothing is wrong; `./scripts/karabiner-test-lock.sh status` names the holder. Retry once they release.
+This is the ship. It runs from the worktree and touches no other working tree, so a main checkout that is dirty — another worktree's test config installed in the live slot — cannot block it.
 
-**If `--ff-only` fails with "Not possible to fast-forward":** another worktree merged into `main` in the meantime, so this branch is no longer a direct descendant. This is expected when running parallel agent sessions and is safe — nothing was merged or lost. Recover by re-integrating on the new `main`:
+**If the push is rejected as non-fast-forward:** someone else landed first. Nothing was lost. Go back to **step 3** (`git fetch origin && git rebase origin/main`), redo **step 4** to re-squash onto the new base, and push again. Because `origin/main` only advances by fast-forward, at most one branch wins each round and the others rebase and retry — no merge commits, no clobbering.
 
-1. Go back to **step 3** (`git rebase main`) — this replays this branch's single squashed commit onto the updated `main`, surfacing any genuine conflict with the work that landed first. Resolve conflicts the same way.
-2. Redo **step 4** (`git reset --soft main && git commit`) to re-squash onto the new base.
-3. Retry **step 5**.
-
-Repeat until the fast-forward succeeds. Because `main`'s ref only advances via this atomic `--ff-only` step, at most one worktree wins each round and the others simply rebase and retry — no merge commits, no clobbering.
-
-### 6. Push and post-merge
+### 6. Fast-forward the local main if it can
 
 ```bash
-MAIN=$(git worktree list | head -1 | awk '{print $1}') && git -C "$MAIN" push origin main
+MAIN=$(git worktree list | head -1 | awk '{print $1}') && git -C "$MAIN" merge --ff-only origin/main
 ```
 
-- Push `main` to `origin` from the main worktree.
+The main checkout is `~/.config/karabiner`, whose `karabiner.json` *is* the file Karabiner-Elements reads, so this is what puts the shipped rule into the live config. It takes effect immediately; no reload.
+
+**If it fails with "Your local changes … would be overwritten":** another worktree is mid-test and has its config installed in the live slot. Leave it — never `checkout --` their work away. The ship already happened at step 5; only the local ref and the live file lag. `./scripts/karabiner-test-lock.sh status` names the holder. **Say so in the report**, with the command above, since until someone runs it the live config still lacks the rule that was just shipped.
+
+Whoever fast-forwards next picks up every commit that accumulated on `origin/main`, so a skipped one costs nothing but the delay.
+
+### 7. Post-ship
+
 - If `package.json` or `package-lock.json` changed, run `npm install` in the main worktree so its dependencies match.
-- The main worktree is `~/.config/karabiner` — the live config Karabiner-Elements reads. After merging a `karabiner.json` change there, the new bindings take effect immediately; no reload is needed. Verify the key actually works before considering the change done — ideally *before* merging, via the `test` skill, which installs the branch's config into the live slot under a mutex so parallel sessions do not clobber each other.
-- The branch is now merged into `main`. If this worktree is finished with, it and the branch can be cleaned up from the main checkout:
+- Verify the key actually works before considering the change done — ideally *before* shipping, via the `test` skill, which installs the branch's config into the live slot under a mutex so parallel sessions do not clobber each other.
+- The branch is now on `origin/main`. If this worktree is finished with, it and the branch can be cleaned up from the main checkout:
 
   ```bash
   BRANCH=$(git branch --show-current) && MAIN=$(git worktree list | head -1 | awk '{print $1}') && git -C "$MAIN" worktree remove <this-worktree-path> && git -C "$MAIN" branch -d "$BRANCH"
   ```
 
-  Only do this when the user confirms the worktree is no longer needed.
+  Only do this when the user confirms the worktree is no longer needed. `git branch -d` refuses while local `main` is behind the pushed commit; `git branch -d` against `origin/main` is not a thing, so wait for step 6 to land rather than forcing with `-D`.
 
-### 7. Prefix the session title with 🚀
+### 8. Prefix the session title with 🚀
 
 Read the current chat session's title (`mcp__ccd_session_mgmt__get_session`) and set it back with a
 `🚀 ` prefix (`mcp__ccd_session_mgmt__set_session_title`), so shipped sessions are identifiable in
 the sidebar. Replace any existing lifecycle prefix rather than stacking — a shipped session was
 usually `🧪 ` a moment ago, and 🚀 supersedes it. See AGENTS.md "Session titles" for the full set.
-Only on success — if the merge or push failed, leave the title alone. Do not report this step.
+Only on success — the push in step 5 is what counts as shipped, whether or not step 6 could fast-forward. If the push failed, leave the title alone. Do not report this step.
 
-### 8. Print the completion message
+### 9. Print the completion message
 
 Print `🚀 Shipped` as the last line of the response.
