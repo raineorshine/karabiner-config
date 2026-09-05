@@ -93,6 +93,17 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Command + `K` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/restore-mouse-position.js" 1.4`, `Move cursor to (360, 890)`, `Right Click`, `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/move-to-tapback-picker.js"`, `Left Click`
 - ChatGPT: Cmd+Shift+C → copy the last response (press its Copy button via accessibility)
   - Command + Shift + `C` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.openai.codex Copy --sibling "Good response" --log`
+- Karabiner-Elements: ⌘1-9, ⌘0 → settings sections (via accessibility)
+  - Command + `1` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" org.pqrs.Karabiner-Elements.Settings "Simple Modifications" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
+  - Command + `2` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" org.pqrs.Karabiner-Elements.Settings "Function Keys" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
+  - Command + `3` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" org.pqrs.Karabiner-Elements.Settings "Complex Modifications" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
+  - Command + `4` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" org.pqrs.Karabiner-Elements.Settings "Parameters" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
+  - Command + `5` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" org.pqrs.Karabiner-Elements.Settings "Devices" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
+  - Command + `6` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" org.pqrs.Karabiner-Elements.Settings "Virtual Keyboard" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
+  - Command + `7` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" org.pqrs.Karabiner-Elements.Settings "Profiles" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
+  - Command + `8` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" org.pqrs.Karabiner-Elements.Settings "UI" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
+  - Command + `9` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" org.pqrs.Karabiner-Elements.Settings "Update" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
+  - Command + `0` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" org.pqrs.Karabiner-Elements.Settings "Misc" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
 
 
 ## karabiner-config-to-markdown

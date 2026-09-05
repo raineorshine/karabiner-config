@@ -64,6 +64,16 @@
 //                     control that is itself named after something on the page: the Claude app's
 //                     "More options for <chat>" button for the chat whose header button reads
 //                     "<chat>, rename session"
+//   --ancestor <AXRole>
+//                     act on the nearest ancestor of the match carrying this role, for a control
+//                     whose label lives on a child of it: a SwiftUI sidebar row holds its text in
+//                     an AXStaticText inside the row, and the row is the thing that selects
+//   --set <AXAttribute>=<value>
+//                     set this attribute on the target instead of performing an action. true and
+//                     false are written as booleans, anything else as a string. Setting AXSelected
+//                     on an outline row is how a list whose rows have no AXPress is navigated
+//                     (Karabiner-Elements' own settings sidebar), and it counts as a press for the
+//                     Karabiner-launched check below
 //
 // Without --label-from, a {} in <label> is a wildcard: the label matches any non-empty text between
 // its prefix and suffix. "#{}" is the Claude app's PR-chip link, whose label is the PR number.
@@ -74,9 +84,12 @@
 // search therefore retries, briefly, while the window's tree is that small (124ms measured on a
 // freshly launched ChatGPT).
 //
-// The label matches AXDescription, AXTitle, AXHelp or AXIdentifier exactly (or by its {} wildcard),
-// which is where Chromium puts aria-label, visible text, title and id respectively. --dump matches any of them as a
-// case-insensitive substring, to find out which one a control actually uses.
+// The label matches AXDescription, AXTitle, AXHelp, AXIdentifier or AXValue exactly (or by its {}
+// wildcard), which is where Chromium puts aria-label, visible text, title and id respectively, and
+// where SwiftUI puts the text of a static text -- a native label is often nowhere else. --dump
+// matches any of them as a case-insensitive substring, to find out which one a control actually
+// uses. AXValue also carries the contents of a text field, so a label that could be something the
+// user typed wants a --role to keep it off one.
 //
 // The search walks the focused window's tree from the end of the document backwards, so a control
 // near the end of the page, which is where the last response's buttons are, is found after visiting
@@ -119,11 +132,13 @@ struct Options {
   var sibling: String?
   var action = "AXPress"
   var labelFrom: String?
+  var ancestor: String?
+  var set: (name: String, value: String)?
   var worker = false
 }
 
 func usage() -> Never {
-  FileHandle.standardError.write("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--dry-run] [--dump] [--prompt] [--log] [--budget-ms N] [--wait] [--key CHORD] [--enhanced] [--pid N] [--sibling TEXT] [--action A] [--label-from PATTERN]\n".data(using: .utf8)!)
+  FileHandle.standardError.write("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--dry-run] [--dump] [--prompt] [--log] [--budget-ms N] [--wait] [--key CHORD] [--enhanced] [--pid N] [--sibling TEXT] [--action A] [--label-from PATTERN] [--ancestor ROLE] [--set ATTR=VALUE]\n".data(using: .utf8)!)
   exit(64)
 }
 
@@ -151,6 +166,12 @@ func parse(_ argv: [String]) -> Options {
       i += 1
       guard i < argv.count, argv[i].components(separatedBy: "{}").count == 2 else { usage() }
       options.labelFrom = argv[i]
+    case "--ancestor": i += 1; guard i < argv.count else { usage() }; options.ancestor = argv[i]
+    case "--set":
+      i += 1
+      let parts = (i < argv.count ? argv[i] : "").components(separatedBy: "=")
+      guard parts.count == 2, !parts[0].isEmpty else { usage() }
+      options.set = (parts[0], parts[1])
     case "--worker": options.worker = true
     default:
       if argument.hasPrefix("--") { usage() }
@@ -301,7 +322,7 @@ func frame(_ element: AXUIElement) -> CGRect? {
   return CGRect(origin: position, size: size)
 }
 
-let labelAttributes = [kAXDescriptionAttribute, kAXTitleAttribute, kAXHelpAttribute, kAXIdentifierAttribute]
+let labelAttributes = [kAXDescriptionAttribute, kAXTitleAttribute, kAXHelpAttribute, kAXIdentifierAttribute, kAXValueAttribute]
 
 func labels(_ element: AXUIElement) -> [(String, String)] {
   labelAttributes.compactMap { name in
@@ -592,21 +613,57 @@ func main() {
     exit(unpopulated ? 7 : 9)
   }
 
-  guard let target = hit else {
+  guard let match = hit else {
     let unpopulated = search.visited < unpopulatedElementCount
     report(options, "trusted=true app=\(options.bundleId) found=false\(unpopulated ? " tree_exposed=false" : "") \(stats) total_ms=\(millis(since: start))")
     exit(unpopulated ? 7 : 4)
   }
 
-  let description = describe(target)
+  // --ancestor: the match names the target but is not it. Climb by AXParent, which every element
+  // answers, to the nearest ancestor with the given role. The cap is a backstop, not a limit worth
+  // tuning: the Karabiner sidebar's static text is two levels under its AXRow.
+  var acted = match
+  var ancestorText = ""
+  if let role = options.ancestor {
+    var climbed: AXUIElement? = nil
+    var current = match
+    for _ in 0..<12 {
+      guard let parent = attribute(current, kAXParentAttribute), CFGetTypeID(parent) == AXUIElementGetTypeID() else { break }
+      current = parent as! AXUIElement
+      if string(current, kAXRoleAttribute) == role { climbed = current; break }
+    }
+    guard let found = climbed else {
+      report(options, "trusted=true app=\(options.bundleId) found=true ancestor=\(role) ancestor_found=false \(stats) total_ms=\(millis(since: start)) \(describe(match))")
+      exit(4)
+    }
+    acted = found
+    ancestorText = " ancestor=\(role)"
+  }
+  let description = describe(acted)
   if options.dryRun {
-    report(options, "trusted=true app=\(options.bundleId) found=true pressed=false dry_run=true \(stats) total_ms=\(millis(since: start)) \(description)")
+    report(options, "trusted=true app=\(options.bundleId) found=true pressed=false dry_run=true\(ancestorText) \(stats) total_ms=\(millis(since: start)) \(description)")
     exit(0)
   }
 
-  let pressed = AXUIElementPerformAction(target, options.action as CFString)
+  // --set writes an attribute instead of performing an action, for a control that offers no action
+  // for what it does: an AXRow in a SwiftUI sidebar has only AXShowDefaultUI/AXShowAlternateUI, and
+  // setting its AXSelected to true is what selects it.
+  let pressed: AXError
+  let actionText: String
+  if let (name, value) = options.set {
+    let written: CFTypeRef
+    switch value {
+    case "true": written = kCFBooleanTrue
+    case "false": written = kCFBooleanFalse
+    default: written = value as CFString
+    }
+    pressed = AXUIElementSetAttributeValue(acted, name as CFString, written)
+    actionText = " set=\(name)=\(value)"
+  } else {
+    pressed = AXUIElementPerformAction(acted, options.action as CFString)
+    actionText = options.action == "AXPress" ? "" : " action=\(options.action)"
+  }
   let ok = pressed == .success
-  let actionText = options.action == "AXPress" ? "" : " action=\(options.action)"
 
   // --key: wait for the pressed control to leave the tree, then post the chord. Re-running the same
   // search is the check; the walk is short while the control is there and full once it is gone.
@@ -635,7 +692,7 @@ func main() {
       keyText = " gone=false gone_ms=\(goneMs) key_posted=false"
     }
   }
-  report(options, "trusted=true app=\(options.bundleId) found=true pressed=\(ok)\(actionText)\(ok ? "" : " ax_error=\(pressed.rawValue)")\(keyText) \(stats) total_ms=\(millis(since: start)) \(description)")
+  report(options, "trusted=true app=\(options.bundleId) found=true pressed=\(ok)\(ancestorText)\(actionText)\(ok ? "" : " ax_error=\(pressed.rawValue)")\(keyText) \(stats) total_ms=\(millis(since: start)) \(description)")
   exit(ok ? (keyOk ? 0 : 10) : 5)
 }
 
