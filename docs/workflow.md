@@ -74,7 +74,10 @@ what the app cannot know: where the work stands.
 not that it was left alone. It is sidebar state; say nothing about it unless asked.
 
 These are **stages, not flags**: exactly one prefix at a time, and setting a new one replaces
-whatever was there. Set a prefix **optimistically** — when the stage *starts*, not when it succeeds —
+whatever was there. **Every title carries one**, and a prefix comes off only when another takes its
+place — a bare title says nothing about the session, and the sidebar cannot tell it apart from a
+chat that never had a stage at all. A session with nothing left to do keeps the prefix of the last
+stage it reached. Set a prefix **optimistically** — when the stage *starts*, not when it succeeds —
 and correct it if the stage falls over. A title that only becomes true at the end is blank for the
 whole stretch the sidebar is there to describe. Only one reads cleanly at sidebar width, and 🚀 after
 📦 is noise — the later stage implies the earlier.
@@ -89,5 +92,6 @@ particular is worth setting before handing back on a long-running investigation:
 tell "waiting on you" from "given up on".
 
 ⏳ is the weakest of them: every other prefix takes precedence, so it only shows while nothing more
-specific applies. Set it by hand when implementation starts, and drop it — leaving the title bare —
-when control goes back to the user.
+specific applies. Set it by hand when implementation starts, and replace it when control goes back
+to the user — 🚙 if the work is waiting on them, otherwise whatever stage the branch actually
+reached.
