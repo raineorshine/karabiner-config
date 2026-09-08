@@ -4,6 +4,14 @@
 
 Learned the slow way on the Notion archive and Messages tapback rules:
 
+- **Which rules broke together names the mechanism, before any one of them is opened.** Two
+  Claude-app shortcuts stopped working right after the app updated, which reads as the app having
+  changed those two controls. They were simply the two `ax-press` rules pressed often enough to
+  notice: every coordinate-click and plain-remap rule still worked, and so did four other `ax-press`
+  rules nobody had reached for. The helper had lost its Accessibility grant. Partition the working
+  and failing rules by *mechanism* — accessibility, coordinate click, plain remap, menu bar — before
+  opening any of them, and when the `ax-press` set is the one that is down, read `trusted=` in
+  `.claude/ax-press.log` first; its last line answers it without a press.
 - **Instrument inside the script.** It runs in the context that holds the permissions, so having it
   append what it saw — pointer position, whether the popup's window existed, how long it waited —
   turned "it stops short sometimes" into "the right-click produced no menu in 5 of 6, within 300ms"

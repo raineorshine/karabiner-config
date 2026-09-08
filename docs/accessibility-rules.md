@@ -63,24 +63,40 @@ judges a command-line tool by whatever launched it — a terminal, or Karabiner 
 script can post events from one rule and not another. The helper re-spawns itself with
 `responsibility_spawnattrs_setdisclaim`, the private posix_spawn attribute Chromium uses for its own
 helpers, so the child is judged as the binary wherever it was launched from: granted once in System
-Settings, it reported trusted=true from a shell and from Karabiner alike. The grant is keyed to the
-binary's ad-hoc signature, so every rebuild needs it granted again — six rebuilds, six regrants in
-the session that built it; `scripts/build-ax-press.sh` has the steps, and a self-signed signing
-certificate is the fix if that ever becomes routine.
+Settings, it reported trusted=true from a shell and from Karabiner alike.
+
+**TCC keys the grant to the signature, so how the binary is signed decides what the grant
+survives.** An ad-hoc signature — what the linker leaves — pins a code hash that changes with every
+compile, which cost six regrants in the session that built the helper and one more months later,
+when a rebuild from *unchanged* source took every ax-press rule down at once and read as a Claude
+app update having broken the two of them anyone had pressed. `scripts/build-ax-press.sh` now signs
+with a stable self-signed identity from `scripts/create-signing-cert.sh`, so the requirement is
+`identifier "com.raine.karabiner-config-ax-press" and certificate leaf = H"…"` and recompiling is
+free. Only three things cost a regrant now: changing that `--identifier`, replacing the certificate,
+and the ad-hoc fallback the build takes when signing fails — which prints a warning saying so, and is
+the first thing to check when a rebuild does break the grant. Both the trick and the script came from
+`~/projects/axshot`; read its `docs/permissions.md` before designing anything against TCC here,
+because it has usually been solved there already.
+
+**Rebuilding unchanged source is not a test of that.** `swiftc` is deterministic here and re-emits a
+byte-identical binary, so the code hash never moves and the grant is never asked to survive
+anything. Perturb the source before reading a rebuild as evidence — three builds that actually moved
+the hash (a4a9403 → 0dfe109 → a4a9403) all reported trusted=true, which is the claim.
 
 **The binary is shared across worktrees; the source is not.** `scripts/build-ax-press.sh` writes to
 the *main* checkout's `scripts/bin/` whichever worktree it runs from, because that is where the
 rules point. A build from a branch behind `main` therefore replaces the live binary with one missing
 whatever options landed meanwhile, and a rule that passes a dropped option fails as an ordinary
-miss — nothing says the option is gone. Rebase before building, or pay a second regrant to rebuild
-after the rebase, which is what happened here.
+miss — nothing says the option is gone. Rebase before building; a second build to fix it is now
+only a build, but it was a second regrant too before the signing identity landed.
 
-**A rebuild blinds you until the regrant, so learn everything first and build once.** `--dump` and
-`--dry-run` report `trusted=false` too, so the tool cannot be used to work out what to build next,
-and the user has to remove the stale Accessibility entry and re-approve before anything works again —
-including every rule already relying on the helper. The Karabiner-settings work read the tree with
-System Events, decided on two new capabilities (`--ancestor`, `--set`) plus AXValue, and spent one
-rebuild.
+**Without the grant the helper cannot even look.** `--dump` and `--dry-run` report
+`trusted=false` too, so it cannot be used to work out what to build next, and every rule relying on
+it is down until the entry is re-approved. Read the tree with System Events instead while that is
+true — the Karabiner-settings work did, decided on two new capabilities (`--ancestor`, `--set`) plus
+AXValue, and spent one rebuild. The advice this replaces was to learn everything first and build
+once; with a stable identity that is no longer the tradeoff, and only a grant that is actually
+missing blinds you.
 
 **Regranting means deleting the entry, and the deletion empties the list, so run the helper again.**
 Toggling the existing `karabiner-config-ax-press` entry off and on again does not re-request: the
@@ -101,8 +117,9 @@ from a shell, since reading labels is the modest end of what it can do. Testing 
 therefore always goes through the rule. Name the binary so the
 Accessibility list says whose it is (`karabiner-config-ax-press`, not `ax-press`), and make the tool
 take everything as arguments so a new rule never needs a rebuild. A new *label* never does; a new
-*capability* does — `--action` and `--label-from` were one, `--wait` and `--key` another — and each rebuild costs a
-regrant, so add an option general enough that the rule after it is arguments again.
+*capability* does — `--action` and `--label-from` were one, `--wait` and `--key` another. Each of
+those cost a regrant before the signing identity; they now cost a build, and an option general
+enough that the rule after it is arguments again is still the cheaper shape.
 
 **Sequencing anything after a helper call is the helper's job.** Karabiner cannot wait on a
 `shell_command`, so a key_code after one is only ever a fixed hold behind a spawn — the race the helper
