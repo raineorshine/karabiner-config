@@ -188,6 +188,24 @@ walk, not `--budget-ms`. And Karabiner does not see the posted chord: it grabs t
 at the IOKit level and a CGEvent is posted below that, so a rule can post the very chord that fired
 it without re-entering itself. What it does move is the cost onto the *common* path — every send
 now pays the helper's two launches plus a full walk, and `--log` writes a line for each one.
+It carries a chord the app treats as a *command*, and only that: bound to keys that are also
+characters, every letter reported `else_key_posted=true` and not one of them reached the focused
+input, so the key was swallowed outright. A typing key wants the shape below instead.
+
+**A rule bound to a key you also type should emit the key itself rather than hand it back.** `to`
+takes a `key_code` and a `shell_command` together, so Karabiner types the character and the helper
+runs behind it: nothing can be swallowed, nothing waits on a process launch, and the app's own
+single-key shortcuts still fire. Knowing when to stand down then belongs to the press, which is
+`--unless-editing` — it reads the app's `AXFocusedUIElement` and does nothing while that is a text
+control. A label is in the tree whether or not the key meant it: Shortwave's settings sidebar rows
+match just as readily from inside a label picker's search box as from the sidebar, so without the
+check every letter typed there also jumped the sidebar. The read costs one attribute and comes
+before any walk, so typing is the cheap path rather than the expensive one.
+
+**A backgrounded app answers `AXFocusedUIElement` with nothing.** So anything conditioned on focus
+cannot be checked with `--dry-run` from a shell — the app is never frontmost while you run one, and
+the option reports `focused=none` rather than reporting what it would do. It has to be exercised
+through the rule, with `--log` on to read what it saw.
 
 **Count the helper launches; that is what a rule costs.** A call is about 100ms wall on this machine
 against the 10-50ms of searching its log reports, because the helper re-spawns itself to disclaim
