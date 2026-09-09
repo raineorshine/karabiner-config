@@ -57,6 +57,14 @@
 //                     Posted before the report so the fall-through is as prompt as the search was
 //                     (a populated tree misses in tens of milliseconds), and never under --dry-run,
 //                     which is the one path reaching a miss without the Karabiner-launched check
+//   --unless-editing  do nothing, and fall through to --else-key, while the app's focused element
+//                     is a text control (AXTextField, AXTextArea, AXComboBox, AXSearchField).
+//                     A bare key bound to a control is still a character wherever one is being
+//                     typed, and a Shortwave settings sidebar row matches just as readily from
+//                     inside a label picker's search box as from the sidebar itself -- so the key
+//                     was swallowed and the sidebar jumped mid-word. Checked before the walk, from
+//                     one AXFocusedUIElement read, so typing costs an attribute read rather than a
+//                     tree
 //   --wait            keep looking until the control appears or the budget runs out, for a target
 //                     that a previous action is still bringing on screen: the Archive item of a
 //                     context menu that an AXShowMenu a moment earlier is still opening. Without
@@ -152,6 +160,10 @@
 // 7 no match and the window's tree never grew past its own chrome (accessibility not enabled),
 // 8 press refused because Karabiner did not launch this, 9 nothing on the page fits --label-from,
 // 10 pressed but the --key chord was not posted (the control never left the tree, or the post failed).
+// --unless-editing reports found=false with editing=<role> and exits 4, the same as any other
+// miss, so --else-key hands the key on exactly as it does when nothing matched. When it does not
+// stand down it reports focused=<role> in the stats instead, which is what says whether the app
+// is answering AXFocusedUIElement at all -- a backgrounded app answers focused=none.
 // --else-key does not change any of these: a miss is still reported as a miss, with the posted
 // chord named in the same line, so a rule that falls through every time still says so in the log.
 
@@ -178,6 +190,7 @@ struct Options {
   var wait = false
   var key: (code: CGKeyCode, flags: CGEventFlags)?
   var elseKey: (code: CGKeyCode, flags: CGEventFlags)?
+  var unlessEditing = false
   var enhanced = false
   var pid: pid_t = 0
   var sibling: String?
@@ -196,7 +209,7 @@ struct Options {
 }
 
 func usage() -> Never {
-  FileHandle.standardError.write("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--nth N] [--dry-run] [--dump] [--dump-all] [--actions] [--prompt] [--log] [--budget-ms N] [--wait] [--key CHORD] [--else-key CHORD] [--enhanced] [--pid N] [--sibling TEXT] [--action A] [--click] [--scroll-first] [--scroll-to-end] [--label-from PATTERN] [--ancestor ROLE[:N]] [--within X0,Y0,X1,Y1] [--under ROLE[:LABEL]] [--set ATTR=VALUE]\n".data(using: .utf8)!)
+  FileHandle.standardError.write("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--nth N] [--dry-run] [--dump] [--dump-all] [--actions] [--prompt] [--log] [--budget-ms N] [--wait] [--key CHORD] [--unless-editing] [--else-key CHORD] [--enhanced] [--pid N] [--sibling TEXT] [--action A] [--click] [--scroll-first] [--scroll-to-end] [--label-from PATTERN] [--ancestor ROLE[:N]] [--within X0,Y0,X1,Y1] [--under ROLE[:LABEL]] [--set ATTR=VALUE]\n".data(using: .utf8)!)
   exit(64)
 }
 
@@ -220,6 +233,7 @@ func parse(_ argv: [String]) -> Options {
     case "--budget-ms": i += 1; guard i < argv.count, let n = Int(argv[i]) else { usage() }; options.budgetMs = n
     case "--wait": options.wait = true
     case "--key": i += 1; guard i < argv.count, let chord = parseChord(argv[i]) else { usage() }; options.key = chord
+    case "--unless-editing": options.unlessEditing = true
     case "--else-key": i += 1; guard i < argv.count, let chord = parseChord(argv[i]) else { usage() }; options.elseKey = chord
     case "--enhanced": options.enhanced = true
     case "--pid": i += 1; guard i < argv.count, let n = Int32(argv[i]) else { usage() }; options.pid = n
@@ -745,6 +759,24 @@ func main() {
     return " else_key_posted=\(postKey(chord))"
   }
 
+  // --unless-editing: the label of a control is not the only thing that decides whether a bare key
+  // means it. Shortwave's settings sidebar rows are in the tree while a label picker's search box
+  // has focus, so a rule bound to "a" pressed the Calendar row instead of typing the letter. The
+  // app's focused element says which it is, in one read, before any walk.
+  let editableRoles: Set<String> = ["AXTextField", "AXTextArea", "AXComboBox", "AXSearchField"]
+  var focusedRole = "none"
+  if options.unlessEditing, let focused = attribute(appElement, kAXFocusedUIElementAttribute),
+    CFGetTypeID(focused) == AXUIElementGetTypeID() {
+    let element = focused as! AXUIElement
+    focusedRole = string(element, kAXRoleAttribute) ?? "?"
+    if editableRoles.contains(focusedRole) {
+      let elseText = elseKey()
+      report(options, "trusted=true app=\(options.bundleId) found=false editing=\(focusedRole)\(elseText) app_role=\(appRole) total_ms=\(millis(since: start))")
+      exit(4)
+    }
+  }
+  let focusedText = options.unlessEditing ? " focused=\(focusedRole)" : ""
+
   var hit: AXUIElement?
   var matchWindow: AXUIElement?
   var filled: String?
@@ -769,7 +801,7 @@ func main() {
   }
   let findMs = millis(since: start)
   let labelText = options.labelFrom == nil ? "" : " label=\"\(search.label)\""
-  let stats = "attempts=\(attempts) visited=\(search.visited)\(search.timedOut ? " timed_out=true" : "")\(labelText) app_role=\(appRole) find_ms=\(findMs)"
+  let stats = "attempts=\(attempts) visited=\(search.visited)\(focusedText)\(search.timedOut ? " timed_out=true" : "")\(labelText) app_role=\(appRole) find_ms=\(findMs)"
 
   if options.labelFrom != nil && filled == nil {
     let unpopulated = search.visited < unpopulatedElementCount

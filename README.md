@@ -91,6 +91,22 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Option + `A` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.electron.shortwave "Always apply" --log`
 - Shortwave: Cmd+Enter → press Save in the settings dialog, or send as usual
   - Command + `return_or_enter` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.electron.shortwave "Save" --else-key cmd+return --log`
+- Shortwave: 1-9, A-F → Settings sidebar sections, or the key itself (physical keys a b c g k e in Colemak for A-F)
+  - `1` → `1`, `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.electron.shortwave "Overview" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing`
+  - `2` → `2`, `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.electron.shortwave "Inbox setup" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing`
+  - `3` → `3`, `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.electron.shortwave "Appearance" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing`
+  - `4` → `4`, `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.electron.shortwave "Compose" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing`
+  - `5` → `5`, `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.electron.shortwave "Notifications" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing`
+  - `6` → `6`, `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.electron.shortwave "AI Personalization" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing`
+  - `7` → `7`, `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.electron.shortwave "AI Integrations" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing`
+  - `8` → `8`, `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.electron.shortwave "Labels" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing`
+  - `9` → `9`, `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.electron.shortwave "Filters" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing`
+  - `A` → `A`, `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.electron.shortwave "Calendar" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing`
+  - `B` → `B`, `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.electron.shortwave "Miscellaneous" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing`
+  - `C` → `C`, `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.electron.shortwave "AI Agents" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing`
+  - `G` → `G`, `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.electron.shortwave "Members & Billing" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing`
+  - `K` → `K`, `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.electron.shortwave "Team collaboration" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing`
+  - `E` → `E`, `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.electron.shortwave "Team AI Assistant" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing`
 - Notion: Cmd+Shift+E → click archive on top notification (166, 135) (physical key k in Colemak)
   - Command + Shift + `K` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/mouse-click.js" 166 135`
 - Messages: Cmd+E → open the emoji picker for the last received message (physical key k in Colemak)

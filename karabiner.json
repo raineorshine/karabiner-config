@@ -1504,6 +1504,252 @@
                         ]
                     },
                     {
+                        "comment": "Jumps to a section of Shortwave's Settings screen by pressing its sidebar row through the accessibility tree, on the bare key rather than a chord. Karabiner emits the key first and the helper runs behind it, so the character is never Karabiner's to give back: every other screen in the app types the digit or letter it always typed and keeps Shortwave's own single-key shortcuts, and the settings jump is whatever the helper finds afterwards. --else-key was the first shape tried, the one Cmd+Enter uses for Save above, and it did not survive being bound to typing keys -- the fall-through reported else_key_posted=true on every letter and not one of them reached the focused input, so the key was swallowed outright. Emitting it from the rule costs nothing and cannot miss. A row is an AXGroup (frame 27,y 134x25) carrying an AXPress, with the section name two levels below it in an AXStaticText whose AXValue is the label, so the rule matches the text and climbs with --ancestor '*:2' -- counting every level, because the wrapper in between is an anonymous AXGroup with no role to aim at. The default reverse walk suits the target: the sidebar is the last region in document order (elements 849-912 of 939), so it is reached before the thread pane, and the toolbar's own Compose button carries the same AXStaticText \"Compose\" earlier in the document, which a --first walk would find instead. --within is what keeps the fall-through honest for that one label -- the toolbar Compose sits at x=1364 and every sidebar row at x=33, so 4 types a 4 in the mail view rather than opening a draft -- and the rectangle is left open vertically so moving the window down does not break all fifteen at once. Nothing in the mail view carries any of the other fourteen labels (513 elements, none matched), so those fall through on the label alone. --unless-editing is what makes that safe: the sidebar rows are in the tree while a label picker's search box has focus too, so without it every letter typed there also jumped the sidebar. It reads the app's focused element and does nothing while that is a text control, which also makes typing the cheap path -- one attribute read, no walk. No --log, unlike every other ax-press rule here: these are typing keys, and a line per a-f keystroke would bury the log -- debug one with --dry-run from a shell instead. The cost is the one --else-key always has, paid here on every such keystroke rather than on a send: two process launches plus a full walk, about 100ms plus the 57-98ms measured over ~1000 elements. 1-9 and A-F cover the fifteen sections of My account and the team; Support, Keyboard shortcuts and Experiments have no key left and are unbound. Colemak leaves the digits and A/B/C alone, D/E/F are physical g/k/e, and --else-key names keys by the same ANSI position, so each manipulator posts back exactly the key it took.",
+                        "description": "Shortwave: 1-9, A-F → Settings sidebar sections, or the key itself (physical keys a b c g k e in Colemak for A-F)",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": { "key_code": "1" },
+                                "to": [
+                                    { "key_code": "1" },
+                                    {
+                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Overview\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": { "key_code": "2" },
+                                "to": [
+                                    { "key_code": "2" },
+                                    {
+                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Inbox setup\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": { "key_code": "3" },
+                                "to": [
+                                    { "key_code": "3" },
+                                    {
+                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Appearance\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": { "key_code": "4" },
+                                "to": [
+                                    { "key_code": "4" },
+                                    {
+                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Compose\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": { "key_code": "5" },
+                                "to": [
+                                    { "key_code": "5" },
+                                    {
+                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Notifications\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": { "key_code": "6" },
+                                "to": [
+                                    { "key_code": "6" },
+                                    {
+                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"AI Personalization\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": { "key_code": "7" },
+                                "to": [
+                                    { "key_code": "7" },
+                                    {
+                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"AI Integrations\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": { "key_code": "8" },
+                                "to": [
+                                    { "key_code": "8" },
+                                    {
+                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Labels\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": { "key_code": "9" },
+                                "to": [
+                                    { "key_code": "9" },
+                                    {
+                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Filters\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": { "key_code": "a" },
+                                "to": [
+                                    { "key_code": "a" },
+                                    {
+                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Calendar\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": { "key_code": "b" },
+                                "to": [
+                                    { "key_code": "b" },
+                                    {
+                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Miscellaneous\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": { "key_code": "c" },
+                                "to": [
+                                    { "key_code": "c" },
+                                    {
+                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"AI Agents\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": { "key_code": "g" },
+                                "to": [
+                                    { "key_code": "g" },
+                                    {
+                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Members & Billing\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": { "key_code": "k" },
+                                "to": [
+                                    { "key_code": "k" },
+                                    {
+                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Team collaboration\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": { "key_code": "e" },
+                                "to": [
+                                    { "key_code": "e" },
+                                    {
+                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Team AI Assistant\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "comment": "Archives the top notification in the Inbox side panel by handing the whole gesture to a script, which moves the pointer there with real mouse events and clicks. Karabiner's own set_mouse_cursor_position warps the cursor without posting a mouse-moved event, and that is the root of every problem this rule has had: Chromium does not update its hover target from a warp, so the archive button, which only exists while the row is hovered, is either not armed or no longer armed when the click lands, and the click hit-tests against the row underneath and opens the notification instead. Waiting it out does not work reliably, because the window is bounded at both ends. Measured from the warp, with a single click: 60-80ms is too early and hits the row, 130ms archives, 250ms archives with false negatives, 400-500ms fails outright, and 150ms managed 1 in 4, so the window is narrow, drifts, and is not worth aiming at. An earlier two-click version appeared to work by firing at two offsets and landing one inside the window, which also means it archives twice whenever both land. The script sidesteps the window by walking the pointer in steps with CGEvents, which Chromium treats as genuine motion. Posting CGEvents needs Accessibility permission, which osascript does not have on its own, but Karabiner does and the processes it spawns inherit it; run the same command from a terminal and the events are silently filtered and the pointer never moves. It also clears the modifier flags on the click, since the physical Cmd+Shift are still down and an uncleared click arrives as Shift+Click and extends the text selection across the page, and it restores the cursor itself. Notion has no keyboard shortcut for archiving a single notification, so the mouse is the only route. Coordinates are absolute on the main display and only land correctly while the Notion window is top-left aligned at its usual size with the Inbox panel open; y is measured from the top of the first row rather than its middle, so it holds regardless of how tall the notification is, and the three buttons sit about 10 points apart, so shift x by 10 if the click lands on a neighbor.",
                         "description": "Notion: Cmd+Shift+E → click archive on top notification (166, 135) (physical key k in Colemak)",
                         "manipulators": [
