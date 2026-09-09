@@ -50,9 +50,12 @@ me to press a key.
   but it also means that a live file *already* behind `main` when the lock was taken is put back
   just as faithfully, however long the lock was held. Note that a ship cannot cause this: its
   `merge --ff-only` refuses against an installed test config, which is the whole reason it defers.
-  The tell is a later fast-forward refusing with a diff that is pure *deletions* of a rule already
-  on `main` — that is a stale restore, not live work, and `git -C <main> checkout -- karabiner.json`
-  before the fast-forward is the fix. Another session's test config shows up as additions instead,
+  `acquire` now says so when the live file already differs from HEAD, and names the deletions-only
+  case specifically, which is the shape of a live file behind `main` rather than ahead of it. It is
+  a note, not a refusal — surviving uncommitted work is the point, and only the caller knows which
+  kind theirs is. Left unnoticed, the same thing surfaces much later as a fast-forward refusing
+  against a file missing rules already shipped; `git -C <main> checkout -- karabiner.json` before
+  the fast-forward is the fix then. Another session's test config shows up as additions instead,
   and that one is theirs to release.
 - Shipping pushes to `origin/main` from the worktree, so a main checkout dirty with someone else's
   installed test config no longer blocks landing. The local `main` fast-forwards whenever it next

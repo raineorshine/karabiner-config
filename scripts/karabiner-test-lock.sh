@@ -12,7 +12,8 @@
 # lock abandoned by a dead session can still be recovered by `break`.
 #
 #   acquire [label] [session]
-#                     take the lock and snapshot the live config; `session` names
+#                     take the lock and snapshot the live config, saying so if that
+#                     file already differs from HEAD; `session` names
 #                     the Claude session holding it, so a denied request can say
 #                     which chat to go to (falls back to $KARABINER_SESSION)
 #   install <file>    replace the live config (atomic; waits for reload)
@@ -91,6 +92,24 @@ replace_live() {
   printf 'installed, but Karabiner did not log a reload within 10s -- check the log\n' >&2
 }
 
+# The snapshot is content, not a commit, and nothing here compares it to `main`.
+# A live file that is already *behind* main is therefore preserved and restored
+# as faithfully as uncommitted work is -- and the staleness surfaces much later,
+# as a fast-forward refusing against a file that is missing rules already
+# shipped. Say so at acquire instead, while the window is still one session
+# wide. Never a refusal: surviving uncommitted work in the live slot is the
+# point of the snapshot, and only the caller knows which kind theirs is.
+stale_note() {
+  stat=$(git -C "$ROOT" diff --numstat HEAD -- karabiner.json 2>/dev/null) || return 0
+  [ -n "$stat" ] || return 0
+  added=$(printf '%s\n' "$stat" | awk '{print $1}')
+  removed=$(printf '%s\n' "$stat" | awk '{print $2}')
+  printf 'note: the live config differs from HEAD by +%s -%s lines, and the snapshot has that too\n' "$added" "$removed"
+  [ "$added" = "0" ] || return 0
+  printf '      deletions only -- the live file looks behind `main` rather than ahead of it, so\n'
+  printf '      releasing will put that back; check it before testing on top of it\n'
+}
+
 cmd=${1:-status}
 case "$cmd" in
 
@@ -104,6 +123,7 @@ case "$cmd" in
       printf '%s\n' "$SESSION_ID" > "$LOCK/session_id"
       printf '%s\n' "$NOW" > "$LOCK/acquired"
       printf 'acquired -- live config snapshotted\n'
+      stale_note
     elif owned; then
       # Re-acquiring must not re-snapshot: the backup would capture the test
       # config and the real pre-test state would be lost.
