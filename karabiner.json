@@ -1480,6 +1480,30 @@
                         ]
                     },
                     {
+                        "comment": "Presses the Save button in Shortwave's settings dialogs, which the app gives no keyboard shortcut of its own for. Cmd+Enter is Shortwave's send shortcut everywhere else, so the rule must not swallow it: --else-key posts cmd+return from the helper itself whenever no Save button is on screen, which is what leaves compose and the inbox behaving as they always did. That fall-through is the whole cost of binding a key the app already uses -- a miss ends the search as soon as the walk shows the tree is populated (87ms over ~1000 elements), on top of the helper's two process launches. Nothing in the mail view carries the label at all, so the label alone tells the dialog from every other screen, and the dialog itself leaves only 65 elements in the tree -- Chromium drops the page behind a modal -- so the AXButton titled \"Save\" is reached after 19 of them, 27ms. Logs one line per press to .claude/ax-press.log, which here is one line per Cmd+Enter, sends included.",
+                        "description": "Shortwave: Cmd+Enter → press Save in the settings dialog, or send as usual",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "return_or_enter",
+                                    "modifiers": { "mandatory": ["command"] }
+                                },
+                                "to": [
+                                    {
+                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Save\" --else-key cmd+return --log"
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "comment": "Archives the top notification in the Inbox side panel by handing the whole gesture to a script, which moves the pointer there with real mouse events and clicks. Karabiner's own set_mouse_cursor_position warps the cursor without posting a mouse-moved event, and that is the root of every problem this rule has had: Chromium does not update its hover target from a warp, so the archive button, which only exists while the row is hovered, is either not armed or no longer armed when the click lands, and the click hit-tests against the row underneath and opens the notification instead. Waiting it out does not work reliably, because the window is bounded at both ends. Measured from the warp, with a single click: 60-80ms is too early and hits the row, 130ms archives, 250ms archives with false negatives, 400-500ms fails outright, and 150ms managed 1 in 4, so the window is narrow, drifts, and is not worth aiming at. An earlier two-click version appeared to work by firing at two offsets and landing one inside the window, which also means it archives twice whenever both land. The script sidesteps the window by walking the pointer in steps with CGEvents, which Chromium treats as genuine motion. Posting CGEvents needs Accessibility permission, which osascript does not have on its own, but Karabiner does and the processes it spawns inherit it; run the same command from a terminal and the events are silently filtered and the pointer never moves. It also clears the modifier flags on the click, since the physical Cmd+Shift are still down and an uncleared click arrives as Shift+Click and extends the text selection across the page, and it restores the cursor itself. Notion has no keyboard shortcut for archiving a single notification, so the mouse is the only route. Coordinates are absolute on the main display and only land correctly while the Notion window is top-left aligned at its usual size with the Inbox panel open; y is measured from the top of the first row rather than its middle, so it holds regardless of how tall the notification is, and the three buttons sit about 10 points apart, so shift x by 10 if the click lands on a neighbor.",
                         "description": "Notion: Cmd+Shift+E → click archive on top notification (166, 135) (physical key k in Colemak)",
                         "manipulators": [

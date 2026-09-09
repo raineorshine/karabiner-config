@@ -49,6 +49,14 @@
 //                     ANSI (QWERTY) position, return, escape, tab, space, or a macOS virtual key
 //                     code as a number. Karabiner's own key events cannot be sequenced behind a
 //                     shell_command without a fixed hold, which is what this exists to avoid
+//   --else-key <chord>
+//                     when no control was found to act on, post this chord instead, in the same
+//                     <chord> spelling as --key. This is what lets a rule take a shortcut the app
+//                     already uses elsewhere: the control is pressed where it exists, and every
+//                     other screen gets the key it would have got had the rule not been there.
+//                     Posted before the report so the fall-through is as prompt as the search was
+//                     (a populated tree misses in tens of milliseconds), and never under --dry-run,
+//                     which is the one path reaching a miss without the Karabiner-launched check
 //   --wait            keep looking until the control appears or the budget runs out, for a target
 //                     that a previous action is still bringing on screen: the Archive item of a
 //                     context menu that an AXShowMenu a moment earlier is still opening. Without
@@ -144,6 +152,8 @@
 // 7 no match and the window's tree never grew past its own chrome (accessibility not enabled),
 // 8 press refused because Karabiner did not launch this, 9 nothing on the page fits --label-from,
 // 10 pressed but the --key chord was not posted (the control never left the tree, or the post failed).
+// --else-key does not change any of these: a miss is still reported as a miss, with the posted
+// chord named in the same line, so a rule that falls through every time still says so in the log.
 
 import AppKit
 import ApplicationServices
@@ -167,6 +177,7 @@ struct Options {
   var budgetMs = 2000
   var wait = false
   var key: (code: CGKeyCode, flags: CGEventFlags)?
+  var elseKey: (code: CGKeyCode, flags: CGEventFlags)?
   var enhanced = false
   var pid: pid_t = 0
   var sibling: String?
@@ -185,7 +196,7 @@ struct Options {
 }
 
 func usage() -> Never {
-  FileHandle.standardError.write("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--nth N] [--dry-run] [--dump] [--dump-all] [--actions] [--prompt] [--log] [--budget-ms N] [--wait] [--key CHORD] [--enhanced] [--pid N] [--sibling TEXT] [--action A] [--click] [--scroll-first] [--scroll-to-end] [--label-from PATTERN] [--ancestor ROLE[:N]] [--within X0,Y0,X1,Y1] [--under ROLE[:LABEL]] [--set ATTR=VALUE]\n".data(using: .utf8)!)
+  FileHandle.standardError.write("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--nth N] [--dry-run] [--dump] [--dump-all] [--actions] [--prompt] [--log] [--budget-ms N] [--wait] [--key CHORD] [--else-key CHORD] [--enhanced] [--pid N] [--sibling TEXT] [--action A] [--click] [--scroll-first] [--scroll-to-end] [--label-from PATTERN] [--ancestor ROLE[:N]] [--within X0,Y0,X1,Y1] [--under ROLE[:LABEL]] [--set ATTR=VALUE]\n".data(using: .utf8)!)
   exit(64)
 }
 
@@ -209,6 +220,7 @@ func parse(_ argv: [String]) -> Options {
     case "--budget-ms": i += 1; guard i < argv.count, let n = Int(argv[i]) else { usage() }; options.budgetMs = n
     case "--wait": options.wait = true
     case "--key": i += 1; guard i < argv.count, let chord = parseChord(argv[i]) else { usage() }; options.key = chord
+    case "--else-key": i += 1; guard i < argv.count, let chord = parseChord(argv[i]) else { usage() }; options.elseKey = chord
     case "--enhanced": options.enhanced = true
     case "--pid": i += 1; guard i < argv.count, let n = Int32(argv[i]) else { usage() }; options.pid = n
     case "--sibling": i += 1; guard i < argv.count else { usage() }; options.sibling = argv[i]
@@ -722,6 +734,17 @@ func main() {
     return nil
   }
 
+  // --else-key: nothing was found to act on, so hand the chord that spawned this to the app rather
+  // than swallowing it, which is what lets a rule bind a shortcut the app already uses on screens
+  // where the control is absent. Posted before the report line so the fall-through costs only the
+  // search. --dry-run reaches the miss paths without the Karabiner-launched check, so it reports
+  // what it would post instead of posting it.
+  func elseKey() -> String {
+    guard let chord = options.elseKey else { return "" }
+    if options.dryRun { return " else_key=skipped-dry-run" }
+    return " else_key_posted=\(postKey(chord))"
+  }
+
   var hit: AXUIElement?
   var matchWindow: AXUIElement?
   var filled: String?
@@ -750,13 +773,15 @@ func main() {
 
   if options.labelFrom != nil && filled == nil {
     let unpopulated = search.visited < unpopulatedElementCount
-    report(options, "trusted=true app=\(options.bundleId) found=false filled=false\(unpopulated ? " tree_exposed=false" : "") \(stats) total_ms=\(millis(since: start))")
+    let elseText = elseKey()
+    report(options, "trusted=true app=\(options.bundleId) found=false filled=false\(unpopulated ? " tree_exposed=false" : "")\(elseText) \(stats) total_ms=\(millis(since: start))")
     exit(unpopulated ? 7 : 9)
   }
 
   guard var match = hit else {
     let unpopulated = search.visited < unpopulatedElementCount
-    report(options, "trusted=true app=\(options.bundleId) found=false\(unpopulated ? " tree_exposed=false" : "") \(stats) total_ms=\(millis(since: start))")
+    let elseText = elseKey()
+    report(options, "trusted=true app=\(options.bundleId) found=false\(unpopulated ? " tree_exposed=false" : "")\(elseText) \(stats) total_ms=\(millis(since: start))")
     exit(unpopulated ? 7 : 4)
   }
 
@@ -805,7 +830,8 @@ func main() {
     }
     ancestorText = " ancestor=\(role)\(nth > 1 ? ":\(nth)" : "")"
     guard let found = climbed else {
-      report(options, "trusted=true app=\(options.bundleId) found=true\(ancestorText) ancestor_found=false \(stats) total_ms=\(millis(since: start)) \(describe(match))")
+      let elseText = elseKey()
+      report(options, "trusted=true app=\(options.bundleId) found=true\(ancestorText) ancestor_found=false\(elseText) \(stats) total_ms=\(millis(since: start)) \(describe(match))")
       exit(4)
     }
     acted = found

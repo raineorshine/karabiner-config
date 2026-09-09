@@ -89,6 +89,8 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Command + Option + `B` → Command + `\`
 - Shortwave: Option+A → press Always apply on the label toast
   - Option + `A` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.electron.shortwave "Always apply" --log`
+- Shortwave: Cmd+Enter → press Save in the settings dialog, or send as usual
+  - Command + `return_or_enter` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.electron.shortwave "Save" --else-key cmd+return --log`
 - Notion: Cmd+Shift+E → click archive on top notification (166, 135) (physical key k in Colemak)
   - Command + Shift + `K` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/mouse-click.js" 166 135`
 - Messages: Cmd+E → open the emoji picker for the last received message (physical key k in Colemak)
