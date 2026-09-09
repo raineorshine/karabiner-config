@@ -42,6 +42,14 @@ its own controls: `AXButton AXTitle="Compose"`, `AXImage AXDescription="Avatar f
 Always apply toast's `AXButton AXTitle="Always apply"`. So a target there is worth dumping for before
 any coordinate is measured.
 
+**A modal empties the tree behind it.** Shortwave's settings dialog left 65 elements where the mail
+view had about a thousand: Chromium exposes the dialog and marks the page behind it inert, so a
+search inside a dialog is cheap and needs no `--within` or `--under` to keep it off the page — and a
+search for anything behind the dialog finds nothing at all while it is up. The two states are
+therefore two separate dumps, which is also how a label is shown to be unique: the dialog's Save
+button cannot collide with a page it cannot see at the same time, so the question is whether the
+view underneath carries the label once the dialog is gone.
+
 **A virtualised list holds the rows it has drawn, not the list.** Shortwave's thread list exposed 33
 row groups of a mailbox with far more — a screenful plus a little — and the rows past the bottom of
 the window carry frames clipped to zero height at the window's edge, which is Chromium reporting
@@ -169,6 +177,17 @@ chat took its project's whole sidebar group away, + button included, so no amoun
 behind the app's own navigation could reach it and the press had to happen before the archive
 instead. Ask what the tree looks like after the first press before reaching for `--wait`, and reorder
 when the answer is that the second target no longer exists.
+
+**A shortcut the app already uses can still be bound, because the helper can hand it back.**
+`--else-key` posts the chord when nothing was found, so the rule presses the control on the one
+screen that has it and every other screen gets the key it would have got: Shortwave's Cmd+Enter
+sends mail everywhere except its settings dialogs, where Save has no shortcut at all. Two things
+make it sound. A miss in a populated tree ends on the first pass rather than spending the budget —
+the retry loop persists only while the tree is too small to be real — so the fall-through costs one
+walk, not `--budget-ms`. And Karabiner does not see the posted chord: it grabs the physical device
+at the IOKit level and a CGEvent is posted below that, so a rule can post the very chord that fired
+it without re-entering itself. What it does move is the cost onto the *common* path — every send
+now pays the helper's two launches plus a full walk, and `--log` writes a line for each one.
 
 **Count the helper launches; that is what a rule costs.** A call is about 100ms wall on this machine
 against the 10-50ms of searching its log reports, because the helper re-spawns itself to disclaim
