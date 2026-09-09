@@ -23,7 +23,11 @@ whose labels do not contain it, so a row read through one letter looks shorter t
 control was concluded absent this way, and it was there the whole time under a label the query did
 not match. Dump a row through more than one query before believing what is not in it. And the app
 moves while you work: between two of these dumps the user navigated, and the second was a different
-screen with no marker saying so. Say which screen a label came from, and re-dump rather than
+screen with no marker saying so. And a dump only ever describes the state it was taken in: an inbox
+short enough to fit the window showed neither the clipped frames nor the virtualised list that the
+Shortwave last-email rule turns on, both of which appeared the moment the same view was long enough
+to scroll. Ask for the state that exercises the rule before designing against a dump. Say which
+screen a label came from, and re-dump rather than
 reasoning across two dumps taken minutes apart.
 
 **A target that exists for only a few seconds is inspected by polling `--dump` while it is up.** A
@@ -81,6 +85,13 @@ way it already knows how to look; System Events shows the tree as it is. It is a
 rule mechanism: a Karabiner-spawned `osascript`'s permissions are the unpredictable case the next paragraph
 describes.
 
+**Except on a Chromium or Electron app, where System Events sees nothing at all.** It answered
+`count of windows` with 0 for a running Shortwave with a window on screen, and still answered 0
+right after `ax-press` had walked that same window — the switch that makes the web content appear
+is per accessibility client, and each one has to throw it for itself. So there the helper is the
+only inspector, which is what `--dump-all` and `--actions` are for: a label query cannot show you a
+container, because a container is precisely an element with no label to query.
+
 **Accessibility permission goes to the helper itself, which is what makes it predictable.** TCC
 judges a command-line tool by whatever launched it — a terminal, or Karabiner — which is why the same
 script can post events from one rule and not another. The helper re-spawns itself with
@@ -116,7 +127,7 @@ only a build, but it was a second regrant too before the signing identity landed
 **Without the grant the helper cannot even look.** `--dump` and `--dry-run` report
 `trusted=false` too, so it cannot be used to work out what to build next, and every rule relying on
 it is down until the entry is re-approved. Read the tree with System Events instead while that is
-true — the Karabiner-settings work did, decided on two new capabilities (`--ancestor`, `--set`) plus
+true, on an app System Events can see — the Karabiner-settings work did, decided on two new capabilities (`--ancestor`, `--set`) plus
 AXValue, and spent one rebuild. The advice this replaces was to learn everything first and build
 once; with a stable identity that is no longer the tradeoff, and only a grant that is actually
 missing blinds you.
