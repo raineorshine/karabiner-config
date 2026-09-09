@@ -72,13 +72,44 @@
 //                     control that is itself named after something on the page: the Claude app's
 //                     "More options for <chat>" button for the chat whose header button reads
 //                     "<chat>, rename session"
-//   --ancestor <AXRole>
+//   --ancestor <AXRole>[:<n>]
 //                     act on the nearest ancestor of the match carrying this role, for a control
 //                     whose label lives on a child of it: a SwiftUI sidebar row holds its text in
-//                     an AXStaticText inside the row, and the row is the thing that selects
+//                     an AXStaticText inside the row, and the row is the thing that selects.
+//                     :<n> takes the nth such ancestor rather than the nearest, and a role of *
+//                     counts every level, for a web app whose rows are anonymous AXGroups nested
+//                     inside one another and so cannot be told apart by role
+//   --within <x0,y0,x1,y1>
+//                     only match an element whose frame centre is inside this screen rectangle.
+//                     A label repeats outside the region that matters more often than it repeats
+//                     inside it: Shortwave names its account avatar "Avatar for <name>" exactly
+//                     as it names the ones in its thread rows, and only the rows are in the list
+//   --under <AXRole>[:<label>]
+//                     search inside the first element with this role, and this label if one is
+//                     given, instead of the whole window
+//   --click           move the pointer to the centre of the target, click, and put it back, for a
+//                     control whose row the tree exposes no action for. Refused unless the target
+//                     is inside the window, so a row scrolled out of view cannot land a click on
+//                     whatever is behind the app -- pair it with --scroll-first
+//   --scroll-first    AXScrollToVisible the target before acting, and re-read its frame, which is
+//                     what puts an off-screen row where a click can reach it
+//   --scroll-to-end   scroll the last match into view and look again, until the last match stops
+//                     changing or the budget runs out, and act on what is last then. A virtualised
+//                     list holds only the screenful it draws plus a little, so the end of the list
+//                     is not in the tree at all until the list has been scrolled to it: Shortwave
+//                     renders 33 thread rows of a mailbox that has far more. Only sound with the
+//                     backwards walk, which is what "last" means here, and skipped under --dry-run,
+//                     which performs no action at all
+//   --dump-all        dump every element, labelled or not; the label argument is then optional.
+//                     A filtered dump hides the containers a row hangs off, which are unlabelled
+//                     and are exactly what --ancestor and --under have to be aimed at
+//   --actions         list each element's actions in a dump, which is the only way to find out
+//                     whether a web node answers AXPress before a rule tries it
 //   --set <AXAttribute>=<value>
 //                     set this attribute on the target instead of performing an action. true and
-//                     false are written as booleans, anything else as a string. Setting AXSelected
+//                     false are written as booleans, a number as a number -- AXValue on a scroll
+//                     bar takes 0 to 1 and is how a list is sent to its end -- anything else as a
+//                     string. Setting AXSelected
 //                     on an outline row is how a list whose rows have no AXPress is navigated
 //                     (Karabiner-Elements' own settings sidebar), and it counts as a press for the
 //                     Karabiner-launched check below
@@ -141,13 +172,20 @@ struct Options {
   var sibling: String?
   var action = "AXPress"
   var labelFrom: String?
-  var ancestor: String?
+  var ancestor: (role: String, nth: Int)?
   var set: (name: String, value: String)?
+  var within: CGRect?
+  var under: (role: String, label: String?)?
+  var click = false
+  var scrollFirst = false
+  var scrollToEnd = false
+  var dumpAll = false
+  var actions = false
   var worker = false
 }
 
 func usage() -> Never {
-  FileHandle.standardError.write("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--nth N] [--dry-run] [--dump] [--prompt] [--log] [--budget-ms N] [--wait] [--key CHORD] [--enhanced] [--pid N] [--sibling TEXT] [--action A] [--label-from PATTERN] [--ancestor ROLE] [--set ATTR=VALUE]\n".data(using: .utf8)!)
+  FileHandle.standardError.write("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--nth N] [--dry-run] [--dump] [--dump-all] [--actions] [--prompt] [--log] [--budget-ms N] [--wait] [--key CHORD] [--enhanced] [--pid N] [--sibling TEXT] [--action A] [--click] [--scroll-first] [--scroll-to-end] [--label-from PATTERN] [--ancestor ROLE[:N]] [--within X0,Y0,X1,Y1] [--under ROLE[:LABEL]] [--set ATTR=VALUE]\n".data(using: .utf8)!)
   exit(64)
 }
 
@@ -179,7 +217,32 @@ func parse(_ argv: [String]) -> Options {
       i += 1
       guard i < argv.count, argv[i].components(separatedBy: "{}").count == 2 else { usage() }
       options.labelFrom = argv[i]
-    case "--ancestor": i += 1; guard i < argv.count else { usage() }; options.ancestor = argv[i]
+    case "--ancestor":
+      i += 1
+      guard i < argv.count else { usage() }
+      // ROLE, or ROLE:N for the nth ancestor with that role. AX roles carry no colon of their own.
+      let parts = argv[i].components(separatedBy: ":")
+      switch parts.count {
+      case 1: options.ancestor = (parts[0], 1)
+      case 2: guard let n = Int(parts[1]), n > 0 else { usage() }; options.ancestor = (parts[0], n)
+      default: usage()
+      }
+    case "--within":
+      i += 1
+      let numbers = (i < argv.count ? argv[i] : "").components(separatedBy: ",").compactMap(Double.init)
+      guard numbers.count == 4, numbers[2] > numbers[0], numbers[3] > numbers[1] else { usage() }
+      options.within = CGRect(x: numbers[0], y: numbers[1], width: numbers[2] - numbers[0], height: numbers[3] - numbers[1])
+    case "--under":
+      i += 1
+      guard i < argv.count else { usage() }
+      let parts = argv[i].components(separatedBy: ":")
+      guard parts.count <= 2, !parts[0].isEmpty else { usage() }
+      options.under = (parts[0], parts.count == 2 ? parts[1] : nil)
+    case "--click": options.click = true
+    case "--scroll-first": options.scrollFirst = true
+    case "--scroll-to-end": options.scrollToEnd = true
+    case "--dump-all": options.dump = true; options.dumpAll = true
+    case "--actions": options.actions = true
     case "--set":
       i += 1
       let parts = (i < argv.count ? argv[i] : "").components(separatedBy: "=")
@@ -192,9 +255,10 @@ func parse(_ argv: [String]) -> Options {
     }
     i += 1
   }
-  guard positional.count == 2 else { usage() }
+  // --dump-all has nothing to filter by, so it is the one mode that takes no label.
+  guard positional.count == 2 || (options.dumpAll && positional.count == 1) else { usage() }
   options.bundleId = positional[0]
-  options.label = positional[1]
+  options.label = positional.count == 2 ? positional[1] : ""
   return options
 }
 
@@ -223,6 +287,21 @@ func parseChord(_ spec: String) -> (code: CGKeyCode, flags: CGEventFlags)? {
   }
   guard let key = code else { return nil }
   return (key, flags)
+}
+
+/// Click at a point in screen coordinates: warp there, post the two button events, and put the
+/// pointer back where it was. Karabiner can warp and click by itself and does so in every rule
+/// that has a fixed coordinate; this exists for the coordinate that is only known once the tree
+/// has been read, which no `to` event can be written for in advance.
+func postClick(at point: CGPoint) -> Bool {
+  let previous = CGEvent(source: nil)?.location
+  CGWarpMouseCursorPosition(point)
+  guard let down = CGEvent(mouseEventSource: nil, mouseType: .leftMouseDown, mouseCursorPosition: point, mouseButton: .left),
+        let up = CGEvent(mouseEventSource: nil, mouseType: .leftMouseUp, mouseCursorPosition: point, mouseButton: .left) else { return false }
+  down.post(tap: .cgSessionEventTap)
+  up.post(tap: .cgSessionEventTap)
+  if let previous { CGWarpMouseCursorPosition(previous) }
+  return true
 }
 
 /// Post a key chord to the login session. The physical modifiers of the chord that spawned this
@@ -335,6 +414,12 @@ func frame(_ element: AXUIElement) -> CGRect? {
   return CGRect(origin: position, size: size)
 }
 
+func actionNames(_ element: AXUIElement) -> [String] {
+  var names: CFArray?
+  guard AXUIElementCopyActionNames(element, &names) == .success else { return [] }
+  return (names as? [String]) ?? []
+}
+
 let labelAttributes = [kAXDescriptionAttribute, kAXTitleAttribute, kAXHelpAttribute, kAXIdentifierAttribute, kAXValueAttribute]
 
 func labels(_ element: AXUIElement) -> [(String, String)] {
@@ -393,6 +478,12 @@ final class Search {
       guard fill(element, pattern: label) != nil else { return false }
     } else {
       guard labels(element).contains(where: { $0.1 == label }) else { return false }
+    }
+    // --within: a rectangle is a coarse filter, but it is the one thing that separates a label
+    // repeated across a window into the region that matters. The centre, not the origin, so a
+    // wide row is judged by where it sits rather than where it starts.
+    if let box = options.within {
+      guard let elementFrame = frame(element), box.contains(CGPoint(x: elementFrame.midX, y: elementFrame.midY)) else { return false }
     }
     guard let sibling = options.sibling else { return true }
     guard let parent = attribute(element, kAXParentAttribute), CFGetTypeID(parent) == AXUIElementGetTypeID() else { return false }
@@ -453,6 +544,20 @@ final class Search {
     return nil
   }
 
+  /// Forward walk for --under: the first element in document order with this role, and this label
+  /// when one is given. The search then runs inside it rather than the window.
+  func findContainer(_ element: AXUIElement, role: String, label: String?, depth: Int = 0) -> AXUIElement? {
+    guard enter(element, depth: depth) else { return nil }
+    defer { leave(element) }
+    if string(element, kAXRoleAttribute) == role, label == nil || labels(element).contains(where: { $0.1 == label }) {
+      return element
+    }
+    for child in children(element) {
+      if let hit = findContainer(child, role: role, label: label, depth: depth + 1) { return hit }
+    }
+    return nil
+  }
+
   /// Forward walk for --label-from: the first element in document order whose label fits.
   func findFill(_ element: AXUIElement, pattern: String, depth: Int = 0) -> String? {
     guard enter(element, depth: depth) else { return nil }
@@ -471,7 +576,7 @@ final class Search {
     let role = string(element, kAXRoleAttribute) ?? "?"
     roles[role, default: 0] += 1
     let query = options.label.lowercased()
-    if labels(element).contains(where: { $0.1.lowercased().contains(query) }) {
+    if options.dumpAll || labels(element).contains(where: { $0.1.lowercased().contains(query) }) {
       hits.append((visited, depth, element))
     }
     for child in children(element) {
@@ -588,7 +693,8 @@ func main() {
       let roleSummary = roles.sorted { $0.value > $1.value }.prefix(12).map { "\($0.key)=\($0.value)" }.joined(separator: " ")
       print("  roles: \(roleSummary)")
       for (order, depth, element) in hits {
-        print("  #\(order) depth=\(depth) \(describe(element))")
+        let actions = options.actions ? " actions=[\(actionNames(element).joined(separator: ","))]" : ""
+        print("  #\(order) depth=\(depth) \(describe(element))\(actions)")
       }
       search.visited = 0
     }
@@ -602,7 +708,22 @@ func main() {
   let unpopulatedElementCount = 50
   let retryInterval: UInt32 = 25_000
 
+  // --under narrows the walk to one container, which is what keeps a label that repeats elsewhere
+  // in the window out of the search; without it the root is the window itself.
+  func locate() -> (match: AXUIElement, window: AXUIElement)? {
+    for window in windows {
+      var root = window
+      if let (role, label) = options.under {
+        guard let container = search.findContainer(window, role: role, label: label) else { continue }
+        root = container
+      }
+      if let found = options.first ? search.findFirst(root) : search.findLast(root) { return (found, window) }
+    }
+    return nil
+  }
+
   var hit: AXUIElement?
+  var matchWindow: AXUIElement?
   var filled: String?
   var attempts = 0
   while true {
@@ -616,11 +737,9 @@ func main() {
       }
       search.label = filled.map { options.label.replacingOccurrences(of: "{}", with: $0) } ?? options.label
     }
-    if options.labelFrom == nil || filled != nil {
-      for window in windows {
-        hit = options.first ? search.findFirst(window) : search.findLast(window)
-        if hit != nil { break }
-      }
+    if options.labelFrom == nil || filled != nil, let found = locate() {
+      hit = found.match
+      matchWindow = found.window
     }
     if hit != nil || (search.visited >= unpopulatedElementCount && !options.wait) || search.timedOut || Date() > search.deadline { break }
     usleep(retryInterval)
@@ -635,10 +754,35 @@ func main() {
     exit(unpopulated ? 7 : 9)
   }
 
-  guard let match = hit else {
+  guard var match = hit else {
     let unpopulated = search.visited < unpopulatedElementCount
     report(options, "trusted=true app=\(options.bundleId) found=false\(unpopulated ? " tree_exposed=false" : "") \(stats) total_ms=\(millis(since: start))")
     exit(unpopulated ? 7 : 4)
+  }
+
+  // --scroll-to-end: the tree holds the rows a virtualised list has drawn, not the list. Scrolling
+  // the last one into view draws the next few, so the end is reached by repeating that until the
+  // last match stops changing. The comparison is the whole description, labels and frame together,
+  // because two adjacent rows can share an avatar and a settled list also stops moving.
+  var scrollText = ""
+  if options.scrollToEnd && options.dryRun {
+    scrollText = " scroll_to_end=skipped-dry-run"
+  } else if options.scrollToEnd {
+    var scrolls = 0
+    var last = describe(match)
+    while Date() < search.deadline {
+      guard AXUIElementPerformAction(match, "AXScrollToVisible" as CFString) == .success else { break }
+      usleep(30_000)
+      search.visited = 0
+      guard let next = locate() else { break }
+      scrolls += 1
+      let description = describe(next.match)
+      match = next.match
+      matchWindow = next.window
+      if description == last { break }
+      last = description
+    }
+    scrollText = " scrolls=\(scrolls)\(Date() >= search.deadline ? " scroll_budget_spent=true" : "")"
   }
 
   // --ancestor: the match names the target but is not it. Climb by AXParent, which every element
@@ -646,38 +790,65 @@ func main() {
   // tuning: the Karabiner sidebar's static text is two levels under its AXRow.
   var acted = match
   var ancestorText = ""
-  if let role = options.ancestor {
+  if let (role, nth) = options.ancestor {
     var climbed: AXUIElement? = nil
     var current = match
-    for _ in 0..<12 {
+    var matched = 0
+    // A web app's rows are nested anonymous groups, so the cap has to allow a climb of a dozen
+    // levels rather than the two a native row costs.
+    for _ in 0..<24 {
       guard let parent = attribute(current, kAXParentAttribute), CFGetTypeID(parent) == AXUIElementGetTypeID() else { break }
       current = parent as! AXUIElement
-      if string(current, kAXRoleAttribute) == role { climbed = current; break }
+      guard role == "*" || string(current, kAXRoleAttribute) == role else { continue }
+      matched += 1
+      if matched == nth { climbed = current; break }
     }
+    ancestorText = " ancestor=\(role)\(nth > 1 ? ":\(nth)" : "")"
     guard let found = climbed else {
-      report(options, "trusted=true app=\(options.bundleId) found=true ancestor=\(role) ancestor_found=false \(stats) total_ms=\(millis(since: start)) \(describe(match))")
+      report(options, "trusted=true app=\(options.bundleId) found=true\(ancestorText) ancestor_found=false \(stats) total_ms=\(millis(since: start)) \(describe(match))")
       exit(4)
     }
     acted = found
-    ancestorText = " ancestor=\(role)"
   }
-  let description = describe(acted)
   if options.dryRun {
-    report(options, "trusted=true app=\(options.bundleId) found=true pressed=false dry_run=true\(ancestorText) \(stats) total_ms=\(millis(since: start)) \(description)")
+    report(options, "trusted=true app=\(options.bundleId) found=true pressed=false dry_run=true\(ancestorText) \(stats) total_ms=\(millis(since: start)) \(describe(acted))")
     exit(0)
   }
+
+  // --scroll-first: a row below the fold carries a frame outside the window, which --click refuses
+  // to aim at. AXScrollToVisible brings it in, and the frame is read again afterwards so the click
+  // and the report both speak of where the target ended up rather than where it was.
+  if options.scrollFirst {
+    let scrolled = AXUIElementPerformAction(acted, "AXScrollToVisible" as CFString)
+    scrollText += " scrolled=\(scrolled == .success)"
+  }
+  let description = describe(acted)
 
   // --set writes an attribute instead of performing an action, for a control that offers no action
   // for what it does: an AXRow in a SwiftUI sidebar has only AXShowDefaultUI/AXShowAlternateUI, and
   // setting its AXSelected to true is what selects it.
   let pressed: AXError
-  let actionText: String
-  if let (name, value) = options.set {
+  var actionText: String
+  if options.click {
+    // Refused unless the target is inside the window: an element scrolled out of view has a frame
+    // above or below the app, and a click there lands on whatever is behind it.
+    let box = frame(acted)
+    let windowBox = matchWindow.flatMap(frame)
+    let point = box.map { CGPoint(x: $0.midX, y: $0.midY) }
+    if let point, let windowBox, windowBox.contains(point) {
+      let clicked = postClick(at: point)
+      pressed = clicked ? .success : .failure
+      actionText = " click=(\(Int(point.x)),\(Int(point.y)))"
+    } else {
+      pressed = .failure
+      actionText = " click_refused=off-window\(point.map { " point=(\(Int($0.x)),\(Int($0.y)))" } ?? "")"
+    }
+  } else if let (name, value) = options.set {
     let written: CFTypeRef
     switch value {
     case "true": written = kCFBooleanTrue
     case "false": written = kCFBooleanFalse
-    default: written = value as CFString
+    default: written = Double(value).map { NSNumber(value: $0) as CFTypeRef } ?? (value as CFString)
     }
     pressed = AXUIElementSetAttributeValue(acted, name as CFString, written)
     actionText = " set=\(name)=\(value)"
@@ -685,6 +856,7 @@ func main() {
     pressed = AXUIElementPerformAction(acted, options.action as CFString)
     actionText = options.action == "AXPress" ? "" : " action=\(options.action)"
   }
+  actionText += scrollText
   let ok = pressed == .success
 
   // --key: wait for the pressed control to leave the tree, then post the chord. Re-running the same
@@ -696,11 +868,7 @@ func main() {
     var gone = false
     while Date() < search.deadline {
       search.visited = 0
-      var still: AXUIElement?
-      for window in windows {
-        still = options.first ? search.findFirst(window) : search.findLast(window)
-        if still != nil { break }
-      }
+      let still = locate()
       if still == nil && !search.timedOut { gone = true; break }
       if search.timedOut { break }
       usleep(retryInterval)

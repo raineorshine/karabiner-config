@@ -38,6 +38,29 @@ its own controls: `AXButton AXTitle="Compose"`, `AXImage AXDescription="Avatar f
 Always apply toast's `AXButton AXTitle="Always apply"`. So a target there is worth dumping for before
 any coordinate is measured.
 
+**A virtualised list holds the rows it has drawn, not the list.** Shortwave's thread list exposed 33
+row groups of a mailbox with far more — a screenful plus a little — and the rows past the bottom of
+the window carry frames clipped to zero height at the window's edge, which is Chromium reporting
+bounds clipped to the scrollport rather than the row being absent. So the last row in the *tree* is
+not the last row in the *list*, and reaching the end means scrolling: `--scroll-to-end` AXScrollToVisibles
+the last match, looks again, and repeats until the last match stops changing. Two rounds settled it,
+166-261ms all in. The comparison is the whole `describe` line, labels and frame together, because two
+adjacent rows can share an avatar.
+
+**A label that repeats outside the region that matters is what `--within` is for.** Every Shortwave
+row carries an `AXImage AXDescription="Avatar for <sender>"` — the only label the rows share, and so
+the only generic handle on a row — but the account avatar in the toolbar and the avatars inside an
+open thread carry the same wording. They differ by where they are: rows sit in the list column at
+x≈55, the thread's at x≈722, the account's at (1440,67). `--within 40,100,300,1200` keeps the search
+to the column. The rectangle is in screen coordinates and so moves with the window, which is the cost
+of it; nothing in that tree names the list.
+
+**The row that presses is an unlabelled AXGroup six levels above the avatar.** Only some elements in
+the chain answer AXPress — the avatar's own wrapper does (it toggles selection), and so does the row
+container at depth 19 — so the climb has to be counted rather than aimed at a role: `--ancestor '*:6'`,
+where `*` counts every level. `--dump-all --actions` is what shows this; a filtered dump hides every
+container, because containers are exactly the elements with no label to filter on.
+
 **SwiftUI puts a native label in `AXValue`, and the control that acts is often not the labelled
 one.** Karabiner-Elements' own settings sidebar is an AXOutline whose rows each hold an AXImage (the
 SF Symbol, `AXIdentifier="gearshape"`) and an AXStaticText carrying the section name — in `AXValue`,
