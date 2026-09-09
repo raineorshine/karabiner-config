@@ -1,6 +1,6 @@
 ---
 name: ship
-description: 'Finish a change in this karabiner config repo: regenerate README.md from karabiner.json, commit, rebase on origin/main, squash, push to origin/main, and fast-forward the local main if it can. Use when done with a key binding change and want it landed without opening a PR.'
+description: 'Finish a change in this karabiner config repo: regenerate README.md from karabiner.json, commit, rebase on origin/main, squash, push to origin/main, fast-forward the local main if it can, and extract the session's learnings. Use when done with a key binding change and want it landed without opening a PR.'
 ---
 
 # Ship (finish feature → merge to main)
@@ -110,6 +110,18 @@ succeeded, the `🚀 ` from step 0 is already right — leave it. If it failed, 
 before the push, put the title back to the prefix that is true now (`📦 ` for a tested branch, none
 otherwise). Do not report this step.
 
-### 9. Print the completion message
+### 9. Extract the learnings
 
-Print `🚀 Shipped` as the last line of the response.
+Invoke the `learn` skill. A shipped change is the moment its lessons are worth writing down: the
+branch is landed, nothing is pending, and whatever the session learned about the rule, the app or
+the workflow is still in context — an hour later it is in nobody's. This is not optional and the
+user does not have to ask for it; it is the last stage of shipping.
+
+`learn` puts `📚 ` on the title, replacing the `🚀 `. Put `🚀 ` back when it finishes: the session
+shipped, and that is the stage it rests at.
+
+If `learn` finds nothing worth recording, that is a normal outcome — say so in one line and move on.
+
+### 10. Print the completion message
+
+Print `🚀 Shipped` as the last line of the response, after the learn report.
