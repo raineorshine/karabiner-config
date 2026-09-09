@@ -52,6 +52,13 @@ me to press a key.
 
 Full procedure: the **test** skill. Landing it on main: the **ship** skill.
 
+## Editing a skill
+
+The repo's skills live in `.github/skills/<name>/SKILL.md`; `.claude/skills` is a symlink to that
+directory. Either path edits the same file, but git only ever names the `.github/` one — a diff
+that mentions `.github/skills/...` after you edited `.claude/skills/...` is the same file, not a
+stray change.
+
 ## Session titles
 
 The chat sidebar shows a status dot (running / awaiting input / idle) and a branch glyph for
