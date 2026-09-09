@@ -45,12 +45,15 @@ me to press a key.
 - `set -e` is inert in the Bash tool: a failing `false`, or a heredoc'd `python3` that raises, does
   not stop the rest of the command line (probed both). Chain a check and the steps behind it with
   `&&`; the learnings commit shipped past its own failed content check this way.
-- **A release restores the snapshot byte-exactly, including its being older than what landed since.**
-  If a ship fast-forwards the main checkout while the lock is held, the restore puts the pre-ship
-  file back and the next `merge --ff-only` refuses with "local changes would be overwritten". The
-  diff says which it is: purely *deletions* of a rule that is already on `main` is a stale restore,
-  so `git -C <main> checkout -- karabiner.json` and fast-forward. Another session's installed test
-  config shows up as additions instead, and that one is theirs to release.
+- **The snapshot is content, not a commit, and nothing checks it against `main`.** `release` restores
+  byte-exactly what was live at `acquire`, which is the point — it must survive uncommitted work —
+  but it also means that a live file *already* behind `main` when the lock was taken is put back
+  just as faithfully, however long the lock was held. Note that a ship cannot cause this: its
+  `merge --ff-only` refuses against an installed test config, which is the whole reason it defers.
+  The tell is a later fast-forward refusing with a diff that is pure *deletions* of a rule already
+  on `main` — that is a stale restore, not live work, and `git -C <main> checkout -- karabiner.json`
+  before the fast-forward is the fix. Another session's test config shows up as additions instead,
+  and that one is theirs to release.
 - Shipping pushes to `origin/main` from the worktree, so a main checkout dirty with someone else's
   installed test config no longer blocks landing. The local `main` fast-forwards whenever it next
   can, and until it does, the live file lags the rule that was shipped — worth saying, since that is
