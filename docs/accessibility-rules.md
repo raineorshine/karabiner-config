@@ -192,6 +192,10 @@ It carries a chord the app treats as a *command*, and only that: bound to keys t
 characters, every letter reported `else_key_posted=true` and not one of them reached the focused
 input, so the key was swallowed outright. A typing key wants the shape below instead.
 
+**Karabiner's conditions see the frontmost app and nothing inside it**, so a shortcut that should
+only apply on one *screen* of an app cannot be scoped by the rule — the helper's own hit or miss is
+the only thing that knows, and the key therefore has to survive being bound on every other screen.
+
 **A rule bound to a key you also type should emit the key itself rather than hand it back.** `to`
 takes a `key_code` and a `shell_command` together, so Karabiner types the character and the helper
 runs behind it: nothing can be swallowed, nothing waits on a process launch, and the app's own
@@ -200,7 +204,8 @@ single-key shortcuts still fire. Knowing when to stand down then belongs to the 
 control. A label is in the tree whether or not the key meant it: Shortwave's settings sidebar rows
 match just as readily from inside a label picker's search box as from the sidebar, so without the
 check every letter typed there also jumped the sidebar. The read costs one attribute and comes
-before any walk, so typing is the cheap path rather than the expensive one.
+before any walk, so typing is the cheap path rather than the expensive one. Leave `--log` off such
+a rule: nothing rotates that file, and a line per letter buries every deliberate press in it.
 
 **A backgrounded app answers `AXFocusedUIElement` with nothing.** So anything conditioned on focus
 cannot be checked with `--dry-run` from a shell — the app is never frontmost while you run one, and
@@ -269,6 +274,12 @@ X", look for a label elsewhere on the page that spells X out.
 **Pick the walk direction from where the target sits.** The default reverse walk is right for a
 button under the last response; for a sidebar at the *start* of the document it would cross the
 whole transcript first. `--first` reached the Claude app's row after 497 elements, 57-78ms.
+`--dump` walks *forward*, so its numbering is document order and the default search returns the
+*last* match listed — read the dump that way round before choosing, because getting it backwards
+picks exactly the wrong flag. That ordering is also a discriminator on its own when the rivals sit
+at opposite ends: Shortwave's toolbar Compose button and the Settings sidebar's Compose row carry
+the same label, and the sidebar is the later of the two, so the default walk finds it and `--first`
+would find the button.
 
 **Direction is not a discriminator, and neither is `--sibling`, when the rivals share a parent.**
 `--sibling` asks whether *some* child of the match's parent carries the label, so it selects a whole
