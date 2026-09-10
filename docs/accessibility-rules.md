@@ -291,6 +291,21 @@ order separates them, and `--nth` takes the nth match in walk order, counted per
 it last: an ordinal breaks silently when the app inserts a control ahead of the target, so a label,
 a distinct role or a sibling outside the row is worth more when one exists.
 
+**A qualifier has to be in the row in every state the screen has.** A control the app only renders
+once something is chosen — the folder row's add-another-folder button appears with a folder and not
+without one — qualifies the row in the state you dumped and empties the match set in the state you
+did not, and the rule then does nothing at all rather than something wrong. Prefer a sibling the row
+always carries, even one whose label is a mode rather than a name, and say in the comment which mode
+it assumes. `found=false` in `.claude/ax-press.log` is what this looks like after the fact: a press
+that matched nothing, distinct from a press that landed on the wrong control.
+
+**A state the helper refuses to navigate to is captured by polling while the user visits it.** The
+press refusal outside Karabiner (see the confused-deputy note) means a screen cannot be reached from
+a shell, only read once someone else is on it — so loop `--dump`, and the competing `--dry-run`s,
+against the state you are designing for, ask for one visit, and read the capture afterwards. Two
+selectors compared inside one loop iteration are compared against the same tree, which is what a
+dump taken before the visit and a dump taken after cannot promise.
+
 **`--dry-run` from a shell verifies the target before the lock is taken.** It resolves `--label-from`
 and finds the element without pressing, so the live-config lock is held only for the presses
 themselves (110ms, `label="More options for 💰 TSLA exit strategy"`).
