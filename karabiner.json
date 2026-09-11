@@ -1836,6 +1836,30 @@
                         ]
                     },
                     {
+                        "comment": "Opens the composer's Thinking effort menu by clicking its button at the position the accessibility tree reports. The button is the pill beside the message field that shows the current effort ('High'); its tooltip says Thinking effort, but its aria-label -- which Chromium puts in AXDescription, and which is what the search matches -- is 'Select ChatGPT model', because it is the model picker component showing only the effort (app.asar, chatgptConversations.modelPicker). The app's own command for it, composer.openModelPicker, defaults to Ctrl+Shift+M in the bundle's command registry, and the built-in shortcut the user tried (reported as Shift+Option+M) did not open it. AXPress does not open it either -- 8 presses logged pressed=true and no menu appeared -- because the trigger opens only on a real pointerdown (a Radix-style handler that wants button 0 without Ctrl) or on a click whose detail is 0, which is what the app's command sends through trigger.click(); Chromium's accessibility click is neither. So --click warps the pointer to the button's centre, posts a left click and warps it back, which is a real pointerdown; the position is read at press time because the button moves, centred on the new-chat screen and at the bottom of a conversation. The click opens the menu but leaves keyboard focus in the message field, so the arrow keys never reach the level: the menu (Bvr in app.asar) moves focus into itself only when document.activeElement is the body. So a second call, joined with && so it runs only after a click, waits for the menu's Power item -- the level control, which takes Left and Right ('Use Left and Right arrow keys to adjust power') -- and sets AXFocused on it, 36-50ms after the click over two presses. karabiner-config-ax-press walks the focused window from the end of the document, where the composer sits, so it reaches the button after 41 elements (11-73ms over 8 presses). The button exists only in Chat mode: Work mode's composer folds the effort into its model picker, an AXPopUpButton titled with the model and effort ('GPT-6 Astra Light') and no aria-label, so the search misses there, and --else-key hands Cmd+Shift+F back to the app, where ~/.codex/keybindings.json binds it to toggleFileTreePanel (View > Toggle File Tree) -- without the fall-through this rule would take that shortcut from every screen. cmd+shift+e names the physical key, which the app reads through Colemak as F just as it reads the key itself, and Karabiner does not see the posted chord, so it cannot re-enter this rule. Logs one line per press to .claude/ax-press.log.",
+                        "description": "ChatGPT: Cmd+Shift+F → open the Thinking effort menu (click its button, found via accessibility; physical key e in Colemak)",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.openai.codex"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "e",
+                                    "modifiers": { "mandatory": ["command", "shift"] }
+                                },
+                                "to": [
+                                    {
+                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.openai.codex \"Select ChatGPT model\" --role AXPopUpButton --click --else-key cmd+shift+e --log && \"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.openai.codex Power --role AXMenuItem --wait --set AXFocused=true --log"
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "comment": "Jumps to a section of Karabiner-Elements' own settings by selecting its sidebar row through the accessibility tree. The app offers no other route: its menu bar has only the standard App/Edit/View/Window/Help items (View holds nothing but Enter Full Screen), so a menu-bar sequence has nothing to type-select, and the sidebar's rows sit at coordinates that only hold while the window is where it was measured -- a settings window gets moved. The sidebar is an AXOutline described 'Sidebar' whose rows are AXRow/AXOutlineRow, each holding an AXImage (the SF Symbol, e.g. AXIdentifier 'gearshape') and an AXStaticText carrying the section name. SwiftUI puts that name in AXValue, which is why karabiner-config-ax-press reads AXValue as a label as well as AXDescription/AXTitle/AXHelp/AXIdentifier. The row itself is what selects, and it has no AXPress -- its only actions are AXShowDefaultUI and AXShowAlternateUI -- so the rule finds the static text, climbs to its AXRow (--ancestor) and sets AXSelected to true (--set), which is what navigates. --first because the sidebar is at the start of the window's tree, so the walk reaches the row without crossing the section pane. The four group headings (Modifications, Configurations, Maintenance, Diagnostic) are rows too, but they carry an AXHeading rather than a static text, so they are never matched. Cmd+1-9 and Cmd+0 cover the first ten sections in sidebar order; Uninstall, Expert, Quit-Restart, Log, System Extensions and Setup have no digit left and are unbound. Digits are the same key in Colemak and QWERTY, so nothing is converted here. Needs the settings window open: the app keeps running with its window closed, and with none the helper reports windows=0 and does nothing. Logs one line per press to .claude/ax-press.log.",
                         "description": "Karabiner-Elements: ⌘1-9, ⌘0 → settings sections (via accessibility)",
                         "manipulators": [
