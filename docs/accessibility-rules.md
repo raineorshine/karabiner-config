@@ -317,6 +317,13 @@ always carries, even one whose label is a mode rather than a name, and say in th
 it assumes. `found=false` in `.claude/ax-press.log` is what this looks like after the fact: a press
 that matched nothing, distinct from a press that landed on the wrong control.
 
+**When the target's label changes with the screen, qualify the row and wildcard the label.**
+ChatGPT's composer picker is `AXDescription="Select ChatGPT model"` in Chat mode and an `AXTitle`
+naming the model in Work mode, with nothing in common; `"{}" --role AXPopUpButton --sibling "Add
+files and more"` finds it in both, because the attach button is in that row on every screen. The
+wildcard lets in every popup in the row, so the walk direction decides between them — Work mode's
+permissions popup shares the row and comes first — with the same fragility as `--nth` above.
+
 **A state the helper refuses to navigate to is captured by polling while the user visits it.** The
 press refusal outside Karabiner (see the confused-deputy note) means a screen cannot be reached from
 a shell, only read once someone else is on it — so loop `--dump`, and the competing `--dry-run`s,
