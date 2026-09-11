@@ -37,6 +37,14 @@ over it is a separate decision, and on a rule whose failure costs something, the
 place to ship. And when a rule with an earned constant misfires, raise that constant first — the
 floor is not what is in doubt, and re-deriving it burns presses to re-learn what is already known.
 
+**How much headroom: 25% over the measured floor, rounded to a sensible number — not 2x.** The
+floor is the lowest value that passed its batch. The Calendar rule (`Calendar: Shift+Up/Down →
+Ctrl+Shift+Up/Down`) failed at 40ms and passed 10/10 at 60ms, so it shipped at 75ms; 100ms was
+proposed and rejected as more than the evidence called for. The reason is what the hold delays: the
+key-*up*, not the key-down. The app sees the press at the same instant either way, so the cost is
+not perceived latency on a single press but a cap on how fast the chord can burst or auto-repeat —
+and 2x headroom halves that rate for nothing measured.
+
 **A hold is not always the slack the app sees — seen in the Claude app, untested elsewhere.**
 `hold_down_milliseconds` delays Karabiner's *emission*, not the app's *processing*. The Claude app
 renders a burst of keystrokes a few at a time (its palette field steps through visibly distinct
