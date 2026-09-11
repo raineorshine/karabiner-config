@@ -56,7 +56,7 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - R-Shift + `[` → L-Ctrl + `←`
   - R-Shift + `]` → L-Ctrl + `→`
 - Shortwave: Shift+G → select the last email in the list (physical key t in Colemak)
-  - Shift + `T` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.electron.shortwave "Avatar for {}" --role AXImage --within 40,100,300,1200 --ancestor '*:6' --scroll-to-end --budget-ms 5000 --log`
+  - Shift + `T` → Shift + `T`, `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.electron.shortwave "Avatar for {}" --role AXImage --within 40,100,300,1200 --ancestor '*:6' --scroll-to-end --budget-ms 5000 --unless-editing`
 - Launch apps: Right shift + letters
   - R-Shift + `A` → `open '/Applications/Utilities/Activity Monitor.app'`
   - R-Shift + `C` → `open '/Applications/Calendar.app'`

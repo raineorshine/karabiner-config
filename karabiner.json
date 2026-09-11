@@ -1170,7 +1170,7 @@
                         ]
                     },
                     {
-                        "comment": "Selects the last email in Shortwave's thread list, which the app has no shortcut of its own for -- its list bindings are J/K and the arrows, one row at a time. The list is virtualised: the tree holds the 33 rows the app has drawn rather than the whole mailbox, so --scroll-to-end scrolls the last row it can see into view and looks again, until the last row stops changing, and presses that one. Every row carries an avatar image labelled \"Avatar for <sender>\", the only label the rows share, and that label is also on the account avatar in the toolbar and on the avatars of an open thread, so --within keeps the search to the list column. The row itself is an unlabelled AXGroup six levels above the avatar, and the only element in that chain with an AXPress. This rule sits before \"Launch apps\" because that one takes right shift + t, the same physical key, and Karabiner runs the first manipulator that matches. Logs one line per press to .claude/ax-press.log.",
+                        "comment": "Selects the last email in Shortwave's thread list, which the app has no shortcut of its own for -- its list bindings are J/K and the arrows, one row at a time. The list is virtualised: the tree holds the 33 rows the app has drawn rather than the whole mailbox, so --scroll-to-end scrolls the last row it can see into view and looks again, until the last row stops changing, and presses that one. Every row carries an avatar image labelled \"Avatar for <sender>\", the only label the rows share, and that label is also on the account avatar in the toolbar and on the avatars of an open thread, so --within keeps the search to the list column. The row itself is an unlabelled AXGroup six levels above the avatar, and the only element in that chain with an AXPress. This rule sits before \"Launch apps\" because that one takes right shift + t, the same physical key, and Karabiner runs the first manipulator that matches. Shift+G is also a capital G, so the rule emits the key itself and --unless-editing stands the press down while a text control has focus -- the composer, the search box, a label picker -- the same shape as the Settings sidebar keys below; without it every capital G typed in an email was swallowed and jumped the list instead. No --log, for the same reason as those keys: a line per capital G would bury the log.",
                         "description": "Shortwave: Shift+G → select the last email in the list (physical key t in Colemak)",
                         "manipulators": [
                             {
@@ -1185,8 +1185,9 @@
                                     "modifiers": { "mandatory": ["shift"] }
                                 },
                                 "to": [
+                                    { "key_code": "t", "modifiers": ["shift"] },
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Avatar for {}\" --role AXImage --within 40,100,300,1200 --ancestor '*:6' --scroll-to-end --budget-ms 5000 --log"
+                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Avatar for {}\" --role AXImage --within 40,100,300,1200 --ancestor '*:6' --scroll-to-end --budget-ms 5000 --unless-editing"
                                     }
                                 ],
                                 "type": "basic"
