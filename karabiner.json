@@ -10,6 +10,274 @@
                         "manipulators": [
                             {
                                 "conditions": [
+                                {
+                                "bundle_identifiers": ["com.apple.iCal"],
+                                "type": "frontmost_application_if"
+                            },
+                                {
+                                "name": "vi_mode",
+                                "type": "variable_if",
+                                "value": 1
+                            }
+                                ],
+                                "from": {
+                                    "key_code": "j",
+                                    "modifiers": { "mandatory": ["shift"] }
+                                },
+                            "to": [
+                                {
+                                    "hold_down_milliseconds": 75,
+                                    "key_code": "down_arrow",
+                                    "modifiers": ["control", "shift"]
+                                }
+                            ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                {
+                                "bundle_identifiers": ["com.apple.iCal"],
+                                "type": "frontmost_application_if"
+                            }
+                                ],
+                                "from": {
+                                    "modifiers": { "mandatory": ["shift"] },
+                                    "simultaneous": [
+                                        { "key_code": "d" },
+                                        { "key_code": "j" }
+                                    ],
+                                    "simultaneous_options": {
+                                        "detect_key_down_uninterruptedly": true,
+                                        "key_down_order": "strict",
+                                        "key_up_order": "strict_inverse",
+                                        "to_after_key_up": [
+                                            {
+                                                "set_variable": {
+                                                    "name": "vi_mode",
+                                                    "value": 0
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                            "to": [
+                                {
+                                    "set_variable": {
+                                        "name": "vi_mode",
+                                        "value": 1
+                                    }
+                                },
+                                {
+                                    "hold_down_milliseconds": 75,
+                                    "key_code": "down_arrow",
+                                    "modifiers": ["control", "shift"]
+                                }
+                            ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                {
+                                "bundle_identifiers": ["com.apple.iCal"],
+                                "type": "frontmost_application_if"
+                            },
+                                {
+                                "name": "vi_mode",
+                                "type": "variable_if",
+                                "value": 1
+                            }
+                                ],
+                                "from": {
+                                    "key_code": "j",
+                                    "modifiers": { "mandatory": ["command"] }
+                                },
+                            "to": [
+                                {
+                                    "hold_down_milliseconds": 75,
+                                    "key_code": "down_arrow",
+                                    "modifiers": ["control"]
+                                }
+                            ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                {
+                                "bundle_identifiers": ["com.apple.iCal"],
+                                "type": "frontmost_application_if"
+                            }
+                                ],
+                                "from": {
+                                    "modifiers": { "mandatory": ["command"] },
+                                    "simultaneous": [
+                                        { "key_code": "d" },
+                                        { "key_code": "j" }
+                                    ],
+                                    "simultaneous_options": {
+                                        "detect_key_down_uninterruptedly": true,
+                                        "key_down_order": "strict",
+                                        "key_up_order": "strict_inverse",
+                                        "to_after_key_up": [
+                                            {
+                                                "set_variable": {
+                                                    "name": "vi_mode",
+                                                    "value": 0
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                            "to": [
+                                {
+                                    "set_variable": {
+                                        "name": "vi_mode",
+                                        "value": 1
+                                    }
+                                },
+                                {
+                                    "hold_down_milliseconds": 75,
+                                    "key_code": "down_arrow",
+                                    "modifiers": ["control"]
+                                }
+                            ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                {
+                                "bundle_identifiers": ["com.apple.iCal"],
+                                "type": "frontmost_application_if"
+                            },
+                                {
+                                "name": "vi_mode",
+                                "type": "variable_if",
+                                "value": 1
+                            }
+                                ],
+                                "from": {
+                                    "key_code": "k",
+                                    "modifiers": { "mandatory": ["shift"] }
+                                },
+                            "to": [
+                                {
+                                    "hold_down_milliseconds": 75,
+                                    "key_code": "up_arrow",
+                                    "modifiers": ["control", "shift"]
+                                }
+                            ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                {
+                                "bundle_identifiers": ["com.apple.iCal"],
+                                "type": "frontmost_application_if"
+                            }
+                                ],
+                                "from": {
+                                    "modifiers": { "mandatory": ["shift"] },
+                                    "simultaneous": [
+                                        { "key_code": "d" },
+                                        { "key_code": "k" }
+                                    ],
+                                    "simultaneous_options": {
+                                        "detect_key_down_uninterruptedly": true,
+                                        "key_down_order": "strict",
+                                        "key_up_order": "strict_inverse",
+                                        "to_after_key_up": [
+                                            {
+                                                "set_variable": {
+                                                    "name": "vi_mode",
+                                                    "value": 0
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                            "to": [
+                                {
+                                    "set_variable": {
+                                        "name": "vi_mode",
+                                        "value": 1
+                                    }
+                                },
+                                {
+                                    "hold_down_milliseconds": 75,
+                                    "key_code": "up_arrow",
+                                    "modifiers": ["control", "shift"]
+                                }
+                            ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                {
+                                "bundle_identifiers": ["com.apple.iCal"],
+                                "type": "frontmost_application_if"
+                            },
+                                {
+                                "name": "vi_mode",
+                                "type": "variable_if",
+                                "value": 1
+                            }
+                                ],
+                                "from": {
+                                    "key_code": "k",
+                                    "modifiers": { "mandatory": ["command"] }
+                                },
+                            "to": [
+                                {
+                                    "hold_down_milliseconds": 75,
+                                    "key_code": "up_arrow",
+                                    "modifiers": ["control"]
+                                }
+                            ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                {
+                                "bundle_identifiers": ["com.apple.iCal"],
+                                "type": "frontmost_application_if"
+                            }
+                                ],
+                                "from": {
+                                    "modifiers": { "mandatory": ["command"] },
+                                    "simultaneous": [
+                                        { "key_code": "d" },
+                                        { "key_code": "k" }
+                                    ],
+                                    "simultaneous_options": {
+                                        "detect_key_down_uninterruptedly": true,
+                                        "key_down_order": "strict",
+                                        "key_up_order": "strict_inverse",
+                                        "to_after_key_up": [
+                                            {
+                                                "set_variable": {
+                                                    "name": "vi_mode",
+                                                    "value": 0
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                            "to": [
+                                {
+                                    "set_variable": {
+                                        "name": "vi_mode",
+                                        "value": 1
+                                    }
+                                },
+                                {
+                                    "hold_down_milliseconds": 75,
+                                    "key_code": "up_arrow",
+                                    "modifiers": ["control"]
+                                }
+                            ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
                                     {
                                         "name": "vi_mode",
                                         "type": "variable_if",
@@ -2064,6 +2332,92 @@
                                 "to": [
                                     {
                                         "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" org.pqrs.Karabiner-Elements.Settings \"Misc\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log"
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
+                        "comment": "Calendar's own resize and nudge chords are Ctrl+Shift+arrow and Ctrl+arrow; they are handled by the calendar view, not a menu item, so there is nothing for a menu-bar sequence to type-select. The 100ms hold on the arrow is earned: at 0ms the remapped chord landed 4-5 times in 10 while the same chord pressed directly landed 10/10, and nothing else happened on a miss -- so Calendar reads the modifier state after the key-down, and Karabiner releasing Control right behind the arrow loses the race that a physical press never runs. Floor search, 10 presses per value: 25ms 8/10, 40ms failed, 60ms 10/10, 80ms 10/10, 100ms 10/10. Shipped at 75 for headroom over the ~50ms floor (see docs/pauses.md on floors versus shipped values). The vi-mode rule at the top of this file carries Calendar-scoped copies of these four chords, because Karabiner does not run one manipulator's output through later rules: the arrow vi mode emits for d+j / d+k never reaches this rule.",
+                        "description": "Calendar: Shift+Up/Down → Ctrl+Shift+Up/Down (resize event); Cmd+Up/Down → Ctrl+Up/Down (nudge event)",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.apple.iCal"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "down_arrow",
+                                    "modifiers": { "mandatory": ["shift"] }
+                                },
+                                "to": [
+                                    {
+                                        "hold_down_milliseconds": 75,
+                                        "key_code": "down_arrow",
+                                        "modifiers": ["control", "shift"]
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.apple.iCal"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "up_arrow",
+                                    "modifiers": { "mandatory": ["shift"] }
+                                },
+                                "to": [
+                                    {
+                                        "hold_down_milliseconds": 75,
+                                        "key_code": "up_arrow",
+                                        "modifiers": ["control", "shift"]
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.apple.iCal"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "down_arrow",
+                                    "modifiers": { "mandatory": ["command"] }
+                                },
+                                "to": [
+                                    {
+                                        "hold_down_milliseconds": 75,
+                                        "key_code": "down_arrow",
+                                        "modifiers": ["control"]
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.apple.iCal"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "up_arrow",
+                                    "modifiers": { "mandatory": ["command"] }
+                                },
+                                "to": [
+                                    {
+                                        "hold_down_milliseconds": 75,
+                                        "key_code": "up_arrow",
+                                        "modifiers": ["control"]
                                     }
                                 ],
                                 "type": "basic"

@@ -128,6 +128,11 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Command + `8` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" org.pqrs.Karabiner-Elements.Settings "UI" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
   - Command + `9` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" org.pqrs.Karabiner-Elements.Settings "Update" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
   - Command + `0` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" org.pqrs.Karabiner-Elements.Settings "Misc" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
+- Calendar: Shift+Up/Down → Ctrl+Shift+Up/Down (resize event); Cmd+Up/Down → Ctrl+Up/Down (nudge event)
+  - Shift + `↓` → Ctrl + Shift + `↓`
+  - Shift + `↑` → Ctrl + Shift + `↑`
+  - Command + `↓` → Ctrl + `↓`
+  - Command + `↑` → Ctrl + `↑`
 
 
 ## karabiner-config-to-markdown

@@ -23,6 +23,10 @@ me to press a key.
   byte-exactly on release — including uncommitted work.
 - Acquire late, release fast: writing the rule, the Colemak conversion, and `npm run build` need
   no lock. Take it only for the keypress test.
+- **Install and lock as soon as the rule is ready to test; do not wait to be told.** If `status`
+  says `unlocked`, acquire, install, and hand back with the press to make — the user should never
+  have to invoke the test skill themselves. Only a lock held by another session defers the install,
+  and then say which chat holds it.
 - **Finish the dry run before handing the turn back.** Handing over a rule whose target has not
   been resolved reads as "ready to test", so the next thing I do is invoke the test skill and wait
   for the lock — and the turn is spent discovering the dry run fails. If the dry run needs
