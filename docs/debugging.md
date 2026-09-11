@@ -26,6 +26,15 @@ Learned the slow way on the Notion archive and Messages tapback rules:
   where the Karabiner-spawned script may not, so a capture loop gated on the target app being
   frontmost collects the pixels to measure while the user drives the UI. Measure the result in
   code — colour runs along a row and column give exact edges; eyeballing a crop does not.
+- **A plain remap can log that it fired.** Append `{ "shell_command": "echo <rule> fired" }` to
+  the `to` list; each press lands as a line in
+  `~/.local/share/karabiner/log/console_user_server.log`, so one batch of presses separates "the
+  rule never matched" from "the app ignored what it was sent". Remove it before shipping.
+- **When a remapped chord misses and the direct chord does not, the emitted event is the
+  difference.** Ten presses of each, counted, is the control: the Calendar Ctrl+arrow rule fired on
+  every press and still landed about half of them, while the same chord pressed by hand landed all
+  ten — so the app, not the rule, was reading something Karabiner sent differently. See
+  docs/pauses.md for what that turned out to be.
 - **Use a control.** Clicking an always-visible button (the sidebar search icon) with the same
   sequence separated "synthetic clicks work in this app" from "this button is special" in a single
   press, after many rounds of theorizing had not.

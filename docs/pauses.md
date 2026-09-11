@@ -50,6 +50,14 @@ queues input this way has not been checked here, and the menu-bar sequence — w
 after 20 presses — is evidence that not everything does. Also measure under load: idle, that rule's
 race did not reproduce at all in 15 presses.
 
+**A hold on an emitted chord can be covering the modifier, not the key.** Karabiner releases a
+modifier it added right behind the key it modified, microseconds later, where a hand keeps the
+modifier down well past the key. An app that reads the modifier state after the key-down — rather
+than the flags on the event — then sees it about half the time, and nothing else happens on a miss.
+`hold_down_milliseconds` on the key keeps the modifier down for the hold too, which is what fixes it;
+the Calendar Ctrl+arrow rule carries the measurement. Suspect this when the direct chord lands every
+time and the remapped one lands some of the time.
+
 **Say so when a value is un-searched.** Cmd+Shift+P keeps a 100ms gap not because it was measured but
 because its target is the Create PR button and a binary search would fire it once per press. Its
 comment says that outright, so the number is not mistaken later for a floor.

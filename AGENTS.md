@@ -44,12 +44,19 @@ physical key that produces it in Colemak before writing the rule.
   the first match, and a `from` with `optional: ["any"]` matches every superset chord: the global
   Cmd+M disable swallowed Cmd+Shift+M until the Claude app was exempted, while the Claude app's
   Cmd+. rule has no optional modifiers, which is what lets Cmd+Option+. fall through to a later rule.
+- **Check which rules *emit* the key, too.** Karabiner never runs one manipulator's output through
+  later rules, so an app-scoped remap of an arrow is skipped whenever the arrow came from vi mode
+  rather than the keyboard. The emitting rule needs its own app-scoped copies, placed ahead of its
+  generic manipulators.
 - **Check what the app itself already binds to the chord, too.** A rule takes the chord from the app
   without a word. The menu bar's key equivalents are one System Events read (`AXMenuItemCmdChar` and
   `AXMenuItemCmdModifiers` of each menu item), and the ChatGPT app keeps my own overrides in
   `~/.codex/keybindings.json`, over the `defaultKeybindings` of the command registry in its
   `app.asar`: Cmd+Shift+F was already Toggle File Tree there. When the rule's target exists on only
-  some screens, `--else-key` hands the chord back everywhere else.
+  some screens, `--else-key` hands the chord back everywhere else. A chord the app handles in a
+  view rather than a menu item (Calendar's Ctrl+arrow resize and nudge) shows up in neither place;
+  an empty menu read is not proof the chord is free, and it also means a menu-bar sequence cannot
+  reach it.
 
 Always add a `description` (and a `(physical key <x> in Colemak)` note when it helps,
 like the em-issues rule) so the mapping is self-documenting.
