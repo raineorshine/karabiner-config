@@ -69,3 +69,12 @@ time and the remapped one lands some of the time.
 **Say so when a value is un-searched.** Cmd+Shift+P keeps a 100ms gap not because it was measured but
 because its target is the Create PR button and a binary search would fire it once per press. Its
 comment says that outright, so the number is not mistaken later for a floor.
+
+**Probe several values per round when the rule has equivalent chords.** A binary search that hands
+over one value per round spends a round of presses on every step. When a rule has several chords
+that emit the same thing with the same hold — the Calendar rule's Shift+Up/Down and Cmd+Up/Down all
+send a Ctrl+arrow — install a different candidate on each chord and ask for one batch of ~10 presses
+per chord; three timings resolve in one round instead of three. Name each chord with its value in
+the ask ("Shift+Down at 10ms, Shift+Up at 25ms, Cmd+Down at 50ms"), and leave one chord at the last
+known-good value as a control. That rule failed about half the time at a 0ms hold and passed 10/10
+at 100ms; the floor search then ran three values per round.

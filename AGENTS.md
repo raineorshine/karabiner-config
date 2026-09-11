@@ -13,7 +13,7 @@ that matches what you are about to write, before writing it.
 - [docs/menu-bar-rules.md](docs/menu-bar-rules.md) — driving an app's own menus when it will not
   give a chord up.
 - [docs/pauses.md](docs/pauses.md) — when `hold_down_milliseconds` is load-bearing and when it is
-  superstition.
+  superstition, and probing several values per round on a rule with equivalent chords.
 - [docs/workflow.md](docs/workflow.md) — editing `karabiner.json`, testing under the live-config
   lock from a worktree, and what the session-title prefixes mean.
 - [docs/debugging.md](docs/debugging.md) — what to suspect when a rule misbehaves, and measuring
