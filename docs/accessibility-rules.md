@@ -34,6 +34,12 @@ buttons do open on AXPress, so this is per control, not per framework. When the 
 the screen says nothing, read the trigger's handlers in the bundle and move to `--click`
 ([click-rules.md](click-rules.md)).
 
+**Read the trigger's wrapper before spending a press on AXPress.** ChatGPT's profile button hands
+itself to a dropdown component as `triggerButton`, the same shape as the effort pill that AXPress
+could not open, so the Cmd+Shift+U rule went to `--click` from the start and worked on the first
+press. And a click is a toggle for free: a dropdown treats a second click on its own trigger as a
+press outside its content and closes, which AXPress, dispatching no pointerdown, cannot do.
+
 **A dump is filtered and it is a snapshot; both mislead quietly.** The query hides every element
 whose labels do not contain it, so a row read through one letter looks shorter than it is — a
 control was concluded absent this way, and it was there the whole time under a label the query did
