@@ -52,7 +52,8 @@ physical key that produces it in Colemak before writing the rule.
   without a word. The menu bar's key equivalents are one System Events read (`AXMenuItemCmdChar` and
   `AXMenuItemCmdModifiers` of each menu item), and the ChatGPT app keeps my own overrides in
   `~/.codex/keybindings.json`, over the `defaultKeybindings` of the command registry in its
-  `app.asar`: Cmd+Shift+F was already Toggle File Tree there. When the rule's target exists on only
+  `app.asar`: Cmd+Shift+F was already Toggle File Tree there. The Claude app's are literal
+  `cmd+shift+<x>` strings in `Contents/Resources/ion-dist/assets/v1/*.js` (not `app.asar`). When the rule's target exists on only
   some screens, `--else-key` hands the chord back everywhere else. A chord the app handles in a
   view rather than a menu item (Calendar's Ctrl+arrow resize and nudge) shows up in neither place;
   an empty menu read is not proof the chord is free, and it also means a menu-bar sequence cannot

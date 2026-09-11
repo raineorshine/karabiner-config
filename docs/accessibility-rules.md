@@ -25,6 +25,11 @@ that renders the tooltip names the aria-label beside it: ChatGPT's "Thinking eff
 handlers sit there too, which is what explains a press that does nothing (next paragraph). Search it
 with Python `mmap` and `re`: this machine's `grep` is ugrep, which refuses a context pattern such as
 `.{0,160}effort.{0,160}` on a file that size ("exceeds complexity limits").
+The Claude desktop app's renderer is not in its `app.asar` at all: the Code tab's components and
+their `defaultMessage` strings live in `Contents/Resources/ion-dist/assets/v1/*.js`, where a plain
+`grep -l` finds the file and the aria-label sits beside the label text (the suggested-task chip's
+primary button is `"aria-label": labels.primary`, one of six strings). Its in-app shortcuts are
+literal `cmd+shift+<x>` strings in the same files, which is how to check a chord before binding it.
 
 **`pressed=true` says the accessibility call succeeded, not that the control did anything.**
 ChatGPT's effort pill logged it on every press and never opened. Its trigger opens on a real
@@ -332,6 +337,11 @@ files and more"` finds it in both, because the attach button is in that row on e
 wildcard lets in every popup in the row, so the walk direction decides between them — Work mode's
 permissions popup shares the row and comes first — with the same fragility as `--nth` above.
 
+**A target the session can put up itself needs no visit.** The suggested-task chip is rendered by a
+`spawn_task` call from the session on screen, so the agent building a rule for it can raise one,
+poll `--dump` until the label appears, and `dismiss_task` afterwards -- the user only has to be
+looking at that session. Ask for a visit only for state the tools cannot produce.
+
 **A state the helper refuses to navigate to is captured by polling while the user visits it.** The
 press refusal outside Karabiner (see the confused-deputy note) means a screen cannot be reached from
 a shell, only read once someone else is on it — so loop `--dump`, and the competing `--dry-run`s,
@@ -357,7 +367,11 @@ with no sidebar needed, which is what the Cmd+Shift+E archive rule uses. Titles 
 emoji, and they are **not unique** — two projects can each hold a chat with the same title, so a
 title does not identify a row and a search for one lands on whichever comes first. What does say
 which project the current chat is in is the header again: beside the rename button it carries an
-`AXPopUpButton` titled with the project's own name. The Chat tab's header was not inspected.
+`AXPopUpButton` titled with the project's own name. The Chat tab's header was not inspected. The suggested-task chip (top right of the transcript) is a
+split button: an `AXGroup` *described* with the primary label wraps an `AXButton` *titled* with it
+and an `AXPopUpButton` described `"More start options"`, so a search for the label without
+`--role AXButton` can land on the group. The label is whichever start target the app chose
+(`Start with worktree`, `Start locally`, `Send to cloud`, ...), so the popup is the stable handle.
 
 ## Context menus (open the right-click menu without the mouse)
 
