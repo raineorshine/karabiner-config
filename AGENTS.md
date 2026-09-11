@@ -21,6 +21,8 @@ that matches what you are about to write, before writing it.
 
 ## Adding keyboard shortcuts (Colemak convention)
 
+When I request a new shortcut or ask to tweak an existing shortcut, I'll state the app in the first line of my chat, e.g. "ChatGPT" or "Claude". That means to constrain the shortcut to that app.
+
 I type in the **Colemak** layout. When I ask for a keyboard shortcut and don't say
 "physical" or "virtual", I mean the **virtual key in Colemak** — the character
 printed on the key I press, as Colemak produces it.
