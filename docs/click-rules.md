@@ -17,6 +17,14 @@ pointer back itself. It refuses when the target is not inside the window: a row 
 has a frame at the window's edge, and clicking there would land on whatever is behind the app. Pair it
 with `--scroll-first`. Everything already reachable stays with Karabiner's own click, below.
 
+**A posted click can open a menu without moving keyboard focus the way a hand click does — seen in
+ChatGPT.** Its effort menu focuses itself only when nothing else holds focus (`document.activeElement`
+is the body). That evidently held after a hand click and did not after the helper's click, which left
+the message field focused, so the arrow keys meant for the menu moved the caret instead. Check where
+focus lands — a background `--unless-editing --dry-run` poll reads it while the user presses (see
+[accessibility-rules.md](accessibility-rules.md)) — and put it where the keys need it with a second
+call chained by `&&`: `--wait --set AXFocused=true` on the item the keys drive.
+
 **Once you are clicking, default to Karabiner's own `set_mouse_cursor_position` +
 `pointing_button`.** It stays inside Karabiner, so it is faster than spawning a process, and it is
 fine for any target that is *already on screen*. Done this way a click rule needs no

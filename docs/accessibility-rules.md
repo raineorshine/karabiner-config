@@ -18,6 +18,22 @@ same label, so the rule discriminates by a sibling (`--sibling "Good response"`)
 frame. `--dump` lists every labelled element with roles and frames; read it before guessing a label,
 and query a substring — an empty query matches nothing.
 
+**When the user names a control by its tooltip, search the app's bundle for that text.** An Electron
+app's renderer is minified JS in plain text inside `Contents/Resources/app.asar`, and the component
+that renders the tooltip names the aria-label beside it: ChatGPT's "Thinking effort" pill is
+`AXDescription="Select ChatGPT model"`, which no dump query for "effort" could have found. Its event
+handlers sit there too, which is what explains a press that does nothing (next paragraph). Search it
+with Python `mmap` and `re`: this machine's `grep` is ugrep, which refuses a context pattern such as
+`.{0,160}effort.{0,160}` on a file that size ("exceeds complexity limits").
+
+**`pressed=true` says the accessibility call succeeded, not that the control did anything.**
+ChatGPT's effort pill logged it on every press and never opened. Its trigger opens on a real
+pointer-down, or on a `click` whose `detail` is 0 (what the app's own shortcut sends through
+`element.click()`), and Chromium's accessibility press is evidently neither. The Claude app's popup
+buttons do open on AXPress, so this is per control, not per framework. When the log says pressed and
+the screen says nothing, read the trigger's handlers in the bundle and move to `--click`
+([click-rules.md](click-rules.md)).
+
 **A dump is filtered and it is a snapshot; both mislead quietly.** The query hides every element
 whose labels do not contain it, so a row read through one letter looks shorter than it is — a
 control was concluded absent this way, and it was there the whole time under a label the query did
@@ -207,10 +223,12 @@ check every letter typed there also jumped the sidebar. The read costs one attri
 before any walk, so typing is the cheap path rather than the expensive one. Leave `--log` off such
 a rule: nothing rotates that file, and a line per letter buries every deliberate press in it.
 
-**A backgrounded app answers `AXFocusedUIElement` with nothing.** So anything conditioned on focus
-cannot be checked with `--dry-run` from a shell — the app is never frontmost while you run one, and
-the option reports `focused=none` rather than reporting what it would do. It has to be exercised
-through the rule, with `--log` on to read what it saw.
+**A backgrounded app answers `AXFocusedUIElement` with nothing.** So a one-off `--dry-run` from a
+shell cannot check anything conditioned on focus — the app is not frontmost while you run it, and the
+option reports `focused=none` rather than reporting what it would do. A dry run *polled in the
+background* while the user drives the app is another matter, because the app is frontmost then:
+ChatGPT's poll read `editing=AXTextArea` turning into `focused=AXMenuItem` across a press. That is how
+to learn where focus lands without a rule; the rule itself, with `--log` on, is the other way.
 
 **Count the helper launches; that is what a rule costs.** A call is about 100ms wall on this machine
 against the 10-50ms of searching its log reports, because the helper re-spawns itself to disclaim
