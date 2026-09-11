@@ -26,6 +26,8 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Command + `.` → Command + Shift + `I`
 - Claude: ⌘T → ⌃` (Toggle Terminal) (physical key f in Colemak)
   - Command + `F` → Ctrl + `` ` ``
+- Claude: ⇧⌘T → Start the suggested task (physical key f in Colemak)
+  - Command + Shift + `F` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.anthropic.claudefordesktop "{}" --role AXButton --sibling "More start options" --log`
 - Claude: ⇧⌘E → Archive Session via its ⋮ menu, then ⌘1 (physical key k in Colemak)
   - Command + Shift + `K` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.anthropic.claudefordesktop "More options for {}" --role AXPopUpButton --label-from "{}, rename session" --log && "$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.anthropic.claudefordesktop Archive --role AXMenuItem --wait --key cmd+1 --log`
 - Claude: ⇧⌘1 → Go to Chat; ⇧⌘2 → Go to Code
