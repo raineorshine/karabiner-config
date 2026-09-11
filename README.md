@@ -115,6 +115,8 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Command + Shift + `C` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.openai.codex Copy --sibling "Good response" --log`
 - ChatGPT: Cmd+Shift+F → open the composer's effort/model picker in Chat and Work mode (click its button, found via accessibility; physical key e in Colemak)
   - Command + Shift + `E` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.openai.codex "{}" --role AXPopUpButton --sibling "Add files and more" --click --else-key cmd+shift+e --log && "$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.openai.codex Power --role AXMenuItem --wait --set AXFocused=true --log`
+- ChatGPT: Cmd+Shift+U → toggle the profile popup (click the sidebar's profile button, found via accessibility; physical key i in Colemak)
+  - Command + Shift + `I` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.openai.codex "Open profile menu" --role AXPopUpButton --click --log`
 - Karabiner-Elements: ⌘1-9, ⌘0 → settings sections (via accessibility)
   - Command + `1` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" org.pqrs.Karabiner-Elements.Settings "Simple Modifications" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
   - Command + `2` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" org.pqrs.Karabiner-Elements.Settings "Function Keys" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`

@@ -1861,6 +1861,30 @@
                         ]
                     },
                     {
+                        "comment": "Toggles the profile popup by clicking the sidebar footer's profile button at the position the accessibility tree reports. The button is the row at the bottom of the sidebar showing the avatar and account name; its aria-label, which Chromium puts in AXDescription, is 'Open profile menu' (app.asar, codex.profileFooter.openProfileMenu), and it is the trigger of a dropdown component like the composer's model picker, whose trigger AXPress could not open, so this rule clicks from the start: --click warps the pointer to the button's centre, posts a left click and warps it back. A second press while the popup is open clicks the same button, which the dropdown treats as a press outside its content and closes -- that is the toggle. When signed out the same button is labelled 'Open settings' and navigates to settings instead; the rule matches nothing then and does nothing. The default backwards walk reaches the footer in 186 elements of 476 (59-96ms in the dry run), against 308 forwards. The app binds nothing to Cmd+Shift+U (searched the bundle's command registry and ~/.codex/keybindings.json), so no --else-key. Logs one line per press to .claude/ax-press.log.",
+                        "description": "ChatGPT: Cmd+Shift+U → toggle the profile popup (click the sidebar's profile button, found via accessibility; physical key i in Colemak)",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.openai.codex"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "i",
+                                    "modifiers": { "mandatory": ["command", "shift"] }
+                                },
+                                "to": [
+                                    {
+                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.openai.codex \"Open profile menu\" --role AXPopUpButton --click --log"
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "comment": "Jumps to a section of Karabiner-Elements' own settings by selecting its sidebar row through the accessibility tree. The app offers no other route: its menu bar has only the standard App/Edit/View/Window/Help items (View holds nothing but Enter Full Screen), so a menu-bar sequence has nothing to type-select, and the sidebar's rows sit at coordinates that only hold while the window is where it was measured -- a settings window gets moved. The sidebar is an AXOutline described 'Sidebar' whose rows are AXRow/AXOutlineRow, each holding an AXImage (the SF Symbol, e.g. AXIdentifier 'gearshape') and an AXStaticText carrying the section name. SwiftUI puts that name in AXValue, which is why karabiner-config-ax-press reads AXValue as a label as well as AXDescription/AXTitle/AXHelp/AXIdentifier. The row itself is what selects, and it has no AXPress -- its only actions are AXShowDefaultUI and AXShowAlternateUI -- so the rule finds the static text, climbs to its AXRow (--ancestor) and sets AXSelected to true (--set), which is what navigates. --first because the sidebar is at the start of the window's tree, so the walk reaches the row without crossing the section pane. The four group headings (Modifications, Configurations, Maintenance, Diagnostic) are rows too, but they carry an AXHeading rather than a static text, so they are never matched. Cmd+1-9 and Cmd+0 cover the first ten sections in sidebar order; Uninstall, Expert, Quit-Restart, Log, System Extensions and Setup have no digit left and are unbound. Digits are the same key in Colemak and QWERTY, so nothing is converted here. Needs the settings window open: the app keeps running with its window closed, and with none the helper reports windows=0 and does nothing. Logs one line per press to .claude/ax-press.log.",
                         "description": "Karabiner-Elements: ⌘1-9, ⌘0 → settings sections (via accessibility)",
                         "manipulators": [
