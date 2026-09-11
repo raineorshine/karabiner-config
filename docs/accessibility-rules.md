@@ -212,7 +212,9 @@ input, so the key was swallowed outright. A typing key wants the shape below ins
 only apply on one *screen* of an app cannot be scoped by the rule — the helper's own hit or miss is
 the only thing that knows, and the key therefore has to survive being bound on every other screen.
 
-**A rule bound to a key you also type should emit the key itself rather than hand it back.** `to`
+**A rule bound to a key you also type should emit the key itself rather than hand it back.** Shift
+plus a letter counts: it is a capital, and Shortwave's Shift+G swallowed every capital G typed in a
+reply until it took this shape. `to`
 takes a `key_code` and a `shell_command` together, so Karabiner types the character and the helper
 runs behind it: nothing can be swallowed, nothing waits on a process launch, and the app's own
 single-key shortcuts still fire. Knowing when to stand down then belongs to the press, which is
