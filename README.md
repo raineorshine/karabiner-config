@@ -113,8 +113,8 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Command + `K` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/restore-mouse-position.js" 1.4`, `Move cursor to (360, 890)`, `Right Click`, `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/move-to-tapback-picker.js"`, `Left Click`
 - ChatGPT: Cmd+Shift+C → copy the last response (press its Copy button via accessibility)
   - Command + Shift + `C` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.openai.codex Copy --sibling "Good response" --log`
-- ChatGPT: Cmd+Shift+F → open the Thinking effort menu (click its button, found via accessibility; physical key e in Colemak)
-  - Command + Shift + `E` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.openai.codex "Select ChatGPT model" --role AXPopUpButton --click --else-key cmd+shift+e --log && "$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.openai.codex Power --role AXMenuItem --wait --set AXFocused=true --log`
+- ChatGPT: Cmd+Shift+F → open the composer's effort/model picker in Chat and Work mode (click its button, found via accessibility; physical key e in Colemak)
+  - Command + Shift + `E` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.openai.codex "{}" --role AXPopUpButton --sibling "Add files and more" --click --else-key cmd+shift+e --log && "$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" com.openai.codex Power --role AXMenuItem --wait --set AXFocused=true --log`
 - Karabiner-Elements: ⌘1-9, ⌘0 → settings sections (via accessibility)
   - Command + `1` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" org.pqrs.Karabiner-Elements.Settings "Simple Modifications" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
   - Command + `2` → `"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press" org.pqrs.Karabiner-Elements.Settings "Function Keys" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
