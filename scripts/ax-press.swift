@@ -276,7 +276,8 @@ var output = Output(serving: false)
 /// is a no-op, which is how the first Cmd+Shift+E after the Claude app launched did nothing. Measured on
 /// that app's header menu, idle: a press 2032ms after the set did nothing and one 2056ms after it
 /// opened the menu. With all eight cores pegged, presses long after the switch did not open it within
-/// 3s either, so load is not covered by this number.
+/// 3s either, so load is not covered by this number. docs/accessibility-modes.md has the mechanism,
+/// the signals that do not work, and how to reproduce a first press without relaunching the app.
 let fullModeDelay: TimeInterval = 2.1
 
 /// When the switch above lands in each app process this helper has set AXManualAccessibility on, keyed

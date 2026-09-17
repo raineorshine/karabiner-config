@@ -11,6 +11,9 @@ that matches what you are about to write, before writing it.
   `ax-press`: the resident helper a rule sends its request to, finding labels, the Accessibility
   grant and its rebuilds, what a press costs, walk direction, and opening a context menu without the
   mouse.
+- [docs/accessibility-modes.md](docs/accessibility-modes.md) — why a press can log success and do
+  nothing in an Electron app: Chromium's basic and complete accessibility modes, the 2s switch the
+  helper waits for, and reproducing the first press after an app launch without relaunching it.
 - [docs/menu-bar-rules.md](docs/menu-bar-rules.md) — driving an app's own menus when it will not
   give a chord up.
 - [docs/pauses.md](docs/pauses.md) — when `hold_down_milliseconds` is load-bearing and when it is

@@ -11,7 +11,10 @@ Learned the slow way on the Notion archive and Messages tapback rules:
   rules nobody had reached for. The helper had lost its Accessibility grant. Partition the working
   and failing rules by *mechanism* — accessibility, coordinate click, plain remap, menu bar — before
   opening any of them, and when the `ax-press` set is the one that is down, read `trusted=` in
-  `.claude/ax-press.log` first; its last line answers it without a press.
+  `.claude/ax-press.log` first; its last line answers it without a press. When the pattern is in
+  time instead — an `ax-press` rule that does nothing on its first press after the app launches and
+  works on the next — it is the app's accessibility mode, not the rule
+  ([accessibility-modes.md](accessibility-modes.md)).
 - **Instrument inside the script.** It runs in the context that holds the permissions, so having it
   append what it saw — pointer position, whether the popup's window existed, how long it waited —
   turned "it stops short sometimes" into "the right-click produced no menu in 5 of 6, within 300ms"
@@ -60,15 +63,19 @@ Learned the slow way on the Notion archive and Messages tapback rules:
 - **When the last keystroke is destructive, measure a marker key instead.** That is where the archive
   rule's floor came from; the method, and the traps in it, are in "Measuring against the Claude app
   with video" below.
-- **Bisect the underlying UI, not the rule — if you can post events at all, which right now you
-  cannot.** Karabiner cannot be triggered synthetically: it grabs the physical device, so injected
-  CGEvents never reach its rules. The transitions the pauses cover are plain macOS behaviour and
-  could be replayed and bisected automatically, turning a floor search from dozens of hand presses
-  into an unattended sweep — but that needs Accessibility, and this machine does not grant it:
-  `osascript` gets "not allowed to send keystrokes" (System Events error 1002), while Automation to
-  System Events *is* granted, so a harmless call like `get name of first process` succeeds and makes
-  the permission look present. Check with an actual keystroke before planning a sweep around it. When
-  it is unavailable, every trial costs a human press — see the video section for how to spend them.
+- **Bisect the underlying UI, not the rule — from a shell that holds Accessibility, which a Claude
+  desktop session's does.** Karabiner cannot be triggered synthetically: it grabs the physical
+  device, so injected CGEvents never reach its rules. The transitions the pauses cover are plain macOS
+  behaviour and can be replayed and bisected automatically, turning a floor search from dozens of hand
+  presses into an unattended sweep — which needs Accessibility, and the grant follows whichever app
+  started the shell. A session in the Claude desktop app runs its commands as that app, which holds
+  the grant: a scratch Swift probe reported `AXIsProcessTrusted()` true, pressed controls, wrote
+  attributes and closed a menu with an Escape posted by `CGEventPostToPid`, and the accessibility-mode
+  sweep in [accessibility-modes.md](accessibility-modes.md) ran that way. Earlier, from a shell without
+  the grant, `osascript` got "not allowed to send keystrokes" (System Events error 1002) while Automation to System Events
+  *was* granted, so a harmless call like `get name of first process` succeeded and made the permission
+  look present. Check with an actual keystroke from the shell the sweep will run in. When it is
+  unavailable, every trial costs a human press — see the video section for how to spend them.
 - **A model that needs revising every round is the signal to stop tuning.** Five plausible models
   each explained the evidence and then broke. Stop turning knobs and find a decisive measurement.
 - **Measure end-to-end.** A latency figure summed from a script's sleep constants was wrong about
@@ -123,10 +130,11 @@ Delete starts at ~257pt, with the window at 0,34 735x922. A click 13pt low delet
 the rows land, that same point is over the inert "Quick actions" header, so the early failure is
 harmless and the late-aim failure is not.
 
-**Presses are the scarce resource; there is no synthetic input.** Karabiner grabs the physical device,
-so injected events never reach its rules, and `osascript` is refused keystroke permission on this
-machine (System Events error 1002 — Automation to System Events is granted, Accessibility is not).
-Every trial costs a human press, so design for information per press.
+**Presses are the scarce resource for anything a rule does.** Karabiner grabs the physical device, so
+injected events never reach its rules, and the rule's own timing — its holds, its keystrokes — costs
+a human press per trial. The app underneath can be driven without one from a shell that holds
+Accessibility ("Bisect the underlying UI" above), but a measurement of the rule itself cannot. Design
+for information per press.
 
 **Marker probe.** Replace a destructive final keystroke with a harmless one at the same offset — for
 the archive rule a `z`, which only extends the query — and read whether the UI was ready in the frame

@@ -32,6 +32,10 @@ their `defaultMessage` strings live in `Contents/Resources/ion-dist/assets/v1/*.
 `grep -l` finds the file and the aria-label sits beside the label text (the suggested-task chip's
 primary button is `"aria-label": labels.primary`, one of six strings). Its in-app shortcuts are
 literal `cmd+shift+<x>` strings in the same files, which is how to check a chord before binding it.
+That copy ships inside the app, but the running renderer loads its chunks from
+`assets-proxy.anthropic.com` (the URLs are in `~/Library/Logs/Claude/claude.ai-web.log` stack
+traces), and a chunk's hash there can differ from the bundled one's, so read ion-dist as close to
+what runs rather than as exactly it.
 
 **`pressed=true` says the accessibility call succeeded, not that the control did anything.**
 ChatGPT's effort pill logged it on every press and never opened. Its trigger opens on a real
@@ -39,7 +43,10 @@ pointer-down, or on a `click` whose `detail` is 0 (what the app's own shortcut s
 `element.click()`), and Chromium's accessibility press is evidently neither. The Claude app's popup
 buttons do open on AXPress, so this is per control, not per framework. When the log says pressed and
 the screen says nothing, read the trigger's handlers in the bundle and move to `--click`
-([click-rules.md](click-rules.md)).
+([click-rules.md](click-rules.md)). But first rule out the cause that comes before any handler: in an
+Electron app whose complete accessibility mode is not on yet, Chromium drops every AXPress and still
+reports success, which is a press that fails right after the app launches and works on the next try
+([accessibility-modes.md](accessibility-modes.md)).
 
 **Read the trigger's wrapper before spending a press on AXPress.** ChatGPT's profile button hands
 itself to a dropdown component as `triggerButton`, the same shape as the effort pill that AXPress
@@ -122,12 +129,13 @@ way it already knows how to look; System Events shows the tree as it is. It is a
 rule mechanism: a Karabiner-spawned `osascript`'s permissions are the unpredictable case the next paragraph
 describes.
 
-**Except on a Chromium or Electron app, where System Events sees nothing at all.** It answered
+**Except on some Chromium and Electron apps, where System Events sees nothing at all.** It answered
 `count of windows` with 0 for a running Shortwave with a window on screen, and still answered 0
-right after `ax-press` had walked that same window — the switch that makes the web content appear
-is per accessibility client, and each one has to throw it for itself. So there the helper is the
-only inspector, which is what `--dump-all` and `--actions` are for: a label query cannot show you a
-container, because a container is precisely an element with no label to query.
+right after `ax-press` had walked that same window. There the helper is the only inspector, which is
+what `--dump-all` and `--actions` are for: a label query cannot show you a container, because a
+container is precisely an element with no label to query. The Claude app, with its accessibility
+already on, was the opposite: System Events listed its window and whole web tree (`entire contents`
+with each element's description, seconds per walk) and wrote `AXManualAccessibility` on it.
 
 **Accessibility permission goes to the helper itself, which is what makes it predictable.** TCC
 judges a command-line tool by whatever launched it — a terminal, or Karabiner — which is why the same
@@ -325,10 +333,12 @@ else exposed its tree 124ms after it. The helper does this first thing; the spor
 before it did were other clients on the machine happening to ask. The switches a client used to set
 are dead in ChatGPT *and* Brave — Electron's `AXManualAccessibility` is unsupported (-25205),
 `AXEnhancedUserInterface` returns not-implemented (-25208), and Chromium 151 no longer watches it (it
-observes `NSWorkspace.voiceOverEnabled` instead) — but the Claude desktop app (1.40609.0) still
-accepts `AXManualAccessibility` (returned 0) and exposed its tree between 1 and 2.5s after the first
-query. The app decides; the role read is the only switch known to work everywhere it has been tried,
-and whether a freshly launched Claude app exposes its tree on the first press is untested.
+observes `NSWorkspace.voiceOverEnabled` instead) — but the Claude desktop app still accepts
+`AXManualAccessibility` (returned 0), and on 2.110 that set is what brings, 2s later, the complete
+mode an AXPress needs. Exposing the tree and acting on a press are separate thresholds: a freshly
+launched Claude app answered the first press's search at once and dropped the press
+([accessibility-modes.md](accessibility-modes.md)). The app decides; the role read is the only switch
+known to expose the tree everywhere it has been tried.
 `--force-renderer-accessibility` on the command line also works; the env var the app reads for extra
 switches is dev-build-only. Read the source
 before another round of probing: the answer was one fetch of `chrome_browser_application_mac.mm`
