@@ -14,6 +14,8 @@ that matches what you are about to write, before writing it.
 - [docs/accessibility-modes.md](docs/accessibility-modes.md) — why a press can log success and do
   nothing in an Electron app: Chromium's basic and complete accessibility modes, the 2s switch the
   helper waits for, and reproducing the first press after an app launch without relaunching it.
+- [docs/load-errors.md](docs/load-errors.md) — why a rule can reload cleanly and never fire:
+  manipulators Karabiner drops at load, the daemon log that names them, and what `install` checks.
 - [docs/menu-bar-rules.md](docs/menu-bar-rules.md) — driving an app's own menus when it will not
   give a chord up.
 - [docs/pauses.md](docs/pauses.md) — when `hold_down_milliseconds` is load-bearing and when it is

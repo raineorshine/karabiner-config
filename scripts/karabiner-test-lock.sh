@@ -34,7 +34,7 @@ BACKUP="$LOCK/karabiner.json.pre"
 STALE_SECONDS=${KARABINER_LOCK_STALE:-1800}
 LOG="${KARABINER_LOG:-$HOME/.local/share/karabiner/log/console_user_server.log}"
 # The root daemon's log, world-readable: the only one that names a manipulator
-# dropped at load.
+# dropped at load. See docs/load-errors.md.
 DAEMON_LOG="${KARABINER_DAEMON_LOG:-/var/log/karabiner/core_service.log}"
 CLI="${KARABINER_CLI:-/Library/Application Support/org.pqrs/Karabiner-Elements/bin/karabiner_cli}"
 

@@ -46,10 +46,12 @@ me to press a key.
   `karabiner.json`, so prettier leaves it alone; `json.dump` and any other serializer still will not.
   Patch the lines, and find a block's closing bracket by counting brackets: matching an indented `]`
   finds the wrong one and silently eats the lines between.
-- **`comment` goes on the rule, beside `description`, never inside a manipulator.** Karabiner rejects a
-  key it does not know inside a manipulator, and the rule then silently does nothing while the
-  user-level log still says `core_configuration is updated.` The error is only in the root daemon's
-  log ([debugging.md](debugging.md)). It has happened twice.
+- **`comment` goes on the rule, beside `description`, never inside a manipulator.** Karabiner drops a
+  manipulator with a key it does not know and loads the rest, so the rule never fires. It reached the
+  live file twice before `install` learned to refuse it ([load-errors.md](load-errors.md)).
+- **A worktree's own `.claude/karabiner-test.lock/` means nothing.** A new worktree can arrive with a
+  copy of the main checkout's `.claude/`, including a lock some other session held at that moment.
+  The script only reads the lock under the main checkout, so `status` is the answer, not `ls`.
 - `set -e` is inert in the Bash tool: a failing `false`, or a heredoc'd `python3` that raises, does
   not stop the rest of the command line (probed both). Chain a check and the steps behind it with
   `&&`; the learnings commit shipped past its own failed content check this way.

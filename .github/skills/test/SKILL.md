@@ -75,8 +75,8 @@ live config untouched), replaces it atomically so Karabiner never sees a half-wr
 waits for Karabiner to log `core_configuration is updated.` — positive confirmation of the reload,
 not a blind sleep. A reload is not proof every rule loaded: the daemon drops a manipulator it cannot
 parse and loads the rest, so install then reads `/var/log/karabiner/core_service.log` and exits
-`REJECTED` with the daemon's errors. A rejected config stays installed under the lock; fix it and
-install again rather than asking for presses.
+`REJECTED` with the daemon's errors (docs/load-errors.md). A rejected config stays installed under
+the lock; fix it and install again rather than asking for presses.
 "already identical -- nothing to reload" means the branch's config matches what was already live;
 Karabiner hashes the file and skips reloading unchanged content. A `REJECTED` file installed again
 unchanged fails again with the errors recorded the first time.

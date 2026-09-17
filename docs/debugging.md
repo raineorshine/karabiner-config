@@ -29,12 +29,11 @@ Learned the slow way on the Notion archive and Messages tapback rules:
   where the Karabiner-spawned script may not, so a capture loop gated on the target app being
   frontmost collects the pixels to measure while the user drives the UI. Measure the result in
   code — colour runs along a row and column give exact edges; eyeballing a crop does not.
-- **A rule that never fires may never have loaded.** Karabiner skips a manipulator it cannot parse —
-  an unknown key such as `comment` inside one ([workflow.md](workflow.md)) — while
-  `~/.local/share/karabiner/log/console_user_server.log` still says `core_configuration is updated.`
-  The reason is only in the root daemon's log, world-readable at `/var/log/karabiner/core_service.log`,
-  right after its own `Load .../karabiner.json...` line (``karabiner.json error: unknown key `comment` ``).
-  Read it before spending a press on instrumentation.
+- **A rule that never fires may never have loaded.** Karabiner drops a manipulator it cannot parse
+  and loads the rest, and says so only in the root daemon's log, `/var/log/karabiner/core_service.log`,
+  after its own `Load .../karabiner.json...` line. `install` now fails `REJECTED` on those errors, but
+  a config that went live another way — a ship's fast-forward, a hand edit — was never checked: read
+  that log before spending a press on instrumentation ([load-errors.md](load-errors.md)).
 - **A plain remap can log that it fired.** Append `{ "shell_command": "echo <rule> fired" }` to
   the `to` list; each press lands as a line in
   `~/.local/share/karabiner/log/console_user_server.log`, so one batch of presses separates "the
