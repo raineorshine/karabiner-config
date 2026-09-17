@@ -22,9 +22,6 @@ that matches what you are about to write, before writing it.
   lock from a worktree, and what the session-title prefixes mean.
 - [docs/debugging.md](docs/debugging.md) — what to suspect when a rule misbehaves, timing a press
   from the keypress, and measuring against the Claude app with video.
-- [docs/brave-extensions.md](docs/brave-extensions.md) — when a Brave-only shortcut belongs in an
-  extension rather than Karabiner, where Brave keeps its extensions and shortcuts, loading and
-  reloading an unpacked extension, and testing one in a headless Brave.
 
 ## Adding keyboard shortcuts (Colemak convention)
 
@@ -51,6 +48,9 @@ physical key that produces it in Colemak before writing the rule.
   the first match, and a `from` with `optional: ["any"]` matches every superset chord: the global
   Cmd+M disable swallowed Cmd+Shift+M until the Claude app was exempted, while the Claude app's
   Cmd+. rule has no optional modifiers, which is what lets Cmd+Option+. fall through to a later rule.
+- **A Brave-only shortcut that opens a browser extension's own UI belongs in that extension's
+  manifest (`commands`), not here.** Brave lists and rebinds it at brave://extensions/shortcuts, and
+  `_execute_action` opens the extension's popup, which a rule can only approximate with a tab.
 - **Check which rules *emit* the key, too.** Karabiner never runs one manipulator's output through
   later rules, so an app-scoped remap of an arrow is skipped whenever the arrow came from vi mode
   rather than the keyboard. The emitting rule needs its own app-scoped copies, placed ahead of its
@@ -60,11 +60,12 @@ physical key that produces it in Colemak before writing the rule.
   `AXMenuItemCmdModifiers` of each menu item), and the ChatGPT app keeps my own overrides in
   `~/.codex/keybindings.json`, over the `defaultKeybindings` of the command registry in its
   `app.asar`: Cmd+Shift+F was already Toggle File Tree there. The Claude app's are literal
-  `cmd+shift+<x>` strings in `Contents/Resources/ion-dist/assets/v1/*.js` (not `app.asar`). Brave's are
-`brave.accelerators` in its Preferences JSON, with extensions' shortcuts beside them
-([docs/brave-extensions.md](docs/brave-extensions.md)). When the rule's target exists on only
-  some screens, `--else-key` hands the chord back everywhere else. A chord the app handles in a
-  view rather than a menu item (Calendar's Ctrl+arrow resize and nudge) shows up in neither place;
+  `cmd+shift+<x>` strings in `Contents/Resources/ion-dist/assets/v1/*.js` (not `app.asar`). Brave's
+  are `brave.accelerators` in
+  `~/Library/Application Support/BraveSoftware/Brave-Browser/Default/Preferences`, with extensions'
+  own shortcuts under `extensions.commands` there; a System Events walk of Brave's menus ran past 60s
+  without finishing. When the rule's target exists on only some screens, `--else-key` hands the
+  chord back everywhere else. A chord the app handles in a view rather than a menu item (Calendar's Ctrl+arrow resize and nudge) shows up in neither place;
   an empty menu read is not proof the chord is free, and it also means a menu-bar sequence cannot
   reach it.
 
