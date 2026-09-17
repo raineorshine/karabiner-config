@@ -48,9 +48,6 @@ physical key that produces it in Colemak before writing the rule.
   the first match, and a `from` with `optional: ["any"]` matches every superset chord: the global
   Cmd+M disable swallowed Cmd+Shift+M until the Claude app was exempted, while the Claude app's
   Cmd+. rule has no optional modifiers, which is what lets Cmd+Option+. fall through to a later rule.
-- **A Brave-only shortcut that opens a browser extension's own UI belongs in that extension's
-  manifest (`commands`), not here.** Brave lists and rebinds it at brave://extensions/shortcuts, and
-  `_execute_action` opens the extension's popup, which a rule can only approximate with a tab.
 - **Check which rules *emit* the key, too.** Karabiner never runs one manipulator's output through
   later rules, so an app-scoped remap of an arrow is skipped whenever the arrow came from vi mode
   rather than the keyboard. The emitting rule needs its own app-scoped copies, placed ahead of its
