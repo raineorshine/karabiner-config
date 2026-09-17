@@ -8,9 +8,11 @@ under ChatGPT's last response sits wherever the response ends, and the app has n
 item for it (its bindable-shortcut registry was searched). `scripts/ax-press.swift`,
 built as `scripts/bin/karabiner-config-ax-press`, finds a control by role and label in the app's
 focused window and `AXPress`es it: no coordinates, no pointer movement, no restore, and the press
-lands on an element scrolled out of view. Two rules use it: ChatGPT's Cmd+Shift+C (29-38ms from the
-helper starting to the press landing, 88 elements visited of 5297) and the Claude app's Cmd+Option+.
-(57-78ms, 497 elements), which performs AXShowMenu rather than AXPress — see "Context menus".
+lands on an element scrolled out of view. A rule does not launch it. Its `shell_command` sends the
+arguments to the resident helper — `printf '%s\0' <bundle-id> <label> [options] | /usr/bin/nc -U
+"$HOME/.config/karabiner/scripts/bin/ax-press.sock"` (see "The helper is a resident server" below) —
+while a shell runs the binary itself with the same arguments, which is what `--dump` and `--dry-run`
+are for. Some rules perform AXShowMenu rather than AXPress — see "Context menus".
 
 **Chromium puts aria-labels in `AXDescription`; tooltips are not in the tree at all.** The button the
 app's tooltip calls "Copy response" is `AXDescription="Copy"`, and code-block copy buttons carry the
@@ -160,8 +162,8 @@ the lookup again — which is when presses are already at their slowest (below).
 
 **Rebuilding unchanged source is not a test of that.** `swiftc` is deterministic here and re-emits a
 byte-identical binary, so the code hash never moves and the grant is never asked to survive
-anything. Move the hash before reading a rebuild as evidence: an `-Onone` build took it from 01858183
-to a7edcaef, and the grant held for the server and a one-shot run alike, which is the claim.
+anything. Move the hash before reading a rebuild as evidence: an `-Onone` build moved it, and the
+grant held for the server and a one-shot run alike, which is the claim.
 
 **The binary is shared across worktrees; the source is not.** `scripts/build-ax-press.sh` writes to
 the *main* checkout's `scripts/bin/` whichever worktree it runs from, because that is where the
@@ -170,7 +172,11 @@ branch behind `main` therefore replaces the live binary with one missing whateve
 meanwhile, and a rule that passes a dropped option fails as an ordinary miss — nothing says the option
 is gone. One from a branch older than the resident helper is worse: its binary has no `--serve`, so
 every rule fails, and its script signs with the old certificate, so the grant goes too. Rebase before
-building.
+building. And the Xcode tools can refuse to run at all: `swiftc`, `otool` and every other `xcrun`
+shim exit with "You have not agreed to the Xcode license agreements" while the selected Xcode's
+license is unaccepted, which is the state after an Xcode update. The build falls back to the Command
+Line Tools' own `swiftc`; a probe run by hand needs `DEVELOPER_DIR=/Library/Developer/CommandLineTools`
+the same way (or `/Library/Developer/CommandLineTools/usr/bin/llvm-otool` for `otool`).
 
 **Without the grant the helper cannot even look.** `--dump` and `--dry-run` report
 `trusted=false` too, so it cannot be used to work out what to build next, and every rule relying on
@@ -284,7 +290,29 @@ and `launch_ms` on the first press after an idle spell is what shows whether it 
 interpreting a dump still adds its interpreter's startup (node, ~70ms), so a rule that reads the tree
 to decide something costs a dump plus an interpreter, and the question is not whether the decision is
 worth having but whether it is worth doubling the rule: Cmd+Option+. archived a chat in one launch
-plus the menu's own accelerator, and the same archive choosing its successor took four.
+plus the menu's own accelerator, and the same archive choosing its successor took four. Slimming the
+binary was not the lever: on this macOS a C program that only returns loads the same ~600 dylibs the
+helper does, because libSystem's own closure reaches Foundation, so dropping AppKit would have saved
+initialisers and a few hundred page touches but not the launch.
+
+**The helper is a resident server; a rule is a request.** `scripts/build-ax-press.sh` writes
+`~/Library/LaunchAgents/com.raine.karabiner-config-ax-press.plist`, whose `Sockets` entry has launchd
+own `scripts/bin/ax-press.sock` and start `karabiner-config-ax-press --serve` on the first connection;
+the server takes the socket with `launch_activate_socket` and stays up. The build ends with
+`launchctl kickstart -k gui/$(id -u)/com.raine.karabiner-config-ax-press`, so no server outlives the
+binary it was started from, and the restart also spends a new binary's one-time first-launch scan — a
+notarization lookup over the network and an XProtect pass, a few hundred milliseconds, cached per
+file — before any press can. `launchctl print gui/$(id -u)/com.raine.karabiner-config-ax-press` says
+whether it is running, how many times launchd has started it, and its last exit code. A request is the
+arguments, each NUL-terminated, then end of file; the reply is what a one-shot run would print, then a
+last line `exit=<code>`. macOS's `nc -U` half-closes once its input ends and prints the reply until the
+server closes, then exits 0 whatever the code said, which is why chains are `--then` and not `&&`.
+Requests run one at a time, so a `--wait` or `--scroll-to-end` holds up whatever arrives behind it.
+`NSRunningApplication` needs no run loop to stay current in a process that lives for days: a dummy app
+launched, killed and launched again showed up under each new pid on the very next call. `ProcessType
+Interactive` in the plist is deliberate: a job left standard gets a daemon's limits, and
+Karabiner-Console-User-Server, one of those, runs at scheduling priority 20, where an app runs at 31 or
+above.
 
 **Chromium exposes none of the page until an assistive client shows up, and what counts as showing
 up is asking the *application object* for its role.** A freshly launched ChatGPT — and Brave —

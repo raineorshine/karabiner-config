@@ -80,7 +80,9 @@ Learned the slow way on the Notion archive and Messages tapback rules:
   at a time: amfid's `Entering OSX path for <binary>` (launch checks), launchd spawning
   `taskgated-helper`, syspolicyd's `provenance data on process: <pid>` (one per exec, so the gap
   between two is a stage's run time), tccd's `REQUEST_MSG` and reply, then the `cfprefsd` and
-  `launchservicesd` connections. Read it the same day: a day on, the default-level lines (amfid's
+  `launchservicesd` connections. Not every `sh` is the press: Karabiner-Console-User-Server spawns
+  `sh`, `bash` and its own service-status helpers every three seconds, so match the shell to the
+  helper's pid rather than to the nearest `running binary "sh"` line. Read it the same day: a day on, the default-level lines (amfid's
   verdict, launchd's spawn) were still there and the info-level ones (syspolicyd, tccd) were gone.
   `log` is a zsh builtin, so call `/usr/bin/log`. Check the machine before the helper: swap at 17.8 of 18.4 GB
   made every cold daemon on that path slow at once, which no change to the helper removes.

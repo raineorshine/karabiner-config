@@ -8,16 +8,17 @@ that matches what you are about to write, before writing it.
 - [docs/click-rules.md](docs/click-rules.md) — moving the pointer and clicking: coordinates, the
   cursor restore, warp-to-click gaps, and when posting events is filtered.
 - [docs/accessibility-rules.md](docs/accessibility-rules.md) — pressing a control by name with
-  `ax-press`: finding labels, the Accessibility grant and its rebuilds, walk direction, and opening
-  a context menu without the mouse.
+  `ax-press`: the resident helper a rule sends its request to, finding labels, the Accessibility
+  grant and its rebuilds, what a press costs, walk direction, and opening a context menu without the
+  mouse.
 - [docs/menu-bar-rules.md](docs/menu-bar-rules.md) — driving an app's own menus when it will not
   give a chord up.
 - [docs/pauses.md](docs/pauses.md) — when `hold_down_milliseconds` is load-bearing and when it is
   superstition, and probing several values per round on a rule with equivalent chords.
 - [docs/workflow.md](docs/workflow.md) — editing `karabiner.json`, testing under the live-config
   lock from a worktree, and what the session-title prefixes mean.
-- [docs/debugging.md](docs/debugging.md) — what to suspect when a rule misbehaves, and measuring
-  against the Claude app with video.
+- [docs/debugging.md](docs/debugging.md) — what to suspect when a rule misbehaves, timing a press
+  from the keypress, and measuring against the Claude app with video.
 
 ## Adding keyboard shortcuts (Colemak convention)
 
