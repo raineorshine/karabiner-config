@@ -73,6 +73,17 @@ Learned the slow way on the Notion archive and Messages tapback rules:
   each explained the evidence and then broke. Stop turning knobs and find a decisive measurement.
 - **Measure end-to-end.** A latency figure summed from a script's sleep constants was wrong about
   where the time actually went; timing the real command settled it in one step.
+- **A slow press is timed from the keypress, and a helper's own clock starts late.** The first
+  Cmd+Shift+U of a morning logged `total_ms=223` and took 0.67s: the rest was spent before the helper
+  could start a clock. `launch_ms` in `.claude/ax-press.log` now covers that part, from the `sh`
+  Karabiner spawned. For the breakdown, `/usr/bin/log show --info` around the press has it, one daemon
+  at a time: amfid's `Entering OSX path for <binary>` (launch checks), launchd spawning
+  `taskgated-helper`, syspolicyd's `provenance data on process: <pid>` (one per exec, so the gap
+  between two is a stage's run time), tccd's `REQUEST_MSG` and reply, then the `cfprefsd` and
+  `launchservicesd` connections. Read it the same day: a day on, the default-level lines (amfid's
+  verdict, launchd's spawn) were still there and the info-level ones (syspolicyd, tccd) were gone.
+  `log` is a zsh builtin, so call `/usr/bin/log`. Check the machine before the helper: swap at 17.8 of 18.4 GB
+  made every cold daemon on that path slow at once, which no change to the helper removes.
 - **A helper that builds its log path from `getenv("HOME")` once exited non-zero and wrote nothing,**
   so the instrumentation failed silently and looked exactly like the rule never firing. The ChatGPT
   rule's `shell_command` has since logged `HOME=/Users/raine`, so the shell does get `$HOME`; what the

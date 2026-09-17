@@ -878,7 +878,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.anthropic.claudefordesktop \"{}\" --role AXPopUpButton --sibling \"Local\" --first --nth 2 --log"
+                                        "shell_command": "printf '%s\\0' com.anthropic.claudefordesktop \"{}\" --role AXPopUpButton --sibling \"Local\" --first --nth 2 --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -979,7 +979,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.anthropic.claudefordesktop \"Usage: {}\" --role AXPopUpButton --log"
+                                        "shell_command": "printf '%s\\0' com.anthropic.claudefordesktop \"Usage: {}\" --role AXPopUpButton --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -1101,7 +1101,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.anthropic.claudefordesktop \"{}\" --role AXButton --sibling \"More start options\" --log"
+                                        "shell_command": "printf '%s\\0' com.anthropic.claudefordesktop \"{}\" --role AXButton --sibling \"More start options\" --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -1109,7 +1109,7 @@
                         ]
                     },
                     {
-                        "comment": "Archives the current session by pressing the header's own overflow button and then its Archive item, both through the accessibility tree. The first karabiner-config-ax-press call learns which chat is current from the session header, whose title button is labelled '<chat>, rename session' (--label-from), and AXPresses the AXPopUpButton described 'More options for <chat>' -- the three-dot button at the top right of the main pane (frame 706,42), which opens its dropdown. The second call polls the tree (--wait, every 25ms, up to the 2s budget) until an AXMenuItem titled 'Archive' exists and presses it, so a slow renderer delays the archive rather than misdirecting it, and a dropdown that never opens makes the second call time out with found=false and press nothing. The two calls are joined with && in one shell_command because adjacent shell_commands in a to array collapse to the last one, and && means no menu, no press. This replaces the palette version (Cmd+K, type 'arch', Enter), whose Enter raced the palette's asynchronous Archive row and archived nothing under CPU load even at a measured-and-padded 150ms hold. Nothing here is timed. The first version of this rule opened the sidebar row's context menu with AXShowMenu, as the Cmd+Option+. rule does, with --first; that worked (3 of 3 idle, 3 of 3 with all 8 cores pegged, about 250ms end to end) but the header's button carries the same 'More options for <chat>' label, so with the sidebar hidden it became the first match and a right-click dispatched at it opened Electron's default Copy/Select All menu instead. Pressing the header button is what the mouse would do, needs no sidebar, and the search without --first walks from the end of the document and reaches it after about 140 elements: tested with the sidebar visible and hidden, both archived, 160-220ms end to end. The Archive item is pressed rather than typed as the menu's 'a' accelerator: a key_code after a shell_command can only be sequenced behind it with a fixed hold, which is the race being removed. Cmd+1 afterwards selects the first chat, as the old rule did, but it is posted by the helper (--key cmd+1, a CGEvent with its own modifier flags, so the still-held physical Cmd+Shift do not leak into it) rather than emitted by Karabiner. The helper posts it once the Archive item has left the tree, which is the dropdown closing and so the click having been handled -- 118-580ms after the press across 8 presses, longer when idle than under load, presumably the exit animation; if the item is still there when the budget runs out, nothing is posted and the log says gone=false. Digits are the same key in Colemak and QWERTY, so cmd+1 needs no conversion. Inspected in the Code tab only. Eight presses cannot tell 100% from 90%; ordinary use is the rest of the test. Logs one line per call to .claude/ax-press.log in the live checkout. Selecting the *next chat in the archived chat's own project* instead of Cmd+1 was built and then removed for cost: it needs an accessibility dump to learn the sidebar's order, which no label search can express, and a node process to read it, which is four helper launches against this rule's two. Launches are the whole bill -- about 100ms each, of which the search is 10-50ms, because the helper re-spawns itself to disclaim responsibility -- so the successor version measured about 500ms against 160-220ms here, and Cmd+Option+. archives faster still at one launch plus the menu's own 'a'. Two things it found are worth keeping. Chat titles are not unique, so the sidebar cannot say which row is the current chat: two rows titled 'Test' in different projects sent the successor press to the wrong project's + button. What does say is the main pane's header, which carries an AXPopUpButton titled with the current chat's project beside the '<chat>, rename session' button. And archiving a project's last chat takes the whole group out of the sidebar, + button included, so there is nothing left to press afterwards: the app lands on its home screen, whose composer offers the last-used project. Selecting into the archived chat's project therefore has to happen before the archive, not after, which costs a third press and makes the archive go through the row rather than the header. The work is in git history (scripts/claude-archive-next.js, reverted here) if 200ms ever stops being the budget.",
+                        "comment": "Archives the current session by pressing the header's own overflow button and then its Archive item, both through the accessibility tree. The first command learns which chat is current from the session header, whose title button is labelled '<chat>, rename session' (--label-from), and AXPresses the AXPopUpButton described 'More options for <chat>' -- the three-dot button at the top right of the main pane (frame 706,42), which opens its dropdown. The second command polls the tree (--wait, every 25ms, up to the 2s budget) until an AXMenuItem titled 'Archive' exists and presses it, so a slow renderer delays the archive rather than misdirecting it, and a dropdown that never opens makes the second command time out with found=false and press nothing. The two go to the helper as one request joined with --then, because adjacent shell_commands in a to array collapse to the last one, and --then runs the second only if the first pressed: no menu, no press. This replaces the palette version (Cmd+K, type 'arch', Enter), whose Enter raced the palette's asynchronous Archive row and archived nothing under CPU load even at a measured-and-padded 150ms hold. Nothing here is timed. The first version of this rule opened the sidebar row's context menu with AXShowMenu, as the Cmd+Option+. rule does, with --first; that worked (3 of 3 idle, 3 of 3 with all 8 cores pegged, about 250ms end to end) but the header's button carries the same 'More options for <chat>' label, so with the sidebar hidden it became the first match and a right-click dispatched at it opened Electron's default Copy/Select All menu instead. Pressing the header button is what the mouse would do, needs no sidebar, and the search without --first walks from the end of the document and reaches it after about 140 elements: tested with the sidebar visible and hidden, both archived, 160-220ms end to end. The Archive item is pressed rather than typed as the menu's 'a' accelerator: a key_code after a shell_command can only be sequenced behind it with a fixed hold, which is the race being removed. Cmd+1 afterwards selects the first chat, as the old rule did, but it is posted by the helper (--key cmd+1, a CGEvent with its own modifier flags, so the still-held physical Cmd+Shift do not leak into it) rather than emitted by Karabiner. The helper posts it once the Archive item has left the tree, which is the dropdown closing and so the click having been handled -- 118-580ms after the press across 8 presses, longer when idle than under load, presumably the exit animation; if the item is still there when the budget runs out, nothing is posted and the log says gone=false. Digits are the same key in Colemak and QWERTY, so cmd+1 needs no conversion. Inspected in the Code tab only. Eight presses cannot tell 100% from 90%; ordinary use is the rest of the test. Logs one line per command to .claude/ax-press.log in the live checkout. Selecting the *next chat in the archived chat's own project* instead of Cmd+1 was built and then removed for cost: it needs an accessibility dump to learn the sidebar's order, which no label search can express, and a node process to read it, which was four helper launches against this rule's two while every call still launched the helper. Launches were the whole bill -- about 100ms each, of which the search was 10-50ms, because the helper re-spawns itself to disclaim responsibility -- so the successor version measured about 500ms against 160-220ms here, and Cmd+Option+. archived faster still at one launch plus the menu's own 'a'. Two things it found are worth keeping. Chat titles are not unique, so the sidebar cannot say which row is the current chat: two rows titled 'Test' in different projects sent the successor press to the wrong project's + button. What does say is the main pane's header, which carries an AXPopUpButton titled with the current chat's project beside the '<chat>, rename session' button. And archiving a project's last chat takes the whole group out of the sidebar, + button included, so there is nothing left to press afterwards: the app lands on its home screen, whose composer offers the last-used project. Selecting into the archived chat's project therefore has to happen before the archive, not after, which costs a third press and makes the archive go through the row rather than the header. The work is in git history (scripts/claude-archive-next.js, reverted here) if 200ms ever stops being the budget.",
                         "description": "Claude: ⇧⌘E → Archive Session via its ⋮ menu, then ⌘1 (physical key k in Colemak)",
                         "manipulators": [
                             {
@@ -1125,7 +1125,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.anthropic.claudefordesktop \"More options for {}\" --role AXPopUpButton --label-from \"{}, rename session\" --log && \"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.anthropic.claudefordesktop Archive --role AXMenuItem --wait --key cmd+1 --log"
+                                        "shell_command": "printf '%s\\0' com.anthropic.claudefordesktop \"More options for {}\" --role AXPopUpButton --label-from \"{}, rename session\" --log --then com.anthropic.claudefordesktop Archive --role AXMenuItem --wait --key cmd+1 --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -1217,7 +1217,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.anthropic.claudefordesktop \"More options for {}\" --role AXPopUpButton --label-from \"{}, rename session\" --action AXShowMenu --first --log"
+                                        "shell_command": "printf '%s\\0' com.anthropic.claudefordesktop \"More options for {}\" --role AXPopUpButton --label-from \"{}, rename session\" --action AXShowMenu --first --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -1241,7 +1241,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.anthropic.claudefordesktop \"#{}\" --role AXLink --log"
+                                        "shell_command": "printf '%s\\0' com.anthropic.claudefordesktop \"#{}\" --role AXLink --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -1479,7 +1479,7 @@
                                 "to": [
                                     { "key_code": "t", "modifiers": ["shift"] },
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Avatar for {}\" --role AXImage --within 40,100,300,1200 --ancestor '*:6' --scroll-to-end --budget-ms 5000 --unless-editing"
+                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Avatar for {}\" --role AXImage --within 40,100,300,1200 --ancestor '*:6' --scroll-to-end --budget-ms 5000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -1765,7 +1765,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Always apply\" --log"
+                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Always apply\" --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -1773,7 +1773,7 @@
                         ]
                     },
                     {
-                        "comment": "Presses the Save button in Shortwave's settings dialogs, which the app gives no keyboard shortcut of its own for. Cmd+Enter is Shortwave's send shortcut everywhere else, so the rule must not swallow it: --else-key posts cmd+return from the helper itself whenever no Save button is on screen, which is what leaves compose and the inbox behaving as they always did. That fall-through is the whole cost of binding a key the app already uses -- a miss ends the search as soon as the walk shows the tree is populated (87ms over ~1000 elements), on top of the helper's two process launches. Nothing in the mail view carries the label at all, so the label alone tells the dialog from every other screen, and the dialog itself leaves only 65 elements in the tree -- Chromium drops the page behind a modal -- so the AXButton titled \"Save\" is reached after 19 of them, 27ms. Logs one line per press to .claude/ax-press.log, which here is one line per Cmd+Enter, sends included.",
+                        "comment": "Presses the Save button in Shortwave's settings dialogs, which the app gives no keyboard shortcut of its own for. Cmd+Enter is Shortwave's send shortcut everywhere else, so the rule must not swallow it: --else-key posts cmd+return from the helper itself whenever no Save button is on screen, which is what leaves compose and the inbox behaving as they always did. That fall-through is the whole cost of binding a key the app already uses -- a miss ends the search as soon as the walk shows the tree is populated (87ms over ~1000 elements), on top of the request to the resident helper. Nothing in the mail view carries the label at all, so the label alone tells the dialog from every other screen, and the dialog itself leaves only 65 elements in the tree -- Chromium drops the page behind a modal -- so the AXButton titled \"Save\" is reached after 19 of them, 27ms. Logs one line per press to .claude/ax-press.log, which here is one line per Cmd+Enter, sends included.",
                         "description": "Shortwave: Cmd+Enter → press Save in the settings dialog, or send as usual",
                         "manipulators": [
                             {
@@ -1789,7 +1789,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Save\" --else-key cmd+return --log"
+                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Save\" --else-key cmd+return --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -1797,7 +1797,7 @@
                         ]
                     },
                     {
-                        "comment": "Jumps to a section of Shortwave's Settings screen by pressing its sidebar row through the accessibility tree, on the bare key rather than a chord. Karabiner emits the key first and the helper runs behind it, so the character is never Karabiner's to give back: every other screen in the app types the digit or letter it always typed and keeps Shortwave's own single-key shortcuts, and the settings jump is whatever the helper finds afterwards. --else-key was the first shape tried, the one Cmd+Enter uses for Save above, and it did not survive being bound to typing keys -- the fall-through reported else_key_posted=true on every letter and not one of them reached the focused input, so the key was swallowed outright. Emitting it from the rule costs nothing and cannot miss. A row is an AXGroup (frame 27,y 134x25) carrying an AXPress, with the section name two levels below it in an AXStaticText whose AXValue is the label, so the rule matches the text and climbs with --ancestor '*:2' -- counting every level, because the wrapper in between is an anonymous AXGroup with no role to aim at. The default reverse walk suits the target: the sidebar is the last region in document order (elements 849-912 of 939), so it is reached before the thread pane, and the toolbar's own Compose button carries the same AXStaticText \"Compose\" earlier in the document, which a --first walk would find instead. --within is what keeps the fall-through honest for that one label -- the toolbar Compose sits at x=1364 and every sidebar row at x=33, so 4 types a 4 in the mail view rather than opening a draft -- and the rectangle is left open vertically so moving the window down does not break all fifteen at once. Nothing in the mail view carries any of the other fourteen labels (513 elements, none matched), so those fall through on the label alone. --unless-editing is what makes that safe: the sidebar rows are in the tree while a label picker's search box has focus too, so without it every letter typed there also jumped the sidebar. It reads the app's focused element and does nothing while that is a text control, which also makes typing the cheap path -- one attribute read, no walk. No --log, unlike every other ax-press rule here: these are typing keys, and a line per a-f keystroke would bury the log -- debug one with --dry-run from a shell instead. The cost is the one --else-key always has, paid here on every such keystroke rather than on a send: two process launches plus a full walk, about 100ms plus the 57-98ms measured over ~1000 elements. 1-9 and A-F cover the fifteen sections of My account and the team; Support, Keyboard shortcuts and Experiments have no key left and are unbound. Colemak leaves the digits and A/B/C alone, D/E/F are physical g/k/e, and --else-key names keys by the same ANSI position, so each manipulator posts back exactly the key it took.",
+                        "comment": "Jumps to a section of Shortwave's Settings screen by pressing its sidebar row through the accessibility tree, on the bare key rather than a chord. Karabiner emits the key first and the helper runs behind it, so the character is never Karabiner's to give back: every other screen in the app types the digit or letter it always typed and keeps Shortwave's own single-key shortcuts, and the settings jump is whatever the helper finds afterwards. --else-key was the first shape tried, the one Cmd+Enter uses for Save above, and it did not survive being bound to typing keys -- the fall-through reported else_key_posted=true on every letter and not one of them reached the focused input, so the key was swallowed outright. Emitting it from the rule costs nothing and cannot miss. A row is an AXGroup (frame 27,y 134x25) carrying an AXPress, with the section name two levels below it in an AXStaticText whose AXValue is the label, so the rule matches the text and climbs with --ancestor '*:2' -- counting every level, because the wrapper in between is an anonymous AXGroup with no role to aim at. The default reverse walk suits the target: the sidebar is the last region in document order (elements 849-912 of 939), so it is reached before the thread pane, and the toolbar's own Compose button carries the same AXStaticText \"Compose\" earlier in the document, which a --first walk would find instead. --within is what keeps the fall-through honest for that one label -- the toolbar Compose sits at x=1364 and every sidebar row at x=33, so 4 types a 4 in the mail view rather than opening a draft -- and the rectangle is left open vertically so moving the window down does not break all fifteen at once. Nothing in the mail view carries any of the other fourteen labels (513 elements, none matched), so those fall through on the label alone. --unless-editing is what makes that safe: the sidebar rows are in the tree while a label picker's search box has focus too, so without it every letter typed there also jumped the sidebar. It reads the app's focused element and does nothing while that is a text control, which also makes typing the cheap path -- one attribute read, no walk. No --log, unlike every other ax-press rule here: these are typing keys, and a line per a-f keystroke would bury the log -- debug one with --dry-run from a shell instead. The cost is the one --else-key always has, paid here on every such keystroke rather than on a send: a request to the resident helper plus a full walk, the 57-98ms measured over ~1000 elements. 1-9 and A-F cover the fifteen sections of My account and the team; Support, Keyboard shortcuts and Experiments have no key left and are unbound. Colemak leaves the digits and A/B/C alone, D/E/F are physical g/k/e, and --else-key names keys by the same ANSI position, so each manipulator posts back exactly the key it took.",
                         "description": "Shortwave: 1-9, A-F → Settings sidebar sections, or the key itself (physical keys a b c g k e in Colemak for A-F)",
                         "manipulators": [
                             {
@@ -1811,7 +1811,7 @@
                                 "to": [
                                     { "key_code": "1" },
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Overview\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Overview\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -1827,7 +1827,7 @@
                                 "to": [
                                     { "key_code": "2" },
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Inbox setup\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Inbox setup\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -1843,7 +1843,7 @@
                                 "to": [
                                     { "key_code": "3" },
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Appearance\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Appearance\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -1859,7 +1859,7 @@
                                 "to": [
                                     { "key_code": "4" },
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Compose\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Compose\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -1875,7 +1875,7 @@
                                 "to": [
                                     { "key_code": "5" },
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Notifications\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Notifications\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -1891,7 +1891,7 @@
                                 "to": [
                                     { "key_code": "6" },
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"AI Personalization\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"AI Personalization\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -1907,7 +1907,7 @@
                                 "to": [
                                     { "key_code": "7" },
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"AI Integrations\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"AI Integrations\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -1923,7 +1923,7 @@
                                 "to": [
                                     { "key_code": "8" },
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Labels\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Labels\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -1939,7 +1939,7 @@
                                 "to": [
                                     { "key_code": "9" },
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Filters\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Filters\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -1955,7 +1955,7 @@
                                 "to": [
                                     { "key_code": "a" },
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Calendar\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Calendar\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -1971,7 +1971,7 @@
                                 "to": [
                                     { "key_code": "b" },
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Miscellaneous\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Miscellaneous\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -1987,7 +1987,7 @@
                                 "to": [
                                     { "key_code": "c" },
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"AI Agents\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"AI Agents\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -2003,7 +2003,7 @@
                                 "to": [
                                     { "key_code": "g" },
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Members & Billing\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Members & Billing\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -2019,7 +2019,7 @@
                                 "to": [
                                     { "key_code": "k" },
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Team collaboration\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Team collaboration\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -2035,7 +2035,7 @@
                                 "to": [
                                     { "key_code": "e" },
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.electron.shortwave \"Team AI Assistant\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing"
+                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Team AI Assistant\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -2105,7 +2105,7 @@
                         ]
                     },
                     {
-                        "comment": "Copies the last response by pressing its Copy button through the accessibility tree rather than clicking it. The button sits beneath the response, so its position moves with the length of the response and of everything above it, and no fixed coordinate can reach it; the app offers no shortcut or menu item for it either (searched the bundle: 'Copy response' exists only as the button's tooltip, and the bindable-shortcut registry has no copy command). karabiner-config-ax-press (scripts/ax-press.swift) finds the last AXButton labelled 'Copy' in the focused window that has a 'Good response' sibling -- code-block copy buttons carry the same label, and the sibling is what tells the response's own button apart -- walking the document from its end so the search touches the composer and the last turn rather than the whole conversation (88 elements visited of 5297; 29-38ms from the helper starting to the press landing, over three presses), then AXPresses it: no pointer movement, no cursor restore. The window must be frontmost: the copy is a web clipboard write, which the page refuses when its document is not focused (pressed from a shell with another app in front, the button reported success and ChatGPT showed a 'couldn't copy' toast). Accessibility is granted to the helper itself rather than to Karabiner -- it re-spawns as its own responsible process so TCC judges the binary whoever launched it, which is what made earlier spawned scripts' permissions unpredictable -- and the grant is keyed to the binary's ad-hoc signature, so a rebuild needs it granted again (scripts/build-ax-press.sh). Because that grant would otherwise go to whatever process runs the binary, it presses only when Karabiner-Console-User-Server is among its ancestor processes; --dump and --dry-run work from a shell. Chromium exposes none of the page until an assistive client shows up, and what counts as showing up is asking the application object for its role (Chrome's and Electron's NSApplication subclasses both switch accessibility on there, following Apple's guidance for non-VoiceOver clients); the helper asks first thing, and a freshly launched instance that had ignored everything else for twenty minutes exposed its tree 124ms later, so the first press after ChatGPT relaunches should work too. While the tree is still only the window chrome the helper keeps looking for up to 2s, a budget sized for that first press on a long conversation rather than measured against one. If the newest turn is a user message, or the response is still streaming, the previous response's button is the last one and is pressed instead. Logs one line per press to .claude/ax-press.log.",
+                        "comment": "Copies the last response by pressing its Copy button through the accessibility tree rather than clicking it. The button sits beneath the response, so its position moves with the length of the response and of everything above it, and no fixed coordinate can reach it; the app offers no shortcut or menu item for it either (searched the bundle: 'Copy response' exists only as the button's tooltip, and the bindable-shortcut registry has no copy command). karabiner-config-ax-press (scripts/ax-press.swift) finds the last AXButton labelled 'Copy' in the focused window that has a 'Good response' sibling -- code-block copy buttons carry the same label, and the sibling is what tells the response's own button apart -- walking the document from its end so the search touches the composer and the last turn rather than the whole conversation (88 elements visited of 5297; 29-38ms from the helper starting to the press landing, over three presses), then AXPresses it: no pointer movement, no cursor restore. The window must be frontmost: the copy is a web clipboard write, which the page refuses when its document is not focused (pressed from a shell with another app in front, the button reported success and ChatGPT showed a 'couldn't copy' toast). Accessibility is granted to the helper itself rather than to Karabiner -- launchd runs it as its own responsible process, and a one-shot run from a shell re-spawns itself as one, so TCC judges the binary whoever started it, which is what made earlier spawned scripts' permissions unpredictable -- and the grant is keyed to the binary's path and its identifier-only designated requirement, so a rebuild keeps it (scripts/build-ax-press.sh). Because that grant would otherwise serve whatever process reaches the helper, it presses only when Karabiner-Console-User-Server is among the requesting process's ancestors; --dump and --dry-run work from a shell. Chromium exposes none of the page until an assistive client shows up, and what counts as showing up is asking the application object for its role (Chrome's and Electron's NSApplication subclasses both switch accessibility on there, following Apple's guidance for non-VoiceOver clients); the helper asks first thing, and a freshly launched instance that had ignored everything else for twenty minutes exposed its tree 124ms later, so the first press after ChatGPT relaunches should work too. While the tree is still only the window chrome the helper keeps looking for up to 2s, a budget sized for that first press on a long conversation rather than measured against one. If the newest turn is a user message, or the response is still streaming, the previous response's button is the last one and is pressed instead. Logs one line per press to .claude/ax-press.log.",
                         "description": "ChatGPT: Cmd+Shift+C → copy the last response (press its Copy button via accessibility)",
                         "manipulators": [
                             {
@@ -2121,7 +2121,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.openai.codex Copy --sibling \"Good response\" --log"
+                                        "shell_command": "printf '%s\\0' com.openai.codex Copy --sibling \"Good response\" --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -2129,7 +2129,7 @@
                         ]
                     },
                     {
-                        "comment": "Opens the composer's model picker -- in Chat mode the Thinking effort menu -- by clicking its button at the position the accessibility tree reports, then focusing the menu's level control. In Chat mode the button is the pill beside the message field that shows the current effort ('High'): its tooltip says Thinking effort and its aria-label, which Chromium puts in AXDescription, is 'Select ChatGPT model' (app.asar, chatgptConversations.modelPicker). In Work mode it is the model picker, titled with the model and effort ('GPT-5.6 Sol Light') and carrying no aria-label at all. No label names both, so the search takes the last AXPopUpButton in the composer's button row, the row that also holds 'Add files and more' (--sibling): in Chat mode the pill is the row's only popup, and in Work mode the permissions popup ('Change permissions') comes before the picker, so the backwards walk reaches the picker first. That is an order assumption, and it breaks silently if the app ever puts another popup after the picker. The app's own command for it, composer.openModelPicker, defaults to Ctrl+Shift+M in the bundle's command registry, and the built-in shortcut the user tried (reported as Shift+Option+M) did not open it. AXPress does not open it either -- 8 presses logged pressed=true and no menu appeared -- because the trigger opens only on a real pointerdown (a Radix-style handler that wants button 0 without Ctrl) or on a click whose detail is 0, which is what the app's command sends through trigger.click(); Chromium's accessibility click is neither. So --click warps the pointer to the button's centre, posts a left click and warps it back, which is a real pointerdown; the position is read at press time because the button moves, centred on the new-chat screen and at the bottom of a conversation. The click opens the menu but leaves keyboard focus in the message field, so the arrow keys never reach the level: the Chat-mode menu (Bvr in app.asar) moves focus into itself only when document.activeElement is the body. So a second call, joined with && so it runs only after a click, waits for the menu's Power item -- the level control, which takes Left and Right ('Use Left and Right arrow keys to adjust power') -- and sets AXFocused on it, 36-280ms after the click over six presses in the two modes -- the slow ones waiting on the menu to render, which is what --wait is for. karabiner-config-ax-press walks the focused window from the end of the document, where the composer sits, so it reaches the button within about 50 elements (11-73ms). The rule takes Cmd+Shift+F from the app, where ~/.codex/keybindings.json binds it to toggleFileTreePanel (View > Toggle File Tree); on a screen with no composer, --else-key hands the chord back to it. cmd+shift+e names the physical key, which the app reads through Colemak as F just as it reads the key itself, and Karabiner does not see the posted chord, so it cannot re-enter this rule. Logs one line per press to .claude/ax-press.log.",
+                        "comment": "Opens the composer's model picker -- in Chat mode the Thinking effort menu -- by clicking its button at the position the accessibility tree reports, then focusing the menu's level control. In Chat mode the button is the pill beside the message field that shows the current effort ('High'): its tooltip says Thinking effort and its aria-label, which Chromium puts in AXDescription, is 'Select ChatGPT model' (app.asar, chatgptConversations.modelPicker). In Work mode it is the model picker, titled with the model and effort ('GPT-5.6 Sol Light') and carrying no aria-label at all. No label names both, so the search takes the last AXPopUpButton in the composer's button row, the row that also holds 'Add files and more' (--sibling): in Chat mode the pill is the row's only popup, and in Work mode the permissions popup ('Change permissions') comes before the picker, so the backwards walk reaches the picker first. That is an order assumption, and it breaks silently if the app ever puts another popup after the picker. The app's own command for it, composer.openModelPicker, defaults to Ctrl+Shift+M in the bundle's command registry, and the built-in shortcut the user tried (reported as Shift+Option+M) did not open it. AXPress does not open it either -- 8 presses logged pressed=true and no menu appeared -- because the trigger opens only on a real pointerdown (a Radix-style handler that wants button 0 without Ctrl) or on a click whose detail is 0, which is what the app's command sends through trigger.click(); Chromium's accessibility click is neither. So --click warps the pointer to the button's centre, posts a left click and warps it back, which is a real pointerdown; the position is read at press time because the button moves, centred on the new-chat screen and at the bottom of a conversation. The click opens the menu but leaves keyboard focus in the message field, so the arrow keys never reach the level: the Chat-mode menu (Bvr in app.asar) moves focus into itself only when document.activeElement is the body. So a second command, joined with --then so it runs only after a click, waits for the menu's Power item -- the level control, which takes Left and Right ('Use Left and Right arrow keys to adjust power') -- and sets AXFocused on it, 36-280ms after the click over six presses in the two modes -- the slow ones waiting on the menu to render, which is what --wait is for. karabiner-config-ax-press walks the focused window from the end of the document, where the composer sits, so it reaches the button within about 50 elements (11-73ms). The rule takes Cmd+Shift+F from the app, where ~/.codex/keybindings.json binds it to toggleFileTreePanel (View > Toggle File Tree); on a screen with no composer, --else-key hands the chord back to it. cmd+shift+e names the physical key, which the app reads through Colemak as F just as it reads the key itself, and Karabiner does not see the posted chord, so it cannot re-enter this rule. Logs one line per press to .claude/ax-press.log.",
                         "description": "ChatGPT: Cmd+Shift+F → open the composer's effort/model picker in Chat and Work mode (click its button, found via accessibility; physical key e in Colemak)",
                         "manipulators": [
                             {
@@ -2145,7 +2145,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.openai.codex \"{}\" --role AXPopUpButton --sibling \"Add files and more\" --click --else-key cmd+shift+e --log && \"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.openai.codex Power --role AXMenuItem --wait --set AXFocused=true --log"
+                                        "shell_command": "printf '%s\\0' com.openai.codex \"{}\" --role AXPopUpButton --sibling \"Add files and more\" --click --else-key cmd+shift+e --log --then com.openai.codex Power --role AXMenuItem --wait --set AXFocused=true --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -2169,7 +2169,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" com.openai.codex \"Open profile menu\" --role AXPopUpButton --click --log"
+                                        "shell_command": "printf '%s\\0' com.openai.codex \"Open profile menu\" --role AXPopUpButton --click --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -2193,7 +2193,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" org.pqrs.Karabiner-Elements.Settings \"Simple Modifications\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log"
+                                        "shell_command": "printf '%s\\0' org.pqrs.Karabiner-Elements.Settings \"Simple Modifications\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -2211,7 +2211,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" org.pqrs.Karabiner-Elements.Settings \"Function Keys\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log"
+                                        "shell_command": "printf '%s\\0' org.pqrs.Karabiner-Elements.Settings \"Function Keys\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -2229,7 +2229,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" org.pqrs.Karabiner-Elements.Settings \"Complex Modifications\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log"
+                                        "shell_command": "printf '%s\\0' org.pqrs.Karabiner-Elements.Settings \"Complex Modifications\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -2247,7 +2247,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" org.pqrs.Karabiner-Elements.Settings \"Parameters\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log"
+                                        "shell_command": "printf '%s\\0' org.pqrs.Karabiner-Elements.Settings \"Parameters\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -2265,7 +2265,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" org.pqrs.Karabiner-Elements.Settings \"Devices\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log"
+                                        "shell_command": "printf '%s\\0' org.pqrs.Karabiner-Elements.Settings \"Devices\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -2283,7 +2283,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" org.pqrs.Karabiner-Elements.Settings \"Virtual Keyboard\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log"
+                                        "shell_command": "printf '%s\\0' org.pqrs.Karabiner-Elements.Settings \"Virtual Keyboard\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -2301,7 +2301,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" org.pqrs.Karabiner-Elements.Settings \"Profiles\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log"
+                                        "shell_command": "printf '%s\\0' org.pqrs.Karabiner-Elements.Settings \"Profiles\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -2319,7 +2319,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" org.pqrs.Karabiner-Elements.Settings \"UI\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log"
+                                        "shell_command": "printf '%s\\0' org.pqrs.Karabiner-Elements.Settings \"UI\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -2337,7 +2337,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" org.pqrs.Karabiner-Elements.Settings \"Update\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log"
+                                        "shell_command": "printf '%s\\0' org.pqrs.Karabiner-Elements.Settings \"Update\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
@@ -2355,7 +2355,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "\"$HOME/.config/karabiner/scripts/bin/karabiner-config-ax-press\" org.pqrs.Karabiner-Elements.Settings \"Misc\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log"
+                                        "shell_command": "printf '%s\\0' org.pqrs.Karabiner-Elements.Settings \"Misc\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"

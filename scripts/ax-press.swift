@@ -14,15 +14,32 @@
 // for its helpers, so the child is judged as ax-press itself wherever it was launched from. The
 // grant then goes to this binary alone, not to a terminal, not to osascript, not to Karabiner.
 //
-// TCC keys that grant to the binary's code signature, and an ad-hoc signed build changes with every
-// compile, so rebuilding means granting again in System Settings > Privacy & Security >
-// Accessibility. That is why the tool takes everything as arguments: a new rule should never need a
-// new build.
+// TCC keys that grant to the binary's path and its designated requirement. scripts/build-ax-press.sh
+// signs ad-hoc with an explicit requirement that names only the signing identifier, so a recompile
+// still satisfies the grant; the implicit requirement of an ad-hoc signature pins the code hash,
+// which every compile changes. The tool takes everything as arguments all the same, so a new rule
+// never needs a new build.
 //
-// Usage: karabiner-config-ax-press <bundle-id> <label> [options]
+// Usage: karabiner-config-ax-press <bundle-id> <label> [options] [--then <bundle-id> <label> [options]]...
+//        karabiner-config-ax-press --serve
 //
 // (The binary carries the repo's name so the Accessibility list says whose it is; the source and
 // this text call it ax-press for short.)
+//
+// Rules do not launch it. A launch costs two processes -- the re-spawn above -- which is tens of
+// milliseconds warm, and was over half a second for a press after half an hour idle on a machine
+// short of memory, when the launch checks and the pages behind them had gone cold
+// (docs/accessibility-rules.md).
+// So launchd keeps one instance running with --serve, from the LaunchAgent the build installs, and
+// a rule pipes its arguments to that instance's socket, NUL-terminated, through nc:
+//
+//   printf '%s\0' <bundle-id> <label> [options] | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"
+//
+// The reply is what a one-shot run would print, then a last line exit=<code>. Requests are handled
+// one at a time. launchd starts the server on the first connection and it stays up; a request that
+// finds the grant missing makes it exit after replying, because trust is read once per process and
+// the next request should start a process that asks again. A one-shot run from a shell still works
+// exactly as before, which is what --dump and --dry-run are for.
 //
 //   --role <AXRole>   role to match (default AXButton)
 //   --first           press the first match in document order instead of the last
@@ -129,6 +146,12 @@
 //                     on an outline row is how a list whose rows have no AXPress is navigated
 //                     (Karabiner-Elements' own settings sidebar), and it counts as a press for the
 //                     Karabiner-launched check below
+//   --then            end this command and start another, which runs only if this one exited 0.
+//                     The Claude app's archive rule opens a chat's menu, then presses Archive in it:
+//                     one request instead of two helper calls joined with &&, whose exit status a
+//                     served request has no way to hand back to the shell
+//   --serve           run as the resident server, taking the listening socket from launchd; alone,
+//                     with no other arguments
 //
 // Without --label-from, a {} in <label> is a wildcard: the label matches any non-empty text between
 // its prefix and suffix. "#{}" is the Claude app's PR-chip link, whose label is the PR number.
@@ -151,15 +174,23 @@
 // a few dozen elements rather than the whole conversation.
 //
 // A helper that carries its own Accessibility grant is a confused deputy: the disclaim hands the
-// grant to whatever runs the binary, so any process running as the user could press any labelled
-// control in any app. The press is therefore refused unless Karabiner's console_user_server is
-// among this process's ancestors, checked by its full path under root-owned /Library. --dump and
-// --dry-run still work from a shell, so a label can be found without a rule; a real press cannot.
+// grant to whatever runs the binary, and the server answers anyone who can reach its socket, so any
+// process running as the user could press any labelled control in any app. The press is therefore
+// refused unless Karabiner's console_user_server is among the ancestors of whoever asked -- this
+// process for a one-shot run, the process on the other end of the socket for a served request --
+// checked by its full path under root-owned /Library. --dump and --dry-run still work from a shell,
+// so a label can be found without a rule; a real press cannot.
+//
+// The report line ends its timing with total_ms, measured from when this process started on the
+// request, and, for a request a rule sent, launch_ms: how long before that the shell Karabiner
+// spawned for the keypress had started, which is the part of a press no clock in here can see.
+// served=true marks a request the server handled.
 //
 // Exit codes: 0 pressed, 2 not trusted, 3 app not running, 4 no match, 5 press failed, 6 no window,
 // 7 no match and the window's tree never grew past its own chrome (accessibility not enabled),
 // 8 press refused because Karabiner did not launch this, 9 nothing on the page fits --label-from,
-// 10 pressed but the --key chord was not posted (the control never left the tree, or the post failed).
+// 10 pressed but the --key chord was not posted (the control never left the tree, or the post failed),
+// 64 bad arguments, 71 --serve without a socket from launchd.
 // --unless-editing reports found=false with editing=<role> and exits 4, the same as any other
 // miss, so --else-key hands the key on exactly as it does when nothing matched. When it does not
 // stand down it reports focused=<role> in the stats instead, which is what says whether the app
@@ -205,64 +236,88 @@ struct Options {
   var scrollToEnd = false
   var dumpAll = false
   var actions = false
-  var worker = false
 }
 
-func usage() -> Never {
-  FileHandle.standardError.write("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--nth N] [--dry-run] [--dump] [--dump-all] [--actions] [--prompt] [--log] [--budget-ms N] [--wait] [--key CHORD] [--unless-editing] [--else-key CHORD] [--enhanced] [--pid N] [--sibling TEXT] [--action A] [--click] [--scroll-first] [--scroll-to-end] [--label-from PATTERN] [--ancestor ROLE[:N]] [--within X0,Y0,X1,Y1] [--under ROLE[:LABEL]] [--set ATTR=VALUE]\n".data(using: .utf8)!)
-  exit(64)
+/// How a command ends early: the exit code a one-shot run exits with, and a served one replies with.
+struct Finished: Error {
+  let code: Int32
 }
 
-func parse(_ argv: [String]) -> Options {
+/// Where a command's text goes: stdout and stderr for a one-shot run, the reply for a served one.
+final class Output {
+  let serving: Bool
+  var lines: [String] = []
+
+  init(serving: Bool) {
+    self.serving = serving
+  }
+
+  func line(_ text: String) {
+    if serving { lines.append(text) } else { print(text) }
+  }
+
+  func error(_ text: String) {
+    if serving { lines.append(text) } else { FileHandle.standardError.write("\(text)\n".data(using: .utf8)!) }
+  }
+}
+
+var output = Output(serving: false)
+
+func usage() throws -> Never {
+  output.error("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--nth N] [--dry-run] [--dump] [--dump-all] [--actions] [--prompt] [--log] [--budget-ms N] [--wait] [--key CHORD] [--unless-editing] [--else-key CHORD] [--enhanced] [--pid N] [--sibling TEXT] [--action A] [--click] [--scroll-first] [--scroll-to-end] [--label-from PATTERN] [--ancestor ROLE[:N]] [--within X0,Y0,X1,Y1] [--under ROLE[:LABEL]] [--set ATTR=VALUE] [--then <bundle-id> <label> ...]\n       karabiner-config-ax-press --serve")
+  throw Finished(code: 64)
+}
+
+func parse(_ argv: [String]) throws -> Options {
   var options = Options()
   var positional: [String] = []
   var i = 0
   while i < argv.count {
     let argument = argv[i]
     switch argument {
-    case "--role": i += 1; guard i < argv.count else { usage() }; options.role = argv[i]
+    case "--role": i += 1; guard i < argv.count else { try usage() }; options.role = argv[i]
     case "--first": options.first = true
     case "--nth":
       i += 1
-      guard i < argv.count, let n = Int(argv[i]), n > 0 else { usage() }
+      guard i < argv.count, let n = Int(argv[i]), n > 0 else { try usage() }
       options.nth = n
     case "--dry-run": options.dryRun = true
     case "--dump": options.dump = true
     case "--prompt": options.prompt = true
     case "--log": options.log = true
-    case "--budget-ms": i += 1; guard i < argv.count, let n = Int(argv[i]) else { usage() }; options.budgetMs = n
+    case "--budget-ms": i += 1; guard i < argv.count, let n = Int(argv[i]) else { try usage() }; options.budgetMs = n
     case "--wait": options.wait = true
-    case "--key": i += 1; guard i < argv.count, let chord = parseChord(argv[i]) else { usage() }; options.key = chord
+    case "--key": i += 1; guard i < argv.count, let chord = parseChord(argv[i]) else { try usage() }; options.key = chord
     case "--unless-editing": options.unlessEditing = true
-    case "--else-key": i += 1; guard i < argv.count, let chord = parseChord(argv[i]) else { usage() }; options.elseKey = chord
+    case "--else-key": i += 1; guard i < argv.count, let chord = parseChord(argv[i]) else { try usage() }; options.elseKey = chord
     case "--enhanced": options.enhanced = true
-    case "--pid": i += 1; guard i < argv.count, let n = Int32(argv[i]) else { usage() }; options.pid = n
-    case "--sibling": i += 1; guard i < argv.count else { usage() }; options.sibling = argv[i]
-    case "--action": i += 1; guard i < argv.count else { usage() }; options.action = argv[i]
+    case "--pid": i += 1; guard i < argv.count, let n = Int32(argv[i]) else { try usage() }; options.pid = n
+    case "--sibling": i += 1; guard i < argv.count else { try usage() }; options.sibling = argv[i]
+    case "--action": i += 1; guard i < argv.count else { try usage() }; options.action = argv[i]
     case "--label-from":
       i += 1
-      guard i < argv.count, argv[i].components(separatedBy: "{}").count == 2 else { usage() }
+      guard i < argv.count, argv[i].components(separatedBy: "{}").count == 2 else { try usage() }
       options.labelFrom = argv[i]
     case "--ancestor":
       i += 1
-      guard i < argv.count else { usage() }
+      guard i < argv.count else { try usage() }
       // ROLE, or ROLE:N for the nth ancestor with that role. AX roles carry no colon of their own.
       let parts = argv[i].components(separatedBy: ":")
       switch parts.count {
       case 1: options.ancestor = (parts[0], 1)
-      case 2: guard let n = Int(parts[1]), n > 0 else { usage() }; options.ancestor = (parts[0], n)
-      default: usage()
+      case 2: guard let n = Int(parts[1]), n > 0 else { try usage() }; options.ancestor = (parts[0], n)
+      default: try usage()
       }
     case "--within":
       i += 1
       let numbers = (i < argv.count ? argv[i] : "").components(separatedBy: ",").compactMap(Double.init)
-      guard numbers.count == 4, numbers[2] > numbers[0], numbers[3] > numbers[1] else { usage() }
+      guard numbers.count == 4, numbers[2] > numbers[0], numbers[3] > numbers[1] else { try usage() }
       options.within = CGRect(x: numbers[0], y: numbers[1], width: numbers[2] - numbers[0], height: numbers[3] - numbers[1])
     case "--under":
       i += 1
-      guard i < argv.count else { usage() }
+      guard i < argv.count else { try usage() }
       let parts = argv[i].components(separatedBy: ":")
-      guard parts.count <= 2, !parts[0].isEmpty else { usage() }
+      guard parts.count <= 2, !parts[0].isEmpty else { try usage() }
       options.under = (parts[0], parts.count == 2 ? parts[1] : nil)
     case "--click": options.click = true
     case "--scroll-first": options.scrollFirst = true
@@ -272,20 +327,24 @@ func parse(_ argv: [String]) -> Options {
     case "--set":
       i += 1
       let parts = (i < argv.count ? argv[i] : "").components(separatedBy: "=")
-      guard parts.count == 2, !parts[0].isEmpty else { usage() }
+      guard parts.count == 2, !parts[0].isEmpty else { try usage() }
       options.set = (parts[0], parts[1])
-    case "--worker": options.worker = true
     default:
-      if argument.hasPrefix("--") { usage() }
+      if argument.hasPrefix("--") { try usage() }
       positional.append(argument)
     }
     i += 1
   }
   // --dump-all has nothing to filter by, so it is the one mode that takes no label.
-  guard positional.count == 2 || (options.dumpAll && positional.count == 1) else { usage() }
+  guard positional.count == 2 || (options.dumpAll && positional.count == 1) else { try usage() }
   options.bundleId = positional[0]
   options.label = positional.count == 2 ? positional[1] : ""
   return options
+}
+
+/// The commands in an argument list, split on --then.
+func commands(_ arguments: [String]) -> [[String]] {
+  arguments.split(separator: "--then", omittingEmptySubsequences: false).map(Array.init)
 }
 
 /// ANSI key codes for the names a chord may use. Letters are by physical (QWERTY) position, the
@@ -383,12 +442,21 @@ func libproc_pidpath(_ pid: Int32, _ buffer: UnsafeMutablePointer<CChar>, _ buff
 /// which is why matching the full path is worth something and matching the name would not be.
 let karabinerServer = "/Library/Application Support/org.pqrs/Karabiner-Elements/Karabiner-Console-User-Server.app/Contents/MacOS/Karabiner-Console-User-Server"
 
-func parentPid(of pid: pid_t) -> pid_t? {
+func processInfo(of pid: pid_t) -> kinfo_proc? {
   var info = kinfo_proc()
   var size = MemoryLayout<kinfo_proc>.stride
   var mib: [Int32] = [CTL_KERN, KERN_PROC, KERN_PROC_PID, pid]
   guard sysctl(&mib, UInt32(mib.count), &info, &size, nil, 0) == 0, size > 0 else { return nil }
-  return info.kp_eproc.e_ppid
+  return info
+}
+
+func parentPid(of pid: pid_t) -> pid_t? {
+  processInfo(of: pid)?.kp_eproc.e_ppid
+}
+
+func startTime(of pid: pid_t) -> Date? {
+  guard let started = processInfo(of: pid)?.kp_proc.p_un.__p_starttime else { return nil }
+  return Date(timeIntervalSince1970: Double(started.tv_sec) + Double(started.tv_usec) / 1_000_000)
 }
 
 func executablePath(of pid: pid_t) -> String? {
@@ -397,19 +465,24 @@ func executablePath(of pid: pid_t) -> String? {
   return length > 0 ? String(cString: buffer) : nil
 }
 
-/// Walk up from the parent. Under Karabiner the chain is: the first, undisclaimed stage of this
-/// binary, then sh (unless it exec'd its last command), then Karabiner-Console-User-Server.
-func launchedByKarabiner() -> (Bool, [String]) {
+/// Walk up from `pid`, looking for Karabiner-Console-User-Server. From a one-shot run's parent the
+/// chain is the first, undisclaimed stage of this binary, then sh (unless it exec'd its last
+/// command), then the server; from the nc that sent a served request it is sh, then the server.
+/// Also returns when the process directly under Karabiner started, which is the closest thing to the
+/// keypress any process can see.
+func launchedByKarabiner(from start: pid_t) -> (Bool, [String], Date?) {
   var chain: [String] = []
-  var pid = getppid()
+  var pid = start
+  var below: pid_t = 0
   for _ in 0..<8 where pid > 1 {
     let path = executablePath(of: pid) ?? "?"
     chain.append((path as NSString).lastPathComponent)
-    if path == karabinerServer { return (true, chain) }
+    if path == karabinerServer { return (true, chain, below > 1 ? startTime(of: below) : nil) }
     guard let next = parentPid(of: pid) else { break }
+    below = pid
     pid = next
   }
-  return (false, chain)
+  return (false, chain, nil)
 }
 
 // MARK: - Accessibility helpers
@@ -628,7 +701,7 @@ let logPath: String = {
 }()
 
 func report(_ options: Options, _ line: String) {
-  print(line)
+  output.line(line)
   guard options.log else { return }
   let path = logPath
   let entry = "\(timestamp()) \(line)\n"
@@ -643,24 +716,31 @@ func report(_ options: Options, _ line: String) {
 
 func millis(since start: Date) -> Int { Int(Date().timeIntervalSince(start) * 1000) }
 
-func main() {
-  let options = parse(Array(CommandLine.arguments.dropFirst()))
-  if !options.worker { respawnDisclaimed() }
-
+/// Run one command. `peer` is the process on the other end of the socket for a served request, and
+/// nil for a one-shot run, which checks its own ancestry instead. Returns the exit code, or throws it
+/// for a command that ends early.
+func handle(_ options: Options, peer: pid_t?) throws -> Int32 {
   let start = Date()
+  var launchedAt: Date?
+  func timing() -> String {
+    let launch = launchedAt.map { " launch_ms=\(Int(start.timeIntervalSince($0) * 1000))" } ?? ""
+    return "total_ms=\(millis(since: start))\(launch)\(output.serving ? " served=true" : "")"
+  }
+
   let promptKey = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
   let trusted = AXIsProcessTrustedWithOptions([promptKey: options.prompt] as CFDictionary)
   if !trusted {
-    report(options, "trusted=false app=\(options.bundleId) total_ms=\(millis(since: start))")
-    exit(2)
+    report(options, "trusted=false app=\(options.bundleId) \(timing())")
+    throw Finished(code: 2)
   }
 
   // Reading is allowed from anywhere; pressing only for Karabiner. See the header.
   if !options.dryRun && !options.dump {
-    let (fromKarabiner, ancestors) = launchedByKarabiner()
+    let (fromKarabiner, ancestors, spawned) = launchedByKarabiner(from: peer ?? getppid())
+    launchedAt = spawned
     if !fromKarabiner {
-      report(options, "trusted=true app=\(options.bundleId) refused=not-launched-by-karabiner ancestors=\(ancestors.joined(separator: "<")) total_ms=\(millis(since: start))")
-      exit(8)
+      report(options, "trusted=true app=\(options.bundleId) refused=not-launched-by-karabiner ancestors=\(ancestors.joined(separator: "<")) \(timing())")
+      throw Finished(code: 8)
     }
   }
 
@@ -668,8 +748,8 @@ func main() {
     ? NSRunningApplication(processIdentifier: options.pid)
     : NSRunningApplication.runningApplications(withBundleIdentifier: options.bundleId).first
   guard let app = candidate else {
-    report(options, "trusted=true app=\(options.bundleId) running=false total_ms=\(millis(since: start))")
-    exit(3)
+    report(options, "trusted=true app=\(options.bundleId) running=false \(timing())")
+    throw Finished(code: 3)
   }
   let appElement = AXUIElementCreateApplication(app.processIdentifier)
   AXUIElementSetMessagingTimeout(appElement, 1)
@@ -697,8 +777,8 @@ func main() {
     windows.append(window)
   }
   if windows.isEmpty {
-    report(options, "trusted=true app=\(options.bundleId) pid=\(app.processIdentifier) windows=0 total_ms=\(millis(since: start))")
-    exit(6)
+    report(options, "trusted=true app=\(options.bundleId) pid=\(app.processIdentifier) windows=0 \(timing())")
+    throw Finished(code: 6)
   }
 
   let search = Search(options: options)
@@ -706,25 +786,25 @@ func main() {
   if options.dump {
     var names: CFArray?
     AXUIElementCopyAttributeNames(appElement, &names)
-    print("app=\(options.bundleId) pid=\(app.processIdentifier) windows=\(windows.count) app_role=\(appRole)")
-    print("  set AXManualAccessibility=\(manual.rawValue) AXEnhancedUserInterface=\(enhanced.map { String($0.rawValue) } ?? "not set")")
-    print("  app attributes: \(((names as? [String]) ?? []).joined(separator: " "))")
+    output.line("app=\(options.bundleId) pid=\(app.processIdentifier) windows=\(windows.count) app_role=\(appRole)")
+    output.line("  set AXManualAccessibility=\(manual.rawValue) AXEnhancedUserInterface=\(enhanced.map { String($0.rawValue) } ?? "not set")")
+    output.line("  app attributes: \(((names as? [String]) ?? []).joined(separator: " "))")
     for (index, window) in windows.enumerated() {
       var roles: [String: Int] = [:]
       var hits: [(Int, Int, AXUIElement)] = []
       let windowStart = Date()
       search.collect(window, depth: 0, roles: &roles, into: &hits)
-      print("window[\(index)] \(describe(window)) title=\"\(string(window, kAXTitleAttribute) ?? "")\"")
-      print("  elements=\(search.visited) walk_ms=\(millis(since: windowStart))\(search.timedOut ? " TIMED OUT" : "")")
+      output.line("window[\(index)] \(describe(window)) title=\"\(string(window, kAXTitleAttribute) ?? "")\"")
+      output.line("  elements=\(search.visited) walk_ms=\(millis(since: windowStart))\(search.timedOut ? " TIMED OUT" : "")")
       let roleSummary = roles.sorted { $0.value > $1.value }.prefix(12).map { "\($0.key)=\($0.value)" }.joined(separator: " ")
-      print("  roles: \(roleSummary)")
+      output.line("  roles: \(roleSummary)")
       for (order, depth, element) in hits {
         let actions = options.actions ? " actions=[\(actionNames(element).joined(separator: ","))]" : ""
-        print("  #\(order) depth=\(depth) \(describe(element))\(actions)")
+        output.line("  #\(order) depth=\(depth) \(describe(element))\(actions)")
       }
       search.visited = 0
     }
-    exit(0)
+    throw Finished(code: 0)
   }
 
   // A window whose tree is only its own chrome is a dozen elements; once the web area has been
@@ -771,8 +851,8 @@ func main() {
     focusedRole = string(element, kAXRoleAttribute) ?? "?"
     if editableRoles.contains(focusedRole) {
       let elseText = elseKey()
-      report(options, "trusted=true app=\(options.bundleId) found=false editing=\(focusedRole)\(elseText) app_role=\(appRole) total_ms=\(millis(since: start))")
-      exit(4)
+      report(options, "trusted=true app=\(options.bundleId) found=false editing=\(focusedRole)\(elseText) app_role=\(appRole) \(timing())")
+      throw Finished(code: 4)
     }
   }
   let focusedText = options.unlessEditing ? " focused=\(focusedRole)" : ""
@@ -806,15 +886,15 @@ func main() {
   if options.labelFrom != nil && filled == nil {
     let unpopulated = search.visited < unpopulatedElementCount
     let elseText = elseKey()
-    report(options, "trusted=true app=\(options.bundleId) found=false filled=false\(unpopulated ? " tree_exposed=false" : "")\(elseText) \(stats) total_ms=\(millis(since: start))")
-    exit(unpopulated ? 7 : 9)
+    report(options, "trusted=true app=\(options.bundleId) found=false filled=false\(unpopulated ? " tree_exposed=false" : "")\(elseText) \(stats) \(timing())")
+    throw Finished(code: unpopulated ? 7 : 9)
   }
 
   guard var match = hit else {
     let unpopulated = search.visited < unpopulatedElementCount
     let elseText = elseKey()
-    report(options, "trusted=true app=\(options.bundleId) found=false\(unpopulated ? " tree_exposed=false" : "")\(elseText) \(stats) total_ms=\(millis(since: start))")
-    exit(unpopulated ? 7 : 4)
+    report(options, "trusted=true app=\(options.bundleId) found=false\(unpopulated ? " tree_exposed=false" : "")\(elseText) \(stats) \(timing())")
+    throw Finished(code: unpopulated ? 7 : 4)
   }
 
   // --scroll-to-end: the tree holds the rows a virtualised list has drawn, not the list. Scrolling
@@ -863,14 +943,14 @@ func main() {
     ancestorText = " ancestor=\(role)\(nth > 1 ? ":\(nth)" : "")"
     guard let found = climbed else {
       let elseText = elseKey()
-      report(options, "trusted=true app=\(options.bundleId) found=true\(ancestorText) ancestor_found=false\(elseText) \(stats) total_ms=\(millis(since: start)) \(describe(match))")
-      exit(4)
+      report(options, "trusted=true app=\(options.bundleId) found=true\(ancestorText) ancestor_found=false\(elseText) \(stats) \(timing()) \(describe(match))")
+      throw Finished(code: 4)
     }
     acted = found
   }
   if options.dryRun {
-    report(options, "trusted=true app=\(options.bundleId) found=true pressed=false dry_run=true\(ancestorText) \(stats) total_ms=\(millis(since: start)) \(describe(acted))")
-    exit(0)
+    report(options, "trusted=true app=\(options.bundleId) found=true pressed=false dry_run=true\(ancestorText) \(stats) \(timing()) \(describe(acted))")
+    throw Finished(code: 0)
   }
 
   // --scroll-first: a row below the fold carries a frame outside the window, which --click refuses
@@ -940,8 +1020,126 @@ func main() {
       keyText = " gone=false gone_ms=\(goneMs) key_posted=false"
     }
   }
-  report(options, "trusted=true app=\(options.bundleId) found=true pressed=\(ok)\(ancestorText)\(actionText)\(ok ? "" : " ax_error=\(pressed.rawValue)")\(keyText) \(stats) total_ms=\(millis(since: start)) \(description)")
-  exit(ok ? (keyOk ? 0 : 10) : 5)
+  report(options, "trusted=true app=\(options.bundleId) found=true pressed=\(ok)\(ancestorText)\(actionText)\(ok ? "" : " ax_error=\(pressed.rawValue)")\(keyText) \(stats) \(timing()) \(description)")
+  return ok ? (keyOk ? 0 : 10) : 5
+}
+
+/// Run each --then command in turn, stopping at the first that does not exit 0, and return the exit
+/// code of the last one run.
+func run(_ arguments: [String], peer: pid_t?) -> Int32 {
+  var code: Int32 = 0
+  for command in commands(arguments) {
+    do {
+      code = try handle(parse(command), peer: peer)
+    } catch let finished as Finished {
+      code = finished.code
+    } catch {
+      output.error("ax-press: \(error)")
+      code = 70
+    }
+    if code != 0 { break }
+  }
+  return code
+}
+
+// MARK: - Server
+
+@_silgen_name("launch_activate_socket")
+func launch_activate_socket(_ name: UnsafePointer<CChar>, _ fds: UnsafeMutablePointer<UnsafeMutablePointer<Int32>?>, _ count: UnsafeMutablePointer<Int>) -> Int32
+
+/// Answer requests on the socket launchd opened for the LaunchAgent, one at a time, for as long as
+/// launchd keeps the job. See the header for the protocol.
+func serve() -> Never {
+  signal(SIGPIPE, SIG_IGN)
+  var fds: UnsafeMutablePointer<Int32>? = nil
+  var count = 0
+  let status = launch_activate_socket("Listeners", &fds, &count)
+  guard status == 0, let fds, count > 0 else {
+    FileHandle.standardError.write("ax-press: --serve takes its socket from launchd (launch_activate_socket: \(status)); scripts/build-ax-press.sh installs the LaunchAgent\n".data(using: .utf8)!)
+    exit(71)
+  }
+  let listener = fds[0]
+  free(fds)
+  _ = fcntl(listener, F_SETFL, fcntl(listener, F_GETFL) & ~O_NONBLOCK)
+  while true {
+    let connection = accept(listener, nil, nil)
+    guard connection >= 0 else {
+      if errno == EINTR || errno == ECONNABORTED { continue }
+      exit(71)
+    }
+    let code = autoreleasepool { respond(on: connection) }
+    close(connection)
+    // AXIsProcessTrusted answers from what this process learned when it started, so a server
+    // running from before a grant would refuse every press until restarted. Exiting hands the next
+    // request to a fresh process, which launchd starts on the connection.
+    if code == 2 { exit(0) }
+  }
+}
+
+/// One served request: read its NUL-terminated arguments to end of file, run them, and reply with
+/// what a one-shot run would have printed and a last line exit=<code>.
+func respond(on connection: Int32) -> Int32 {
+  _ = fcntl(connection, F_SETFL, fcntl(connection, F_GETFL) & ~O_NONBLOCK)
+  // A client that connects and never finishes must not hold up every request behind it.
+  var timeout = timeval(tv_sec: 2, tv_usec: 0)
+  setsockopt(connection, SOL_SOCKET, SO_RCVTIMEO, &timeout, socklen_t(MemoryLayout<timeval>.size))
+  setsockopt(connection, SOL_SOCKET, SO_SNDTIMEO, &timeout, socklen_t(MemoryLayout<timeval>.size))
+
+  var request: [UInt8] = []
+  var buffer = [UInt8](repeating: 0, count: 4096)
+  while true {
+    let count = read(connection, &buffer, buffer.count)
+    if count > 0 {
+      request.append(contentsOf: buffer[0..<count])
+      if request.count > 65_536 { return 64 }
+    } else if count == 0 {
+      break
+    } else if errno != EINTR {
+      return 64
+    }
+  }
+  var arguments = request.split(separator: 0, omittingEmptySubsequences: false).map { String(decoding: $0, as: UTF8.self) }
+  if arguments.last == "" { arguments.removeLast() }
+
+  // The process on the other end, whose ancestry decides whether it may press. Unknown means no:
+  // pid 0 has no ancestors, so the Karabiner check refuses it.
+  var peer: pid_t = 0
+  var length = socklen_t(MemoryLayout<pid_t>.size)
+  if getsockopt(connection, SOL_LOCAL, LOCAL_PEERPID, &peer, &length) != 0 { peer = 0 }
+
+  output = Output(serving: true)
+  defer { output = Output(serving: false) }
+  let code = run(arguments, peer: peer)
+  let reply = Array(((output.lines + ["exit=\(code)"]).joined(separator: "\n") + "\n").utf8)
+  var offset = 0
+  while offset < reply.count {
+    let written = reply.withUnsafeBytes { write(connection, $0.baseAddress! + offset, reply.count - offset) }
+    if written > 0 {
+      offset += written
+    } else if written < 0 && errno == EINTR {
+      continue
+    } else {
+      break
+    }
+  }
+  return code
+}
+
+// MARK: - Main
+
+func main() -> Never {
+  var arguments = Array(CommandLine.arguments.dropFirst())
+  if arguments == ["--serve"] { serve() }
+  if arguments.last == "--worker" {
+    arguments.removeLast()
+  } else {
+    // Refuse bad arguments before paying for a second launch.
+    for command in commands(arguments) {
+      do { _ = try parse(command) } catch { exit((error as? Finished)?.code ?? 70) }
+    }
+    respawnDisclaimed()
+  }
+  exit(run(arguments, peer: nil))
 }
 
 main()

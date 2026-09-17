@@ -1,58 +1,95 @@
 #!/bin/sh
 # Build scripts/ax-press.swift into the live checkout's scripts/bin/, where the rules that use it
-# point, whichever worktree this runs from. The binary is named karabiner-config-ax-press because
-# that name is what the Accessibility list shows, and a bare "ax-press" there would say nothing
-# about where it came from a year on.
+# point, whichever worktree this runs from, and (re)load the LaunchAgent that keeps it serving. The
+# binary is named karabiner-config-ax-press because that name is what the Accessibility list shows,
+# and a bare "ax-press" there would say nothing about where it came from a year on.
 #
-# Signing: create-signing-cert.sh makes a stable self-signed identity the first time it runs, and
-# that is what keeps the Accessibility grant across rebuilds -- TCC pins the grant to the signature,
-# and an ad-hoc one changes with every compile. Recompiling is free while the identity and the
-# --identifier below both stay the same; changing either costs a full regrant, as does falling back
-# to ad-hoc. docs/accessibility-rules.md has the regrant procedure.
+# Signing: ad-hoc, with an explicit designated requirement naming only the signing identifier. TCC
+# records that requirement with the Accessibility grant, and a recompile still satisfies it, so the
+# grant survives rebuilds; an ad-hoc signature's implicit requirement pins the code hash, which
+# changes with every compile. Changing the --identifier below costs a full regrant.
+# docs/accessibility-rules.md has the regrant procedure.
 #
-# KARABINER_ADHOC=1 skips the identity entirely, for a build that must not block on a keychain
-# dialog. It costs the grant.
+# Serving: rules do not launch the binary. launchd runs it with --serve and hands it the socket at
+# scripts/bin/ax-press.sock, and rules pipe their arguments there through nc. The agent is restarted
+# after every build, so it never serves an old binary.
 set -eu
 
 ROOT=${KARABINER_ROOT:-$(git worktree list --porcelain | head -1 | sed 's/^worktree //')}
 HERE=$(cd "$(dirname "$0")" && pwd)
 OUT="$ROOT/scripts/bin/karabiner-config-ax-press"
+SOCKET="$ROOT/scripts/bin/ax-press.sock"
 IDENTIFIER="com.raine.karabiner-config-ax-press"
+LABEL="$IDENTIFIER"
+PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
+DOMAIN="gui/$(id -u)"
 
-if [ -n "${KARABINER_ADHOC:-}" ]; then
-  IDENTITY="-"
-else
-  IDENTITY=$("$HERE/create-signing-cert.sh" || true)
-  [ -n "$IDENTITY" ] || IDENTITY="-"
+# swiftc goes through xcrun, which refuses to run anything while the selected Xcode's license is
+# unaccepted -- as it is after an Xcode update until someone runs `sudo xcodebuild -license`. The
+# Command Line Tools carry their own swiftc and are unaffected.
+if ! swiftc --version >/dev/null 2>&1 && [ -x /Library/Developer/CommandLineTools/usr/bin/swiftc ]; then
+  export DEVELOPER_DIR=/Library/Developer/CommandLineTools
 fi
 
 mkdir -p "$ROOT/scripts/bin"
-swiftc -O -swift-version 5 -o "$OUT" "$HERE/ax-press.swift"
+swiftc -O -swift-version 5 -o "$OUT.new" "$HERE/ax-press.swift"
+codesign --force --sign - --identifier "$IDENTIFIER" -r="designated => identifier \"$IDENTIFIER\"" "$OUT.new"
+mv -f "$OUT.new" "$OUT"
 
-# The first build with a new identity puts up a keychain dialog asking to let codesign use the key.
-# Wait for it, but not forever: an unattended build should end up ad-hoc rather than hanging.
-if [ "$IDENTITY" != "-" ]; then
-  printf '==> Signing as "%s" (approve the keychain dialog if one appears)\n' "$IDENTITY" >&2
-  codesign --force --sign "$IDENTITY" --identifier "$IDENTIFIER" "$OUT" >/dev/null 2>&1 &
-  SIGNER=$!
-  WAITED=0
-  while kill -0 "$SIGNER" 2>/dev/null && [ "$WAITED" -lt 120 ]; do
-    sleep 1
-    WAITED=$((WAITED + 1))
+# ProcessType Interactive gives the server an app's resource limits, which is to say none; a
+# standard job gets a daemon's, and Karabiner's own console server, one of those, runs at scheduling
+# priority 20 where an app runs at 31 or above. ThrottleInterval 1: a server that finds the grant
+# missing exits after replying, and the default ten seconds would hold the next press that long once
+# the grant is back.
+mkdir -p "$HOME/Library/LaunchAgents"
+cat > "$PLIST.new" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>$LABEL</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>$OUT</string>
+		<string>--serve</string>
+	</array>
+	<key>Sockets</key>
+	<dict>
+		<key>Listeners</key>
+		<dict>
+			<key>SockPathName</key>
+			<string>$SOCKET</string>
+			<key>SockPathMode</key>
+			<integer>384</integer>
+		</dict>
+	</dict>
+	<key>ProcessType</key>
+	<string>Interactive</string>
+	<key>ThrottleInterval</key>
+	<integer>1</integer>
+</dict>
+</plist>
+EOF
+
+if cmp -s "$PLIST.new" "$PLIST" && launchctl print "$DOMAIN/$LABEL" >/dev/null 2>&1; then
+  rm -f "$PLIST.new"
+  # -k replaces a running server with one on the new binary.
+  launchctl kickstart -k "$DOMAIN/$LABEL"
+else
+  mv -f "$PLIST.new" "$PLIST"
+  launchctl bootout "$DOMAIN/$LABEL" 2>/dev/null || true
+  # bootout returns before the job is fully gone, and a bootstrap that lands first fails with an
+  # I/O error, so retry briefly.
+  tries=0
+  until launchctl bootstrap "$DOMAIN" "$PLIST" 2>/dev/null; do
+    tries=$((tries + 1))
+    if [ "$tries" -ge 20 ]; then
+      launchctl bootstrap "$DOMAIN" "$PLIST"
+      break
+    fi
+    sleep 0.1
   done
-  if kill -0 "$SIGNER" 2>/dev/null; then
-    kill "$SIGNER" 2>/dev/null || true
-    printf 'warning: signing timed out waiting for the keychain dialog; falling back to ad-hoc.\n' >&2
-    IDENTITY="-"
-  elif ! wait "$SIGNER"; then
-    printf 'warning: codesign failed; falling back to ad-hoc.\n' >&2
-    IDENTITY="-"
-  fi
 fi
 
-if [ "$IDENTITY" = "-" ]; then
-  codesign --force --sign - --identifier "$IDENTIFIER" "$OUT" >/dev/null 2>&1 || true
-  printf 'note: ad-hoc signed. Accessibility must be granted again after every build.\n' >&2
-fi
-
-printf 'built %s (signed by %s)\n' "$OUT" "$IDENTITY"
+printf 'built %s (ad-hoc, designated => identifier "%s"); serving on %s\n' "$OUT" "$IDENTIFIER" "$SOCKET"
