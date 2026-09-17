@@ -22,6 +22,9 @@ that matches what you are about to write, before writing it.
   lock from a worktree, and what the session-title prefixes mean.
 - [docs/debugging.md](docs/debugging.md) — what to suspect when a rule misbehaves, timing a press
   from the keypress, and measuring against the Claude app with video.
+- [docs/brave-extensions.md](docs/brave-extensions.md) — when a Brave-only shortcut belongs in an
+  extension rather than Karabiner, where Brave keeps its extensions and shortcuts, loading and
+  reloading an unpacked extension, and testing one in a headless Brave.
 
 ## Adding keyboard shortcuts (Colemak convention)
 
@@ -57,7 +60,9 @@ physical key that produces it in Colemak before writing the rule.
   `AXMenuItemCmdModifiers` of each menu item), and the ChatGPT app keeps my own overrides in
   `~/.codex/keybindings.json`, over the `defaultKeybindings` of the command registry in its
   `app.asar`: Cmd+Shift+F was already Toggle File Tree there. The Claude app's are literal
-  `cmd+shift+<x>` strings in `Contents/Resources/ion-dist/assets/v1/*.js` (not `app.asar`). When the rule's target exists on only
+  `cmd+shift+<x>` strings in `Contents/Resources/ion-dist/assets/v1/*.js` (not `app.asar`). Brave's are
+`brave.accelerators` in its Preferences JSON, with extensions' shortcuts beside them
+([docs/brave-extensions.md](docs/brave-extensions.md)). When the rule's target exists on only
   some screens, `--else-key` hands the chord back everywhere else. A chord the app handles in a
   view rather than a menu item (Calendar's Ctrl+arrow resize and nudge) shows up in neither place;
   an empty menu read is not proof the chord is free, and it also means a menu-bar sequence cannot

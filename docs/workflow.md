@@ -46,9 +46,16 @@ me to press a key.
   `karabiner.json`, so prettier leaves it alone; `json.dump` and any other serializer still will not.
   Patch the lines, and find a block's closing bracket by counting brackets: matching an indented `]`
   finds the wrong one and silently eats the lines between.
+- **`comment` goes on the rule, beside `description`, never inside a manipulator.** Karabiner rejects a
+  key it does not know inside a manipulator, and the rule then silently does nothing while the
+  user-level log still says `core_configuration is updated.` The error is only in the root daemon's
+  log ([debugging.md](debugging.md)). It has happened twice.
 - `set -e` is inert in the Bash tool: a failing `false`, or a heredoc'd `python3` that raises, does
   not stop the rest of the command line (probed both). Chain a check and the steps behind it with
   `&&`; the learnings commit shipped past its own failed content check this way.
+- The Bash tool's shell is zsh, where `path` is the array tied to `PATH`: a loop variable named `path`
+  (`while read -r id path`) empties `PATH`, and every later command in the loop reports
+  `command not found`, `jq` and `sed` included. Name it something else.
 - **The snapshot is content, not a commit, and nothing checks it against `main`.** `release` restores
   byte-exactly what was live at `acquire`, which is the point — it must survive uncommitted work —
   but it also means that a live file *already* behind `main` when the lock was taken is put back
