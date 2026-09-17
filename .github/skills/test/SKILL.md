@@ -70,11 +70,16 @@ denied the lock can spot the holder in the sidebar. Do not report this.
 ./scripts/karabiner-test-lock.sh install karabiner.json
 ```
 
-Validates the JSON first (a bad file leaves the live config untouched), replaces it atomically so
-Karabiner never sees a half-written file, then waits for Karabiner to log
-`core_configuration is updated.` — positive confirmation the rules are live, not a blind sleep.
+Validates the JSON and runs Karabiner's own linter over the rules first (either failure leaves the
+live config untouched), replaces it atomically so Karabiner never sees a half-written file, then
+waits for Karabiner to log `core_configuration is updated.` — positive confirmation of the reload,
+not a blind sleep. A reload is not proof every rule loaded: the daemon drops a manipulator it cannot
+parse and loads the rest, so install then reads `/var/log/karabiner/core_service.log` and exits
+`REJECTED` with the daemon's errors. A rejected config stays installed under the lock; fix it and
+install again rather than asking for presses.
 "already identical -- nothing to reload" means the branch's config matches what was already live;
-Karabiner hashes the file and skips reloading unchanged content.
+Karabiner hashes the file and skips reloading unchanged content. A `REJECTED` file installed again
+unchanged fails again with the errors recorded the first time.
 
 Working *in the main checkout* instead? Skip this step. The live file is already your working
 file — just hold the lock so no worktree installs over you mid-test.

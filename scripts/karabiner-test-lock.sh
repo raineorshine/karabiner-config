@@ -16,7 +16,9 @@
 #                     file already differs from HEAD; `session` names
 #                     the Claude session holding it, so a denied request can say
 #                     which chat to go to (falls back to $KARABINER_SESSION)
-#   install <file>    replace the live config (atomic; waits for reload)
+#   install <file>    replace the live config (atomic; waits for reload), refusing
+#                     rules Karabiner's linter rejects, and failing if the daemon
+#                     logs an error loading it
 #   release           restore the snapshot and drop the lock
 #                     --keep     drop the lock, leave the live config as it is
 #                     --force    restore even if the live config changed
@@ -31,6 +33,10 @@ LOCK="$ROOT/.claude/karabiner-test.lock"
 BACKUP="$LOCK/karabiner.json.pre"
 STALE_SECONDS=${KARABINER_LOCK_STALE:-1800}
 LOG="${KARABINER_LOG:-$HOME/.local/share/karabiner/log/console_user_server.log}"
+# The root daemon's log, world-readable: the only one that names a manipulator
+# dropped at load.
+DAEMON_LOG="${KARABINER_DAEMON_LOG:-/var/log/karabiner/core_service.log}"
+CLI="${KARABINER_CLI:-/Library/Application Support/org.pqrs/Karabiner-Elements/bin/karabiner_cli}"
 
 SELF=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
 NOW=$(date +%s)
@@ -59,9 +65,24 @@ owned() { [ "$(field worktree)" = "$SELF" ]; }
 # for breaking a live lock once the user has confirmed nobody is mid-test.
 is_stale() { [ "$(age)" -ge "$STALE_SECONDS" ]; }
 
+# Print what log $1 has written past byte offset $2. Karabiner rotates a log at
+# 256KB (x.log -> x.1.log), so one now shorter than the offset has rotated since,
+# and the rest of the old file comes first.
+since() {
+  if [ "$(wc -c < "$1")" -lt "$2" ]; then
+    tail -c "+$(( $2 + 1 ))" "${1%.log}.1.log" 2>/dev/null
+    cat "$1"
+  else
+    tail -c "+$(( $2 + 1 ))" "$1"
+  fi
+}
+
 # Replace the live config atomically so Karabiner never observes a partial file,
 # then wait for it to report the reload. Prints a warning rather than failing if
-# the log is unavailable -- the replacement itself still succeeded.
+# the log is unavailable -- the replacement itself still succeeded. Leaves the
+# daemon log's size from before the replace in $daemon_mark, where `install`
+# reads this reload's errors; empty when nothing was replaced, so there is no
+# reload to check.
 #
 # Deliberately does NOT validate: restoring a snapshot must always be possible.
 # A snapshot that will not parse is still what was live before, and refusing to
@@ -70,6 +91,7 @@ is_stale() { [ "$(age)" -ge "$STALE_SECONDS" ]; }
 # forward install (see the `install` command), where a bad file is the caller's.
 replace_live() {
   src=$1
+  daemon_mark=
   # Karabiner hashes the config and skips the reload when the content is
   # unchanged, so waiting for a log line here would always time out. Verified:
   # an identical atomic replace logs nothing, a differing one logs in ~20ms.
@@ -78,18 +100,54 @@ replace_live() {
   fi
   mark=0
   [ -f "$LOG" ] && mark=$(wc -c < "$LOG")
+  daemon_mark=0
+  [ -r "$DAEMON_LOG" ] && daemon_mark=$(wc -c < "$DAEMON_LOG")
   tmp="$ROOT/.karabiner.json.tmp.$$"
   cat "$src" > "$tmp"
   mv "$tmp" "$LIVE"
   [ -f "$LOG" ] || { printf 'installed (no Karabiner log; reload unverified)\n'; return 0; }
   n=0
   while [ "$n" -lt 50 ]; do
-    if tail -c "+$(( mark + 1 ))" "$LOG" | grep -q 'core_configuration is updated'; then
+    if since "$LOG" "$mark" | grep -q 'core_configuration is updated'; then
       printf 'installed and reloaded\n'; return 0
     fi
     sleep 0.2; n=$(( n + 1 ))
   done
   printf 'installed, but Karabiner did not log a reload within 10s -- check the log\n' >&2
+}
+
+# Run Karabiner's own linter over the file's rules before they go live. It names
+# a broken rule by its description, where the daemon's log shows only a
+# truncated dump of the manipulator; `rejected` still covers everything outside
+# the rules. The linter reads a rules file for distribution, which needs a
+# `title`: without one it misreads the whole object as a single rule. --silent
+# drops the path and the "ok", leaving only errors.
+lint() {
+  [ -x "$CLI" ] || return 0
+  errors=$(node -e 'const c = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"))
+    const rules = (c.profiles || []).flatMap(p => (p.complex_modifications || {}).rules || [])
+    process.stdout.write(JSON.stringify({ title: "karabiner.json", rules }))' "$1" |
+    "$CLI" --silent --lint-complex-modifications /dev/stdin) && return 0
+  printf 'Karabiner rejects rules in %s (live config left untouched):\n%s\n' "$1" "$errors" >&2
+  exit 1
+}
+
+# Print the errors the daemon logged loading what `replace_live` just put in
+# place. A reload is no proof the rules loaded: the daemon drops a manipulator it
+# cannot parse, loads the rest, and both processes log "core_configuration is
+# updated." either way. Nothing marks the end of a load, so wait well past the
+# errors' lag behind the daemon's own "updated": 3-6ms over seven reloads, with
+# the bad manipulator first or last.
+rejected() {
+  [ -r "$DAEMON_LOG" ] || { printf 'no Karabiner daemon log -- dropped rules unverified\n' >&2; return 0; }
+  # A file the daemon cannot parse at all logs its error instead of "updated".
+  n=0
+  until since "$DAEMON_LOG" "$daemon_mark" | grep -q -e 'core_configuration is updated' -e '\[error\]'; do
+    [ "$n" -lt 50 ] || { printf 'Karabiner daemon did not log the reload within 10s -- dropped rules unverified\n' >&2; return 0; }
+    sleep 0.2; n=$(( n + 1 ))
+  done
+  sleep 0.3
+  since "$DAEMON_LOG" "$daemon_mark" | sed -n '/ Load .*karabiner\.json\.\.\./,$p' | grep '\[error\]' || :
 }
 
 # The snapshot is content, not a commit, and nothing here compares it to `main`.
@@ -143,8 +201,25 @@ case "$cmd" in
     [ -f "$2" ] || die "no such file: $2"
     node -e 'JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"))' "$2" 2>/dev/null \
       || die "invalid JSON: $2 (live config left untouched)"
+    lint "$2"
     replace_live "$2"
+    # The daemon logs a file's errors only when it reloads, and an unchanged file
+    # does not reload -- so keep each reload's verdict, and let an unchanged retry
+    # repeat it rather than pass. A file other than the last one installed has no
+    # verdict here.
+    if [ -n "$daemon_mark" ]; then
+      rejected > "$LOCK/rejected"
+    elif ! cmp -s "$2" "$LOCK/installed"; then
+      rm -f "$LOCK/rejected"
+    fi
+    # Recorded before any failure below: the file is live either way, and
+    # `release` refuses to restore over a live file it does not recognize.
     cp "$2" "$LOCK/installed"
+    if [ -s "$LOCK/rejected" ]; then
+      printf 'REJECTED -- Karabiner logged errors loading it, and what they name will not fire:\n' >&2
+      cat "$LOCK/rejected" >&2
+      exit 1
+    fi
     ;;
 
   release)
