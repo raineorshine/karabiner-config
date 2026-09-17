@@ -162,6 +162,10 @@
 // search therefore retries, briefly, while the window's tree is that small (124ms measured on a
 // freshly launched ChatGPT).
 //
+// Searching works from then on; pressing does not. Chromium ignores AXPress until the app has switched
+// to complete accessibility, which Electron does 2s after AXManualAccessibility is set, so the first
+// AXPress into each app process waits for that (fullModeDelay) and its report says full_mode_wait_ms.
+//
 // The label matches AXDescription, AXTitle, AXHelp, AXIdentifier or AXValue exactly (or by its {}
 // wildcard), which is where Chromium puts aria-label, visible text, title and id respectively, and
 // where SwiftUI puts the text of a static text -- a native label is often nowhere else. --dump
@@ -262,6 +266,23 @@ final class Output {
 }
 
 var output = Output(serving: false)
+
+/// How long after AXManualAccessibility is set an AXPress lands in an Electron app. Chromium drops
+/// AXPress on a web control that carries no default action verb and reports success all the same
+/// (BrowserAccessibilityManager::DoDefaultAction, crbug.com/348328060), and Blink serializes that verb
+/// only in extended-properties mode -- which Electron switches on 2s after the attribute is set,
+/// restarting the countdown at every set until it fires (enableScreenReaderCompleteModeAfterDelay in
+/// electron_application.mm). Until then the tree is complete enough to search and every press into it
+/// is a no-op, which is how the first Cmd+Shift+E after the Claude app launched did nothing. Measured on
+/// that app's header menu, idle: a press 2032ms after the set did nothing and one 2056ms after it
+/// opened the menu. With all eight cores pegged, presses long after the switch did not open it within
+/// 3s either, so load is not covered by this number.
+let fullModeDelay: TimeInterval = 2.1
+
+/// When the switch above lands in each app process this helper has set AXManualAccessibility on, keyed
+/// by pid and start time so that a reused pid starts over. Only a resident server remembers it; a
+/// one-shot run starts empty, so every press it makes waits.
+var fullModeDue: [String: Date] = [:]
 
 func usage() throws -> Never {
   output.error("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--nth N] [--dry-run] [--dump] [--dump-all] [--actions] [--prompt] [--log] [--budget-ms N] [--wait] [--key CHORD] [--unless-editing] [--else-key CHORD] [--enhanced] [--pid N] [--sibling TEXT] [--action A] [--click] [--scroll-first] [--scroll-to-end] [--label-from PATTERN] [--ancestor ROLE[:N]] [--within X0,Y0,X1,Y1] [--under ROLE[:LABEL]] [--set ATTR=VALUE] [--then <bundle-id> <label> ...]\n       karabiner-config-ax-press --serve")
@@ -549,7 +570,7 @@ final class Search {
   let options: Options
   /// The label to match: <label> as given, or with its {} filled in by --label-from.
   var label: String
-  let deadline: Date
+  var deadline: Date
   var visited = 0
   var timedOut = false
 
@@ -760,11 +781,17 @@ func handle(_ options: Options, peer: pid_t?) throws -> Int32 {
   // that container (an AXScrollArea) for its role switches on basic web accessibility, after which
   // the page tree fills in asynchronously. The walk below asks every element for its role, so the
   // container is covered once it is visible; the application object it never visits, hence this.
-  // AXManualAccessibility and AXEnhancedUserInterface are the switches an older Electron and
-  // VoiceOver use; both are refused here (-25205 / -25208) but cost nothing to try.
+  // AXManualAccessibility and AXEnhancedUserInterface are the switches Electron and VoiceOver use.
+  // ChatGPT and Brave refuse both (-25205 / -25208), but the Claude app takes AXManualAccessibility, and the
+  // complete mode it brings 2s later is what an AXPress there needs (see fullModeDelay).
   let appRole = string(appElement, kAXRoleAttribute) ?? "?"
   let manual = AXUIElementSetAttributeValue(appElement, "AXManualAccessibility" as CFString, kCFBooleanTrue)
   let enhanced = options.enhanced ? AXUIElementSetAttributeValue(appElement, "AXEnhancedUserInterface" as CFString, kCFBooleanTrue) : nil
+  // A set before the switch lands pushes it back; one after it changes nothing.
+  let instance = "\(app.processIdentifier)@\(startTime(of: app.processIdentifier)?.timeIntervalSince1970 ?? 0)"
+  if manual == .success, (fullModeDue[instance] ?? .distantFuture) > Date() {
+    fullModeDue[instance] = Date().addingTimeInterval(fullModeDelay)
+  }
 
   // An app with no window open answers AXFocusedWindow with its own application element (seen
   // when the ChatGPT window was closed while the app kept running), so insist on an actual window.
@@ -897,6 +924,25 @@ func handle(_ options: Options, peer: pid_t?) throws -> Int32 {
     throw Finished(code: unpopulated ? 7 : 4)
   }
 
+  // An AXPress before complete mode lands does nothing (see fullModeDelay), so hold it until then.
+  // The switch has the renderer send its whole tree again, so find the target afresh rather than
+  // press an element that may have been replaced. Only a press within 2.1s of the helper first
+  // reaching an app process waits, and a miss above has already answered, so --else-key never does.
+  // AXShowMenu, --set and --click need no default action verb and go straight through.
+  var fullModeText = ""
+  if !options.dryRun && !options.click && options.set == nil && options.action == "AXPress",
+    let due = fullModeDue[instance], due > Date() {
+    let wait = due.timeIntervalSinceNow
+    Thread.sleep(forTimeInterval: wait)
+    search.deadline = search.deadline.addingTimeInterval(wait)
+    search.visited = 0
+    if let found = locate() {
+      match = found.match
+      matchWindow = found.window
+    }
+    fullModeText = " full_mode_wait_ms=\(Int(wait * 1000))"
+  }
+
   // --scroll-to-end: the tree holds the rows a virtualised list has drawn, not the list. Scrolling
   // the last one into view draws the next few, so the end is reached by repeating that until the
   // last match stops changing. The comparison is the whole description, labels and frame together,
@@ -1020,7 +1066,7 @@ func handle(_ options: Options, peer: pid_t?) throws -> Int32 {
       keyText = " gone=false gone_ms=\(goneMs) key_posted=false"
     }
   }
-  report(options, "trusted=true app=\(options.bundleId) found=true pressed=\(ok)\(ancestorText)\(actionText)\(ok ? "" : " ax_error=\(pressed.rawValue)")\(keyText) \(stats) \(timing()) \(description)")
+  report(options, "trusted=true app=\(options.bundleId) found=true pressed=\(ok)\(ancestorText)\(actionText)\(fullModeText)\(ok ? "" : " ax_error=\(pressed.rawValue)")\(keyText) \(stats) \(timing()) \(description)")
   return ok ? (keyOk ? 0 : 10) : 5
 }
 
