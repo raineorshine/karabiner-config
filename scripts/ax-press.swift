@@ -93,7 +93,10 @@
 //                     two instances of the app are running
 //   --sibling <text>  only match a control that shares its parent with a control labelled <text>,
 //                     which tells one "Copy" button from another: the one beneath a ChatGPT
-//                     response sits next to "Good response", a code block's does not
+//                     response sits next to "Good response", a code block's does not. A wrapper
+//                     -- an unlabelled group holding one child -- does not count as a level on
+//                     either side: ChatGPT's composer wraps each of its controls in one, so the
+//                     model picker and "Add files and more" are cousins in the tree, not siblings
 //   --action <AXAction>
 //                     perform this action instead of AXPress. AXShowMenu opens the control's
 //                     context menu, the same one a right-click would: Chromium implements it for
@@ -607,8 +610,27 @@ final class Search {
       guard let elementFrame = frame(element), box.contains(CGPoint(x: elementFrame.midX, y: elementFrame.midY)) else { return false }
     }
     guard let sibling = options.sibling else { return true }
-    guard let parent = attribute(element, kAXParentAttribute), CFGetTypeID(parent) == AXUIElementGetTypeID() else { return false }
-    return children(parent as! AXUIElement).contains { labels($0).contains { $0.1 == sibling } }
+    // Climb out of any wrappers around the match, then look at its siblings through theirs.
+    var row = element
+    var parent: AXUIElement
+    repeat {
+      guard let next = attribute(row, kAXParentAttribute), CFGetTypeID(next) == AXUIElementGetTypeID() else { return false }
+      parent = next as! AXUIElement
+      if isWrapper(parent) { row = parent } else { break }
+    } while true
+    return children(parent).contains { child in
+      var node = child
+      while true {
+        if labels(node).contains(where: { $0.1 == sibling }) { return true }
+        guard isWrapper(node) else { return false }
+        node = children(node)[0]
+      }
+    }
+  }
+
+  /// An unlabelled group with exactly one child: a layout box, not a level of the row.
+  func isWrapper(_ element: AXUIElement) -> Bool {
+    string(element, kAXRoleAttribute) == "AXGroup" && labels(element).isEmpty && children(element).count == 1
   }
 
   /// True when this element should be walked into: not an ancestor of itself, not too deep, and
