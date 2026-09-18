@@ -115,6 +115,8 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Command + `K` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/restore-mouse-position.js" 1.4`, `Move cursor to (360, 890)`, `Right Click`, `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/move-to-tapback-picker.js"`, `Left Click`
 - ChatGPT: Cmd+Shift+C → copy the last response (press its Copy button via accessibility)
   - Command + Shift + `C` → `printf '%s\0' com.openai.codex Copy --sibling "Good response" --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
+- ChatGPT: Cmd+Shift+F → open the composer's effort/model picker in Chat and Work mode (click its button, found via accessibility; physical key e in Colemak)
+  - Command + Shift + `E` → `printf '%s\0' com.openai.codex "{}" --role AXPopUpButton --sibling "Add files and more" --click --else-key cmd+shift+e --log --then com.openai.codex Power --role AXMenuItem --wait --set AXFocused=true --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
 - ChatGPT: Cmd+Shift+U → toggle the profile popup (click the sidebar's profile button, found via accessibility; physical key i in Colemak)
   - Command + Shift + `I` → `printf '%s\0' com.openai.codex "Open profile menu" --role AXPopUpButton --click --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
 - Karabiner-Elements: ⌘1-9, ⌘0 → settings sections (via accessibility)
