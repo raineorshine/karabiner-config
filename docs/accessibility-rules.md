@@ -220,7 +220,12 @@ on the far end of the socket, which the kernel names (`LOCAL_PEERPID`) — the `
 Karabiner's `sh`. A press sent from a shell comes back `refused=not-launched-by-karabiner
 ancestors=nc<zsh<…`. The helper logs to one fixed file under `.claude/` rather than a path from its
 arguments, and leaves `--dump` and `--dry-run` usable from a shell, since reading labels is the modest
-end of what it can do. Testing a real press therefore always goes through the rule. Name the binary so
+end of what it can do. Testing a real press therefore always goes through the rule, and an agent
+cannot fire the rule for itself: keys a computer-use tool posts are CGEvents, downstream of the HID
+grab where Karabiner reads the keyboard, so no rule ever sees them. What an agent can check is each
+half: `--dry-run` the search on every screen the rule must work on, perform the action with a
+computer-use click on the frame it reports, and `--dry-run` the `--then` step against what that
+click put up. The keypress itself is then the user's. Name the binary so
 the Accessibility list says whose it is (`karabiner-config-ax-press`, not `ax-press`), and make the tool
 take everything as arguments so a new rule never needs a rebuild. A new *label* never does; a new
 *capability* does — `--action` and `--label-from` were one, `--wait` and `--key` another. Each of
@@ -384,6 +389,13 @@ picks exactly the wrong flag. That ordering is also a discriminator on its own w
 at opposite ends: Shortwave's toolbar Compose button and the Settings sidebar's Compose row carry
 the same label, and the sidebar is the later of the two, so the default walk finds it and `--first`
 would find the button.
+
+**`--sibling` sees through wrappers.** An unlabelled AXGroup holding one child is not counted as a
+level on either side: the match climbs out of its wrappers to find its row, and each child of the row
+is read through its own. ChatGPT began wrapping each composer control in such a group, and with plain
+parent-and-children semantics the picker and "Add files and more" stopped being siblings, so the
+Cmd+Shift+F rule logged `found=false` in both modes with nothing else wrong. A rule that goes quiet
+after an app update is worth a `--dump-all` around the qualifier before anything else.
 
 **Direction is not a discriminator, and neither is `--sibling`, when the rivals share a parent.**
 `--sibling` asks whether *some* child of the match's parent carries the label, so it selects a whole
