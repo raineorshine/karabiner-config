@@ -99,6 +99,7 @@ what the app cannot know: where the work stands.
 | 📦 | done on the branch — ready to commit, or ready to ship |
 | 🚀 | shipping to `main`, or shipped |
 | 🚙 | parked: the work is sound and waiting on the user (a decision, a batch of presses) |
+| ⏲️ | waiting on a task scheduled for later — nothing to do until it fires |
 | 🪦 | dead end — kept for the findings, not to resume |
 | 📚 | extracting learnings into AGENTS.md or `docs/`, or done extracting them |
 
@@ -127,3 +128,7 @@ tell "waiting on you" from "given up on".
 specific applies. Set it by hand when implementation starts, and replace it when control goes back
 to the user — 🚙 if the work is waiting on them, otherwise whatever stage the branch actually
 reached.
+
+⏲️ is the clock's version of a park: a task scheduled for later — a wake-up, a cron run, a routine
+— with nothing to do until it fires. 🚙 takes precedence where the same response also needs the
+user, since a person can act and the clock cannot, and the lock outranks both.
