@@ -11,13 +11,12 @@ Solo-developer workflow for this Karabiner config repo. Take the current branch 
 
 ## Procedure
 
-### 0. Prefix the session title with 🚀, then release the test lock
+### 0. Release the test lock
 
-Read the session's title (`mcp__ccd_session_mgmt__get_session` with `"self"`) and set it back with a
-`🚀 ` prefix (`mcp__ccd_session_mgmt__set_session_title`), replacing any existing lifecycle prefix
-rather than stacking — a shipping session was usually `📦 ` a moment ago. Do this **now**, before any
-of the work: the sidebar should say what the session is doing while it is doing it. Step 8 puts the
-title back if the ship does not land. Do not report either. See docs/workflow.md "Session titles".
+Leave the title's prefix alone here. `🚀 ` means shipped, and nothing is shipped until the push in
+step 5 lands — a title claiming it earlier is wrong for the whole ship, and stays wrong if the ship
+falls over. A shipping session keeps whatever is true meanwhile, usually `📦 `. Step 5 sets `🚀 `
+once the push succeeds. Do not report this. See docs/workflow.md "Session titles".
 
 ```bash
 ./scripts/karabiner-test-lock.sh release --if-mine
@@ -79,6 +78,11 @@ This is the ship. It runs from the worktree and touches no other working tree, s
 
 **If the push is rejected as non-fast-forward:** someone else landed first. Nothing was lost. Go back to **step 3** (`git fetch origin && git rebase origin/main`), redo **step 4** to re-squash onto the new base, and push again. Because `origin/main` only advances by fast-forward, at most one branch wins each round and the others rebase and retry — no merge commits, no clobbering.
 
+**Once the push succeeds, and not before,** read the session's title
+(`mcp__ccd_session_mgmt__get_session` with `"self"`) and set it back with a `🚀 ` prefix
+(`mcp__ccd_session_mgmt__set_session_title`), replacing the `📦 ` rather than stacking. A rejected
+push is not a ship, so retry the round above and set it only when one lands. Do not report this.
+
 ### 6. Fast-forward the local main if it can
 
 ```bash
@@ -103,12 +107,12 @@ Whoever fast-forwards next picks up every commit that accumulated on `origin/mai
 
   Only do this when the user confirms the worktree is no longer needed. `git branch -d` refuses while local `main` is behind the pushed commit; `git branch -d` against `origin/main` is not a thing, so wait for step 6 to land rather than forcing with `-D`.
 
-### 8. Correct the title if the ship did not land
+### 8. Check the title still says what is true
 
-The push in step 5 is what counts as shipped, whether or not step 6 could fast-forward. If it
-succeeded, the `🚀 ` from step 0 is already right — leave it. If it failed, or the ship was abandoned
-before the push, put the title back to the prefix that is true now (`📦 ` for a tested branch, none
-otherwise). Do not report this step.
+The `🚀 ` set in step 5 stays through the report and after it, until the session starts something
+else — never cleared to leave a bare title. If the ship never got that far, no `🚀 ` went on and
+there is nothing to undo: check the title still says what is true now (`📦 ` for a tested branch,
+`🔓 ` just after a release, `🚙 ` if it waits on the user) and correct it if not. Do not report this.
 
 ### 9. Extract the learnings
 
@@ -117,7 +121,8 @@ branch is landed, nothing is pending, and whatever the session learned about the
 the workflow is still in context — an hour later it is in nobody's. This is not optional and the
 user does not have to ask for it; it is the last stage of shipping.
 
-`learn` puts `📚 ` on the title, replacing the `🚀 `. Put `🚀 ` back when it finishes: the session
+Put `📚 ` on the title as you invoke it — the user-level `learn` sets none itself — replacing the
+`🚀 `, and put `🚀 ` back when it finishes: the session
 shipped, and that is the stage it rests at.
 
 If `learn` finds nothing worth recording, that is a normal outcome — say so in one line and move on.

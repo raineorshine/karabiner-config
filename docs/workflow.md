@@ -86,61 +86,25 @@ stray change.
 
 ## Session titles
 
-The chat sidebar shows a status dot (running / awaiting input / idle) and a branch glyph for
-worktree sessions; neither can be set from here — `set_session_title` takes a title string and
-nothing else. So a **single leading emoji on the title** is the only lever, and it is spent on
-what the app cannot know: where the work stands.
+The prefix glossary arrives in every session from the `emotive` plugin, and nothing here repeats it.
+These are the rows this repo can state exactly.
 
-| Prefix | Means |
-|---|---|
-| 🎨 | brainstorming or designing with the user — exploring, sketching, deciding what to build |
-| ⏳ | implementing — after the opening prompt, before anything is shipped |
-| 🔍 | auditing against live state — a dry run, or the plan it printed, with a write to follow |
-| 🔓 | acquiring or releasing the live-config test lock |
-| 🔒 | holds the live-config test lock right now |
-| 💾 | writing to a live resource every session shares |
-| 📦 | done on the branch — ready to commit, or ready to ship |
-| 🚀 | shipping to `main`, or shipped |
-| 🚙 | parked: the work is sound and waiting on the user (a decision, a batch of presses) |
-| ⏲️ | waiting on a task scheduled for later — nothing to do until it fires |
-| 🪦 | dead end — kept for the findings, not to resume |
-| 📚 | extracting learnings into AGENTS.md or `docs/`, or done extracting them |
+- 📦 means the rule was installed into the live slot and driven with real keypresses through the
+  `test` skill, so it is shippable without re-testing. `npm run build` only regenerates `README.md`
+  from `karabiner.json`; it is part of shipping, not a gate.
+- 🚀 ships to `origin/main`, squashed and fast-forwarded with no PR; the `ship` skill is that
+  procedure and sets the prefix itself, once the push lands. 📦 holds until then.
+- 🚙 is what this repo waits on the user for: a decision, or a batch of presses only they can make.
+- 🔍 is inert here — the live config is guarded by the lock rather than by a warning to other
+  sessions.
 
-🔍 and 💾 are inert here — the live config is guarded by the test lock, not by a warning. They
-are listed so the vocabulary reads the same in every repo.
-
-**A design loop is not a park.** 🎨 holds through brainstorming and outranks 🚙 while it
-does: the back-and-forth _is_ the stage, so a park prefix on every turn of it marks the session as
-blocked without saying on what. It becomes 🚙 once the design is settled and waiting on a
-decision, and ⏳ when that decision comes.
-
-**Never mention a prefix in the response** — not what it was set to, not that it was already right,
-not that it was left alone. It is sidebar state; say nothing about it unless asked.
-
-These are **stages, not flags**: exactly one prefix at a time, and setting a new one replaces
-whatever was there. **Every title carries one**, and a prefix comes off only when another takes its
-place — a bare title says nothing about the session, and the sidebar cannot tell it apart from a
-chat that never had a stage at all. A session with nothing left to do keeps the prefix of the last
-stage it reached. Set a prefix **optimistically** — when the stage *starts*, not when it succeeds —
-and correct it if the stage falls over. A title that only becomes true at the end is blank for the
-whole stretch the sidebar is there to describe. Only one reads cleanly at sidebar width, and 🚀 after
-📦 is noise — the later stage implies the earlier.
-
-The lifecycle 🔓 → 🔒 → 📦 → 🚀 is set by skills (`test` acquires and releases; `ship` merges), so it
-stays true on its own: `test` sets 🔓 before it acquires and drops it if denied, swaps to 🔒 once the
-lock is actually held, and goes back to 🔓 while releasing; `ship` sets 🚀 before it builds and puts
-it back if the push fails. 📚 is set in the response that invokes the `learn` skill
-— before reading anything or making any edit. The rest are set in the response that enters the
-stage, and
-nothing reconciles a title against reality — an abandoned session keeps whatever prefix it had. 🚙 in
-particular is worth setting before handing back on a long-running investigation: the idle dot cannot
-tell "waiting on you" from "given up on".
-
-⏳ is the weakest of them: every other prefix takes precedence, so it only shows while nothing more
-specific applies. Set it in the response where implementation starts, and replace it when control goes back
-to the user — 🚙 if the work is waiting on them, otherwise whatever stage the branch actually
-reached.
-
-⏲️ is the clock's version of a park: a task scheduled for later — a wake-up, a cron run, a routine
-— with nothing to do until it fires. 🚙 takes precedence where the same response also needs the
-user, since a person can act and the clock cannot, and the lock outranks both.
+**The live config is one file, and this checkout is it.** `~/.config/karabiner` *is* the main
+checkout, so its working-tree `karabiner.json` is the single file Karabiner-Elements reads, and the
+real mouse and keyboard are just as shared — `scripts/ax-press.swift`, `mouse-click.js` and
+`move-to-tapback-picker.js` drive actual input, so two sessions testing at once fight over the
+pointer. `scripts/karabiner-test-lock.sh` is the mutex over both. The `test` skill sets the prefixes
+around its own acquire and release, not the response: 🔓 before acquiring and while queued or denied,
+🔒 from acquired until the release, then 📦 or whatever stage the branch reached. A session that sees
+another 🔒 leaves the live config and the input alone — installing over it swaps the rule under a
+test already running. 💾 covers the install into that slot; a worktree editing its own
+`karabiner.json` is lock-free and is not 💾 work.
