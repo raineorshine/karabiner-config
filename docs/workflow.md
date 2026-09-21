@@ -118,14 +118,15 @@ whole stretch the sidebar is there to describe. Only one reads cleanly at sideba
 The lifecycle 🔓 → 🔒 → 📦 → 🚀 is set by skills (`test` acquires and releases; `ship` merges), so it
 stays true on its own: `test` sets 🔓 before it acquires and drops it if denied, swaps to 🔒 once the
 lock is actually held, and goes back to 🔓 while releasing; `ship` sets 🚀 before it builds and puts
-it back if the push fails. 📚 is set by hand the moment the `learn` skill is
-invoked — before reading anything or making any edit. The rest are set by hand when they apply, and
+it back if the push fails. 📚 is set in the response that invokes the `learn` skill
+— before reading anything or making any edit. The rest are set in the response that enters the
+stage, and
 nothing reconciles a title against reality — an abandoned session keeps whatever prefix it had. 🚙 in
 particular is worth setting before handing back on a long-running investigation: the idle dot cannot
 tell "waiting on you" from "given up on".
 
 ⏳ is the weakest of them: every other prefix takes precedence, so it only shows while nothing more
-specific applies. Set it by hand when implementation starts, and replace it when control goes back
+specific applies. Set it in the response where implementation starts, and replace it when control goes back
 to the user — 🚙 if the work is waiting on them, otherwise whatever stage the branch actually
 reached.
 
