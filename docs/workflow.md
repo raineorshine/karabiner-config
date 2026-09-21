@@ -93,15 +93,26 @@ what the app cannot know: where the work stands.
 
 | Prefix | Means |
 |---|---|
+| 🎨 | brainstorming or designing with the user — exploring, sketching, deciding what to build |
 | ⏳ | implementing — after the opening prompt, before anything is shipped |
+| 🔍 | auditing against live state — a dry run, or the plan it printed, with a write to follow |
 | 🔓 | acquiring or releasing the live-config test lock |
 | 🔒 | holds the live-config test lock right now |
+| 💾 | writing to a live resource every session shares |
 | 📦 | done on the branch — ready to commit, or ready to ship |
 | 🚀 | shipping to `main`, or shipped |
 | 🚙 | parked: the work is sound and waiting on the user (a decision, a batch of presses) |
 | ⏲️ | waiting on a task scheduled for later — nothing to do until it fires |
 | 🪦 | dead end — kept for the findings, not to resume |
 | 📚 | extracting learnings into AGENTS.md or `docs/`, or done extracting them |
+
+🔍 and 💾 are inert here — the live config is guarded by the test lock, not by a warning. They
+are listed so the vocabulary reads the same in every repo.
+
+**A design loop is not a park.** 🎨 holds through brainstorming and outranks 🚙 while it
+does: the back-and-forth _is_ the stage, so a park prefix on every turn of it marks the session as
+blocked without saying on what. It becomes 🚙 once the design is settled and waiting on a
+decision, and ⏳ when that decision comes.
 
 **Never mention a prefix in the response** — not what it was set to, not that it was already right,
 not that it was left alone. It is sidebar state; say nothing about it unless asked.
