@@ -13,10 +13,20 @@ Solo-developer workflow for this Karabiner config repo. Take the current branch 
 
 ### 0. Release the test lock
 
-Leave the title's prefix alone here. `🚀 ` means shipped, and nothing is shipped until the push in
-step 5 lands — a title claiming it earlier is wrong for the whole ship, and stays wrong if the ship
-falls over. A shipping session keeps whatever is true meanwhile, usually `📦 `. Step 5 sets `🚀 `
-once the push succeeds. Do not report this. See docs/workflow.md "Session titles".
+Leave the title's prefix alone here, with one exception. `🚀 ` means shipped, and nothing is
+shipped until the push in step 5 lands — a title claiming it earlier is wrong for the whole ship,
+and stays wrong if the ship falls over. A shipping session keeps whatever is true meanwhile, usually
+`📦 `. Step 5 sets `🚀 ` once the push succeeds. Do not report this. See docs/workflow.md "Session
+titles".
+
+**The exception is `🔒 `: swap it to `📦 ` before releasing.** Arriving with it is the ordinary path
+— `test` hands back with the rule still installed in the live config and the lock still held, and
+"ship" is the answer that hand-back was waiting for — so the release below is what makes the prefix
+false, and nothing before step 5 reads the title again. Left standing, it tells every other session
+the live config is this branch's for the whole ship: a second `🔒 ` where only one can be true, and
+one that stays wrong if the ship falls over short of step 5. `📦 ` is what is true instead, since a
+branch that came through `test` is built and tested. A `--if-mine` that releases nothing releases no
+prefix either — leave whatever is there.
 
 ```bash
 ./scripts/karabiner-test-lock.sh release --if-mine

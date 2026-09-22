@@ -102,9 +102,11 @@ These are the rows this repo can state exactly.
 checkout, so its working-tree `karabiner.json` is the single file Karabiner-Elements reads, and the
 real mouse and keyboard are just as shared — `scripts/ax-press.swift`, `mouse-click.js` and
 `move-to-tapback-picker.js` drive actual input, so two sessions testing at once fight over the
-pointer. `scripts/karabiner-test-lock.sh` is the mutex over both. The `test` skill sets the prefixes
-around its own acquire and release, not the response: 🔓 before acquiring and while queued or denied,
-🔒 from acquired until the release, then 📦 or whatever stage the branch reached. A session that sees
+pointer. `scripts/karabiner-test-lock.sh` is the mutex over both. The skill that moves the lock sets
+the prefixes, not the response: 🔓 before acquiring and while queued or denied, 🔒 from acquired until
+the release, then 📦 or whatever stage the branch reached. That release is `ship` step 0's whenever
+the answer to the hand-back was to ship, and it clears 🔒 the same way — a release that leaves the
+prefix standing puts a second holder in the sidebar, where only one can be true. A session that sees
 another 🔒 leaves the live config and the input alone — installing over it swaps the rule under a
 test already running. 💾 covers the install into that slot; a worktree editing its own
 `karabiner.json` is lock-free and is not 💾 work.
