@@ -135,18 +135,23 @@ the ship has still happened.
 - **A rule that fires globally can interfere with the test itself** — including the keys you use
   to drive other tools. Scope rules to an app where possible.
 
-## Stale locks
+## A lock held for hours
 
-A lock older than 30 minutes is reported as `STALE` by `status`. Breaking it restores the snapshot
-first, so recovery is well defined:
+**Age is not abandonment, at any age.** `status` prints how long the lock has been held and the
+clock time it was taken, and stops there: a lock taken at 02:00 and still held at 09:00 is the
+ordinary shape of this workflow — a rule installed for the user to press keys on, and a user who
+went to bed. Nothing expires on its own, and the slot frees when they come back, try the rule and
+the holder releases.
+
+So `break` is never something to reach for from the age alone. It refuses on its own and needs the
+user's word that nobody is mid-test — restoring the snapshot first, so recovery is well defined:
 
 ```bash
-./scripts/karabiner-test-lock.sh break
+./scripts/karabiner-test-lock.sh break --confirmed
 ```
 
-Breaking a lock that is *not* yet stale requires confirming with the user that no test is in
-flight, then `KARABINER_LOCK_STALE=0 ./scripts/karabiner-test-lock.sh break`. Never do this on a
-hunch — the holder is mid-test with the user.
+Ask before running it, and say what breaking costs: the rule the holder installed for the user goes
+away, and their session is left believing it still holds the lock.
 
 If everything is wedged, the snapshot is a plain file at
 `.claude/karabiner-test.lock/karabiner.json.pre`; copy it over `~/.config/karabiner/karabiner.json`

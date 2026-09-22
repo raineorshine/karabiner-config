@@ -9,7 +9,13 @@
 #
 # The pre-test contents of the live file are snapshotted inside the lock, so
 # release restores byte-exactly whatever was there (committed or not), and a
-# lock abandoned by a dead session can still be recovered by `break`.
+# lock left behind by a dead session can still be recovered by `break`.
+#
+# Age is not abandonment. The ordinary long hold is a rule installed for the
+# user to press keys on and a user who has gone to bed, so nothing here
+# expires: `status` reports the age and draws no conclusion from it, and
+# `break` refuses without the user's word however old the lock is. The slot
+# frees when they come back, try the rule, and the holder releases.
 #
 #   acquire [label] [session]
 #                     take the lock and snapshot the live config, saying so if that
@@ -23,15 +29,15 @@
 #                     --keep     drop the lock, leave the live config as it is
 #                     --force    restore even if the live config changed
 #                     --if-mine  no-op unless this session took the lock
-#   status            who holds it, since when, whether stale
-#   break             force-release a lock left behind by a dead session
+#   status            who holds it and since when -- no verdict on either
+#   break --confirmed force-release a lock, only ever after the user has said
+#                     nobody is mid-test -- no age says that on its own
 set -eu
 
 ROOT=${KARABINER_ROOT:-$(git worktree list --porcelain | head -1 | sed 's/^worktree //')}
 LIVE="$ROOT/karabiner.json"
 LOCK="$ROOT/.claude/karabiner-test.lock"
 BACKUP="$LOCK/karabiner.json.pre"
-STALE_SECONDS=${KARABINER_LOCK_STALE:-1800}
 LOG="${KARABINER_LOG:-$HOME/.local/share/karabiner/log/console_user_server.log}"
 # The root daemon's log, world-readable: the only one that names a manipulator
 # dropped at load. See docs/load-errors.md.
@@ -52,19 +58,29 @@ age() {
   held=$(cat "$LOCK/acquired" 2>/dev/null || printf '%s' "$NOW")
   printf '%s' $(( NOW - held ))
 }
+# The age in words, and the clock time the lock was taken. Both, because they
+# answer different questions -- how long the slot has been spoken for, and
+# whether that was before the user stopped for the night -- and neither is a
+# verdict.
+age_words() {
+  secs=$(age)
+  if [ "$secs" -ge 3600 ]; then printf '%sh %sm' "$(( secs / 3600 ))" "$(( secs % 3600 / 60 ))"
+  else printf '%sm' "$(( secs / 60 ))"; fi
+}
+taken_at() {
+  t=$(cat "$LOCK/acquired" 2>/dev/null || printf '')
+  [ -n "$t" ] || { printf '(unknown)'; return 0; }
+  date -r "$t" '+%a %H:%M' 2>/dev/null || date -d "@$t" '+%a %H:%M' 2>/dev/null || printf '(unknown)'
+}
 holder_report() {
   printf 'held by   %s\n' "$(field label)"
   printf 'session   %s\n' "$(field session)"
   if [ -s "$LOCK/session_id" ]; then printf 'session id %s\n' "$(field session_id)"; fi
   printf 'worktree  %s\n' "$(field worktree)"
   printf 'branch    %s\n' "$(field branch)"
-  printf 'age       %sm (stale after %sm)\n' "$(( $(age) / 60 ))" "$(( STALE_SECONDS / 60 ))"
+  printf 'age       %s (taken %s)\n' "$(age_words)" "$(taken_at)"
 }
 owned() { [ "$(field worktree)" = "$SELF" ]; }
-# STALE_SECONDS=0 means "treat any lock as abandoned" -- the documented override
-# for breaking a live lock once the user has confirmed nobody is mid-test.
-is_stale() { [ "$(age)" -ge "$STALE_SECONDS" ]; }
-
 # Print what log $1 has written past byte offset $2. Karabiner rotates a log at
 # 256KB (x.log -> x.1.log), so one now shorter than the offset has rotated since,
 # and the rest of the old file comes first.
@@ -189,7 +205,6 @@ case "$cmd" in
     else
       printf 'LOCKED -- the session "%s" is testing.\n' "$(field session)" >&2
       holder_report >&2
-      is_stale && printf '\nLock is stale; `break` it after confirming with the user.\n' >&2
       exit 1
     fi
     ;;
@@ -268,21 +283,31 @@ case "$cmd" in
     [ -d "$LOCK" ] || { printf 'unlocked\n'; exit 0; }
     owned && printf 'LOCKED by this worktree\n' || printf 'LOCKED by another session\n'
     holder_report
-    is_stale && printf 'STALE -- presumed abandoned\n'
+    # No verdict from the age, at any age. The long hold this reports is usually
+    # a rule left live for the user to press keys on, waiting on hands that are
+    # asleep; it ends when they come back, not on a clock here.
+    printf 'age is not abandonment -- the holder may be waiting on the user\n'
     exit 0
     ;;
 
   break)
     [ -d "$LOCK" ] || { printf 'no lock held\n'; exit 0; }
-    if ! is_stale; then
-      printf 'Lock is only %sm old and may still be in use:\n' "$(( $(age) / 60 ))" >&2
+    # No age is a sanction to break, so there is no age-gated path in here. The
+    # holder likeliest to look idle is the one waiting on the user's own try of
+    # a rule, and the user is the only one who knows whether that test is still
+    # theirs to finish -- so their word is the gate, and `--confirmed` is this
+    # session saying it has that word.
+    if [ "${2:-}" != --confirmed ]; then
+      printf 'REFUSED -- "%s" holds the live config, and no age says otherwise:\n' "$(field session)" >&2
       holder_report >&2
-      printf 'Confirm with the user, then re-run with KARABINER_LOCK_STALE=0.\n' >&2
+      printf '\nAsk the user whether that test is still theirs to finish. If they say\n' >&2
+      printf 'to take it:\n' >&2
+      printf '  %s break --confirmed\n' "$0" >&2
       exit 1
     fi
     if [ -f "$BACKUP" ] && ! cmp -s "$BACKUP" "$LIVE"; then
       replace_live "$BACKUP"
-      printf 'restored the abandoned snapshot\n'
+      printf 'restored the snapshot the lock recorded\n'
     fi
     rm -rf "$LOCK"
     printf 'lock broken\n'
