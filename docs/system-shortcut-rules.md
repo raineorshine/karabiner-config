@@ -75,8 +75,21 @@ the key before the OS sees it. That is the trade — a single tap in place of a 
 `WillStartListening`, `StartedListening`, `DidEnterDictationMode`, `DidExitDictationMode` and
 `StoppedListening` to the distributed notification center; a 20-line observer on those five names
 timestamps a press without a screenshot or a menu-title read. `DidExitDictationMode` fires spuriously
-while Dictation is idle, so key on `DidEnterDictationMode` and `StartedListening`.
+while Dictation is idle, and `DidEnterDictationMode` and `WillStartListening` fire for a start that
+then stalls, so key on `StartedListening` alone.
 (`~/projects/dictation-glow/docs/detection.md` establishes the names.)
+
+**Inject the chord through System Events, not `CGEvent`.** `key code 79 using {control down, option
+down, command down}` starts Dictation; a `CGEventPost` of keycode 79 with the same three flags, from a
+shell that holds Accessibility, never reached the hotkey (no `Dictation Hotkey start triggered`).
+
+**A start that hangs at the HUD is the target app, not the rule.** `DictationIM` logs `Dictation Hotkey
+start triggered` for every tap that reached it, so a tap that shows the microphone HUD and never
+listens has already done its part. In the one cluster measured, each start stopped at
+`WillStartListening` and `DictationIM` logged `IMKServer Stall detected` about 6s later, blocked on the
+Claude app answering where the insertion point was, 1.2s after an archive. Taps of the same rule
+before and after listened normally. Read those two lines with
+`/usr/bin/log show --predicate 'process == "DictationIM"'` before touching the rule.
 
 **Which key actually arrived is read with a raw key echo** — it is what caught the
 `fn_function_keys` translation above, since a media key and a plain F-key look identical everywhere
@@ -86,3 +99,8 @@ else. See [debugging.md](debugging.md).
 while the user was working scored a press at 70% in one app and 100% in another, and the whole spread
 was the user pulling focus back between the check and the press. The null it produces is
 indistinguishable from a real one.
+
+**A synthesized Dictation press dictates into whatever the user is typing in.** Its start and stop
+land in the focused field of the frontmost app, which is the user's while they work, and each start
+interrupts them. Ask before a probe that injects the chord, and run the batch once they have said the
+keyboard is free.
