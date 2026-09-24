@@ -37,6 +37,8 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Command + Option + `.` → `printf '%s\0' com.anthropic.claudefordesktop "More options for {}" --role AXPopUpButton --label-from "{}, rename session" --action AXShowMenu --first --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
 - Claude app: Cmd+R → open the session's PR link (via accessibility) (physical key s in Colemak)
   - Command + `S` → `printf '%s\0' com.anthropic.claudefordesktop "#{}" --role AXLink --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
+- Claude: ⌘L → Local/Cloud picker (Where Claude runs) (physical key u in Colemak)
+  - Command + `U` → `S="$HOME/.config/karabiner/scripts/bin/ax-press.sock"; case $(printf '%s\0' com.anthropic.claudefordesktop Local --role AXPopUpButton --label-attr AXTitle --log | /usr/bin/nc -U "$S") in *exit=4*) printf '%s\0' com.anthropic.claudefordesktop Cloud --role AXPopUpButton --label-attr AXTitle --else-key cmd+u --log | /usr/bin/nc -U "$S" ;; esac`
 - Quick Chars
   - L-Option + `'` → `` ` ``
   - L-Option + `T` → `~`

@@ -123,6 +123,11 @@
 //   --under <AXRole>[:<label>]
 //                     search inside the first element with this role, and this label if one is
 //                     given, instead of the whole window
+//   --label-attr <AXAttribute>
+//                     match <label> in this one attribute rather than any of them. The Claude app's
+//                     New Session environment pill is AXTitle="Cloud" (its visible text), and a
+//                     cloud session's header carries an icon-only popup AXDescription="Cloud" (its
+//                     aria-label) whose siblings look the same, so only the attribute tells them apart
 //   --click           move the pointer to the centre of the target, click, and put it back, for a
 //                     control whose row the tree exposes no action for. Refused unless the target
 //                     is inside the window, so a row scrolled out of view cannot land a click on
@@ -232,6 +237,7 @@ struct Options {
   var enhanced = false
   var pid: pid_t = 0
   var sibling: String?
+  var labelAttr: String?
   var action = "AXPress"
   var labelFrom: String?
   var ancestor: (role: String, nth: Int)?
@@ -289,7 +295,7 @@ let fullModeDelay: TimeInterval = 2.1
 var fullModeDue: [String: Date] = [:]
 
 func usage() throws -> Never {
-  output.error("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--nth N] [--dry-run] [--dump] [--dump-all] [--actions] [--prompt] [--log] [--budget-ms N] [--wait] [--key CHORD] [--unless-editing] [--else-key CHORD] [--enhanced] [--pid N] [--sibling TEXT] [--action A] [--click] [--scroll-first] [--scroll-to-end] [--label-from PATTERN] [--ancestor ROLE[:N]] [--within X0,Y0,X1,Y1] [--under ROLE[:LABEL]] [--set ATTR=VALUE] [--then <bundle-id> <label> ...]\n       karabiner-config-ax-press --serve")
+  output.error("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--nth N] [--dry-run] [--dump] [--dump-all] [--actions] [--prompt] [--log] [--budget-ms N] [--wait] [--key CHORD] [--unless-editing] [--else-key CHORD] [--enhanced] [--pid N] [--sibling TEXT] [--label-attr ATTR] [--action A] [--click] [--scroll-first] [--scroll-to-end] [--label-from PATTERN] [--ancestor ROLE[:N]] [--within X0,Y0,X1,Y1] [--under ROLE[:LABEL]] [--set ATTR=VALUE] [--then <bundle-id> <label> ...]\n       karabiner-config-ax-press --serve")
   throw Finished(code: 64)
 }
 
@@ -318,6 +324,7 @@ func parse(_ argv: [String]) throws -> Options {
     case "--enhanced": options.enhanced = true
     case "--pid": i += 1; guard i < argv.count, let n = Int32(argv[i]) else { try usage() }; options.pid = n
     case "--sibling": i += 1; guard i < argv.count else { try usage() }; options.sibling = argv[i]
+    case "--label-attr": i += 1; guard i < argv.count else { try usage() }; options.labelAttr = argv[i]
     case "--action": i += 1; guard i < argv.count else { try usage() }; options.action = argv[i]
     case "--label-from":
       i += 1
@@ -599,9 +606,9 @@ final class Search {
   func matches(_ element: AXUIElement) -> Bool {
     guard string(element, kAXRoleAttribute) == options.role else { return false }
     if wildcard {
-      guard fill(element, pattern: label) != nil else { return false }
+      guard fill(element, pattern: label, attribute: options.labelAttr) != nil else { return false }
     } else {
-      guard labels(element).contains(where: { $0.1 == label }) else { return false }
+      guard labels(element).contains(where: { $0.1 == label && (options.labelAttr == nil || $0.0 == options.labelAttr) }) else { return false }
     }
     // --within: a rectangle is a coarse filter, but it is the one thing that separates a label
     // repeated across a window into the region that matters. The centre, not the origin, so a
@@ -677,11 +684,11 @@ final class Search {
   }
 
   /// The text one of this element's labels contributes to a pattern with one {} in it, or nil.
-  func fill(_ element: AXUIElement, pattern: String) -> String? {
+  func fill(_ element: AXUIElement, pattern: String, attribute: String? = nil) -> String? {
     let parts = pattern.components(separatedBy: "{}")
     guard parts.count == 2 else { return nil }
-    for (_, value) in labels(element)
-    where value.hasPrefix(parts[0]) && value.hasSuffix(parts[1]) && value.count > parts[0].count + parts[1].count {
+    for (name, value) in labels(element)
+    where (attribute == nil || name == attribute) && value.hasPrefix(parts[0]) && value.hasSuffix(parts[1]) && value.count > parts[0].count + parts[1].count {
       return String(value.dropFirst(parts[0].count).dropLast(parts[1].count))
     }
     return nil

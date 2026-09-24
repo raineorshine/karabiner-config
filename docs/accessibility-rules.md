@@ -95,6 +95,14 @@ the last match, looks again, and repeats until the last match stops changing. Tw
 166-261ms all in. The comparison is the whole `describe` line, labels and frame together, because two
 adjacent rows can share an avatar.
 
+**The same word in a different attribute is a different control, and `--label-attr` says which.**
+The Claude app's New Session environment pill is `AXPopUpButton AXTitle="Cloud"`, its visible text;
+a cloud session's header opens with an icon-only popup `AXDescription="Cloud"`, its aria-label. Both
+rows also hold an "Add repository" trigger (hidden in the header), so `--sibling` cannot separate
+them. `--label-attr AXTitle` matches the label in that one attribute and does. A result reply ends
+`exit=<code>`, which is how one `shell_command` tries a second label only when the first missed
+(`case ... in *exit=4*)`): `--then` runs on success, not on a miss.
+
 **A label that repeats outside the region that matters is what `--within` is for.** Every Shortwave
 row carries an `AXImage AXDescription="Avatar for <sender>"` — the only label the rows share, and so
 the only generic handle on a row — but the account avatar in the toolbar and the avatars inside an

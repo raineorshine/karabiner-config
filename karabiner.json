@@ -1249,6 +1249,30 @@
                         ]
                     },
                     {
+                        "comment": "Opens the Local/Cloud picker (tooltip 'Where Claude runs') on the New Session screen by pressing it through the accessibility tree. The pill is the first control in the folder row above the composer, an AXPopUpButton whose AXTitle is the environment it shows, 'Local' or 'Cloud'; it has no aria-label (ion-dist: data-testid epitaxy-env-pill, a trigger holding only an icon and the name). AXPress opens it, as it does the project picker beside it (the Cmd+P rule). One helper search cannot take both titles, so the command asks for 'Local' and, only when the reply ends exit=4 (no match), for 'Cloud'. --label-attr AXTitle is what keeps both off a session's header: a cloud session's header row starts with an icon-only popup described 'Cloud' (AXDescription, its aria-label) and holds a hidden 'Add repository' trigger, the same aria-label as the New Session repo picker, so no sibling tells the two rows apart -- the attribute does. The app already uses Cmd+L -- Copy session link (Cmd+Opt+L too) and, with the Browser pane open, Focus address bar -- so the second search's --else-key hands the chord back wherever no pill is on screen, i.e. every screen but New Session; a miss costs both searches (~45-80ms each over a ~580-element session tree) before the chord goes through. It passes back physical u, the very key pressed, which is what the app would have got without the rule whichever way it matches the shortcut (Colemak bug, https://github.com/anthropics/claude-code/issues/68859). Logs one line per search to .claude/ax-press.log.",
+                        "description": "Claude: ⌘L → Local/Cloud picker (Where Claude runs) (physical key u in Colemak)",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "u",
+                                    "modifiers": { "mandatory": ["command"] }
+                                },
+                                "to": [
+                                    {
+                                        "shell_command": "S=\"$HOME/.config/karabiner/scripts/bin/ax-press.sock\"; case $(printf '%s\\0' com.anthropic.claudefordesktop Local --role AXPopUpButton --label-attr AXTitle --log | /usr/bin/nc -U \"$S\") in *exit=4*) printf '%s\\0' com.anthropic.claudefordesktop Cloud --role AXPopUpButton --label-attr AXTitle --else-key cmd+u --log | /usr/bin/nc -U \"$S\" ;; esac"
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "description": "Quick Chars",
                         "manipulators": [
                             {
