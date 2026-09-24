@@ -50,7 +50,7 @@ me to press a key.
   checkout. While another worktree holds the lock, the live file contains *their* rules.
 - The lock covers the ax-press helper as well as the file: `scripts/build-ax-press.sh` replaces the
   one live binary, so it refuses while another worktree holds the lock, post-ship rebuilds included.
-  Build once `status` reads `unlocked` ([accessibility-rules.md](accessibility-rules.md)).
+  Build once `status` reads `unlocked` ([ax-press-helper.md](ax-press-helper.md)).
 - A worktree's own `.claude/karabiner-test.lock/` is not the lock. The desktop app copies the main
   checkout's ignored `.claude/` contents into a worktree when it creates one, lock directory
   included, so that copy names whoever held the lock at that moment and never changes. The lock is

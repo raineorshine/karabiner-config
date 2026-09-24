@@ -70,7 +70,7 @@ Accessibility nor Screen Recording. And the Claude-app click rules were filtered
 logging its own progress reached the line before its click 14 times while nothing moved on screen.
 Why one rule keeps the permission and another does not is still unresolved — but a helper can opt
 out of the question by disclaiming responsibility for itself, so that TCC judges the binary rather
-than its launcher (see [accessibility-rules.md](accessibility-rules.md)). That is the first spawned helper here whose permission
+than its launcher (see [ax-press-helper.md](ax-press-helper.md)). That is the first spawned helper here whose permission
 was the same from a shell and from Karabiner.
 
 **One press settles it, so probe before building rather than after it mysteriously does nothing.**

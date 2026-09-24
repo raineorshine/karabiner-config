@@ -11,7 +11,7 @@ Electron app that takes `AXManualAccessibility`. The helper now waits for the sw
 **Chromium turns accessibility on in stages, and the early stage is enough to search.** Reading the
 application object's role turns on native APIs, and reading the web contents container's role turns
 on basic web accessibility (`kNativeAPIs | kWebContents`) — see "Chromium exposes none of the page"
-in [accessibility-rules.md](accessibility-rules.md). Basic mode serializes roles, names, frames and
+in [ax-press-helper.md](ax-press-helper.md). Basic mode serializes roles, names, frames and
 class lists, so a walk finds its target and `--dump` looks complete. Complete mode adds
 `kInlineTextBoxes`, `kExtendedProperties` and `kScreenReader`.
 

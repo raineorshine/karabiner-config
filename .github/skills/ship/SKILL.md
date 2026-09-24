@@ -117,7 +117,7 @@ Whoever fast-forwards next picks up every commit that accumulated on `origin/mai
   ./scripts/build-ax-press.sh
   ```
 
-  It refuses while another session holds the test lock, since the rebuild would swap the helper under that session's test. Refused, check `./scripts/karabiner-test-lock.sh status` again before the session ends and build once it reads `unlocked`; if it never does, **say so in the report** with the command, since the live helper lacks what just shipped until someone runs it (docs/accessibility-rules.md).
+  It refuses while another session holds the test lock, since the rebuild would swap the helper under that session's test. Refused, check `./scripts/karabiner-test-lock.sh status` again before the session ends and build once it reads `unlocked`; if it never does, **say so in the report** with the command, since the live helper lacks what just shipped until someone runs it (docs/ax-press-helper.md).
 - Verify the key actually works before considering the change done — ideally *before* shipping, via the `test` skill, which installs the branch's config into the live slot under a mutex so parallel sessions do not clobber each other.
 - The branch is now on `origin/main`. If this worktree is finished with, it and the branch can be cleaned up from the main checkout:
 

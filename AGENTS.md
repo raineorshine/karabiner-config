@@ -8,9 +8,12 @@ that matches what you are about to write, before writing it.
 - [docs/click-rules.md](docs/click-rules.md) — moving the pointer and clicking: coordinates, the
   cursor restore, warp-to-click gaps, and when posting events is filtered.
 - [docs/accessibility-rules.md](docs/accessibility-rules.md) — pressing a control by name with
-  `ax-press`: the resident helper a rule sends its request to, finding labels, the Accessibility
-  grant and its rebuilds, what a press costs, walk direction, and opening a context menu without the
-  mouse.
+  `ax-press`: finding labels, inspecting the tree, a press that does nothing, picking one control out
+  of several (walk direction, siblings, ordinals), chaining presses and handing a chord back, and
+  opening a context menu without the mouse.
+- [docs/ax-press-helper.md](docs/ax-press-helper.md) — the helper those rules send requests to: the
+  resident server, getting Chromium to expose a tree, the Accessibility grant and what survives a
+  rebuild, building it under the test lock, and what a press costs.
 - [docs/accessibility-modes.md](docs/accessibility-modes.md) — why a press can log success and do
   nothing in an Electron app: Chromium's basic and complete accessibility modes, the 2s switch the
   helper waits for, and reproducing the first press after an app launch without relaunching it.
