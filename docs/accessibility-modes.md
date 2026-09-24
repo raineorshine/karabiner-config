@@ -109,9 +109,20 @@ pending (2s or more after the last set) makes Electron drop complete mode at onc
 that were dropped exactly as a fresh launch's were (3 of 3); a `true` brings it back 2s later. System
 Events can write it, no helper needed:
 `tell application "System Events" to tell process "Claude" to set value of attribute "AXManualAccessibility" to false`.
-To test the helper's wait end to end, rebuild it first, so the server has not yet reached the app,
-then drop the mode and press the rule once: `full_mode_wait_ms` on its log line and the control
-acting is the pass.
+
+**The server's priming undoes a drop whenever the app comes to the front.** An activation sets the
+attribute, and 2s later presses land again, so a drop made before the user switches back to the app
+tests nothing. Drop the mode while they are already in the app, more than 2.1s after the server
+started (it primes at start), and ask for one press without switching apps. The pass for the
+dropped-press retry is `dropped_retry_ms` with `retry_expanded=true` on the line and the popup
+opening about 2s late. A press the user makes during the retry's sleep queues behind it and runs
+right after, closing the popup, so ask for exactly one.
+
+**Check the live helper is the build under test before reading a press.** Another session's ship
+can rebuild it from main at any time, and a press then runs the old code with nothing in its log line
+to say so. Search the binary for a report key the change added (Python over the file's bytes;
+`strings` is an Xcode shim here). Pick a key longer than 15 bytes: Swift inlines shorter literals
+into the code, so a missing `AXPopUpButton` proves nothing.
 
 **A probe from a Claude desktop session's shell can press, which the helper refuses to do from a
 shell.** That shell carries the Claude app's own Accessibility grant (see "Bisect the underlying UI"
