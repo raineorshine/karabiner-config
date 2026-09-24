@@ -21,7 +21,7 @@
 // never needs a new build.
 //
 // Usage: karabiner-config-ax-press <bundle-id> <label> [options] [--then <bundle-id> <label> [options]]...
-//        karabiner-config-ax-press --serve
+//        karabiner-config-ax-press --serve [--prime <bundle-id>]...
 //
 // (The binary carries the repo's name so the Accessibility list says whose it is; the source and
 // this text call it ax-press for short.)
@@ -36,7 +36,8 @@
 //   printf '%s\0' <bundle-id> <label> [options] | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"
 //
 // The reply is what a one-shot run would print, then a last line exit=<code>. Requests are handled
-// one at a time. launchd starts the server on the first connection and it stays up; a request that
+// one at a time. launchd starts the server at login (RunAtLoad, so priming is up before the first
+// press) or on the first connection, and it stays up; a request that
 // finds the grant missing makes it exit after replying, because trust is read once per process and
 // the next request should start a process that asks again. A one-shot run from a shell still works
 // exactly as before, which is what --dump and --dry-run are for.
@@ -159,7 +160,8 @@
 //                     one request instead of two helper calls joined with &&, whose exit status a
 //                     served request has no way to hand back to the shell
 //   --serve           run as the resident server, taking the listening socket from launchd; alone,
-//                     with no other arguments
+//                     or with --prime <bundle-id> once per app whose complete accessibility the
+//                     server should switch on at launch rather than at the first press (primeBundles)
 //
 // Without --label-from, a {} in <label> is a wildcard: the label matches any non-empty text between
 // its prefix and suffix. "#{}" is the Claude app's PR-chip link, whose label is the PR number.
@@ -172,7 +174,8 @@
 //
 // Searching works from then on; pressing does not. Chromium ignores AXPress until the app has switched
 // to complete accessibility, which Electron does 2s after AXManualAccessibility is set, so the first
-// AXPress into each app process waits for that (fullModeDelay) and its report says full_mode_wait_ms.
+// AXPress into each app process waits for that (fullModeDelay) and its report says full_mode_wait_ms
+// -- unless the server primed that app when it launched, which it does for each --prime bundle.
 //
 // The label matches AXDescription, AXTitle, AXHelp, AXIdentifier or AXValue exactly (or by its {}
 // wildcard), which is where Chromium puts aria-label, visible text, title and id respectively, and
@@ -294,8 +297,72 @@ let fullModeDelay: TimeInterval = 2.1
 /// one-shot run starts empty, so every press it makes waits.
 var fullModeDue: [String: Date] = [:]
 
+func instanceKey(_ pid: pid_t) -> String {
+  "\(pid)@\(startTime(of: pid)?.timeIntervalSince1970 ?? 0)"
+}
+
+/// Whether a set this helper made is still counting down in that process. Another set would restart
+/// Electron's countdown, so while one is, nothing here sets the attribute again.
+func fullModePending(_ instance: String) -> Bool {
+  fullModeDue[instance].map { $0 > Date() } ?? false
+}
+
+/// Apps whose switch the server starts ahead of the first press (--serve --prime <bundle-id>). Waiting
+/// for the press meant the first AXPress shortcut after every launch took 2.1s, and the Claude app
+/// relaunches for every update -- seven times in one day. So the server sets the attribute when such
+/// an app launches, when it is activated, and on the server's own start, and a press arriving later
+/// finds the switch landed. Only apps that take the attribute belong here: in any other Electron app
+/// the set would switch on complete accessibility, which costs that app, for a press it never gets.
+var primeBundles: Set<String> = []
+
+/// Requests and priming run on different threads and share fullModeDue and the output global.
+let serverLock = NSLock()
+
+/// Set AXManualAccessibility on a primed app. On activation this repeats for a process already
+/// switched, which does nothing to a process in complete mode and brings back one that another
+/// client's set of false dropped -- 2s later, which a press in between does not know to wait for.
+/// A set that fails is retried: an app that has just launched may not be answering yet.
+func prime(_ app: NSRunningApplication, reason: String, attempt: Int = 1) {
+  guard let bundle = app.bundleIdentifier, primeBundles.contains(bundle), !app.isTerminated else { return }
+  serverLock.lock()
+  defer { serverLock.unlock() }
+  let pid = app.processIdentifier
+  let instance = instanceKey(pid)
+  if fullModePending(instance) { return }
+  let element = AXUIElementCreateApplication(pid)
+  AXUIElementSetMessagingTimeout(element, 1)
+  let result = AXUIElementSetAttributeValue(element, "AXManualAccessibility" as CFString, kCFBooleanTrue)
+  let first = fullModeDue[instance] == nil
+  if result == .success && first {
+    fullModeDue[instance] = Date().addingTimeInterval(fullModeDelay)
+  }
+  // A line per activation would bury the presses; the first set in each process and failures say
+  // everything a later read of the log needs.
+  if first {
+    var options = Options()
+    options.log = true
+    report(options, "primed app=\(bundle) pid=\(pid) reason=\(reason) attempt=\(attempt) set=\(result.rawValue)")
+  }
+  if result != .success && first && attempt < 10 {
+    DispatchQueue.main.asyncAfter(deadline: .now() + 1) { prime(app, reason: reason, attempt: attempt + 1) }
+  }
+}
+
+/// Prime every running primed app, then again at each launch and activation.
+func startPriming() {
+  for bundle in primeBundles {
+    for app in NSRunningApplication.runningApplications(withBundleIdentifier: bundle) { prime(app, reason: "start") }
+  }
+  let center = NSWorkspace.shared.notificationCenter
+  for (name, reason) in [(NSWorkspace.didLaunchApplicationNotification, "launch"), (NSWorkspace.didActivateApplicationNotification, "activate")] {
+    center.addObserver(forName: name, object: nil, queue: .main) { note in
+      if let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication { prime(app, reason: reason) }
+    }
+  }
+}
+
 func usage() throws -> Never {
-  output.error("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--nth N] [--dry-run] [--dump] [--dump-all] [--actions] [--prompt] [--log] [--budget-ms N] [--wait] [--key CHORD] [--unless-editing] [--else-key CHORD] [--enhanced] [--pid N] [--sibling TEXT] [--label-attr ATTR] [--action A] [--click] [--scroll-first] [--scroll-to-end] [--label-from PATTERN] [--ancestor ROLE[:N]] [--within X0,Y0,X1,Y1] [--under ROLE[:LABEL]] [--set ATTR=VALUE] [--then <bundle-id> <label> ...]\n       karabiner-config-ax-press --serve")
+  output.error("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--nth N] [--dry-run] [--dump] [--dump-all] [--actions] [--prompt] [--log] [--budget-ms N] [--wait] [--key CHORD] [--unless-editing] [--else-key CHORD] [--enhanced] [--pid N] [--sibling TEXT] [--label-attr ATTR] [--action A] [--click] [--scroll-first] [--scroll-to-end] [--label-from PATTERN] [--ancestor ROLE[:N]] [--within X0,Y0,X1,Y1] [--under ROLE[:LABEL]] [--set ATTR=VALUE] [--then <bundle-id> <label> ...]\n       karabiner-config-ax-press --serve [--prime <bundle-id>]...")
   throw Finished(code: 64)
 }
 
@@ -815,11 +882,14 @@ func handle(_ options: Options, peer: pid_t?) throws -> Int32 {
   // ChatGPT and Brave refuse both (-25205 / -25208), but the Claude app takes AXManualAccessibility, and the
   // complete mode it brings 2s later is what an AXPress there needs (see fullModeDelay).
   let appRole = string(appElement, kAXRoleAttribute) ?? "?"
-  let manual = AXUIElementSetAttributeValue(appElement, "AXManualAccessibility" as CFString, kCFBooleanTrue)
+  // A set before the switch lands pushes it back, so none is made while one of ours is counting
+  // down (the server's priming, usually); one after it changes nothing.
+  let instance = instanceKey(app.processIdentifier)
+  let manual = fullModePending(instance)
+    ? AXError.success
+    : AXUIElementSetAttributeValue(appElement, "AXManualAccessibility" as CFString, kCFBooleanTrue)
   let enhanced = options.enhanced ? AXUIElementSetAttributeValue(appElement, "AXEnhancedUserInterface" as CFString, kCFBooleanTrue) : nil
-  // A set before the switch lands pushes it back; one after it changes nothing.
-  let instance = "\(app.processIdentifier)@\(startTime(of: app.processIdentifier)?.timeIntervalSince1970 ?? 0)"
-  if manual == .success, (fullModeDue[instance] ?? .distantFuture) > Date() {
+  if manual == .success, fullModeDue[instance] == nil {
     fullModeDue[instance] = Date().addingTimeInterval(fullModeDelay)
   }
 
@@ -957,7 +1027,8 @@ func handle(_ options: Options, peer: pid_t?) throws -> Int32 {
   // An AXPress before complete mode lands does nothing (see fullModeDelay), so hold it until then.
   // The switch has the renderer send its whole tree again, so find the target afresh rather than
   // press an element that may have been replaced. Only a press within 2.1s of the helper first
-  // reaching an app process waits, and a miss above has already answered, so --else-key never does.
+  // reaching an app process waits -- which for a primed app is its launch, so in practice none --
+  // and a miss above has already answered, so --else-key never does.
   // AXShowMenu, --set and --click need no default action verb and go straight through.
   var fullModeText = ""
   if !options.dryRun && !options.click && options.set == nil && options.action == "AXPress",
@@ -1137,19 +1208,28 @@ func serve() -> Never {
   let listener = fds[0]
   free(fds)
   _ = fcntl(listener, F_SETFL, fcntl(listener, F_GETFL) & ~O_NONBLOCK)
-  while true {
-    let connection = accept(listener, nil, nil)
-    guard connection >= 0 else {
-      if errno == EINTR || errno == ECONNABORTED { continue }
-      exit(71)
+  // Requests are answered on a thread of their own, because workspace notifications, which priming
+  // listens for, are delivered on the main run loop.
+  Thread.detachNewThread {
+    while true {
+      let connection = accept(listener, nil, nil)
+      guard connection >= 0 else {
+        if errno == EINTR || errno == ECONNABORTED { continue }
+        exit(71)
+      }
+      serverLock.lock()
+      let code = autoreleasepool { respond(on: connection) }
+      serverLock.unlock()
+      close(connection)
+      // AXIsProcessTrusted answers from what this process learned when it started, so a server
+      // running from before a grant would refuse every press until restarted. Exiting hands the next
+      // request to a fresh process, which launchd starts on the connection.
+      if code == 2 { exit(0) }
     }
-    let code = autoreleasepool { respond(on: connection) }
-    close(connection)
-    // AXIsProcessTrusted answers from what this process learned when it started, so a server
-    // running from before a grant would refuse every press until restarted. Exiting hands the next
-    // request to a fresh process, which launchd starts on the connection.
-    if code == 2 { exit(0) }
   }
+  startPriming()
+  RunLoop.main.run()
+  exit(0)
 }
 
 /// One served request: read its NUL-terminated arguments to end of file, run them, and reply with
@@ -1205,7 +1285,14 @@ func respond(on connection: Int32) -> Int32 {
 
 func main() -> Never {
   var arguments = Array(CommandLine.arguments.dropFirst())
-  if arguments == ["--serve"] { serve() }
+  if arguments.first == "--serve" {
+    var rest = arguments.dropFirst()
+    while rest.first == "--prime", rest.count >= 2 {
+      primeBundles.insert(rest[rest.startIndex + 1])
+      rest = rest.dropFirst(2)
+    }
+    if rest.isEmpty { serve() }
+  }
   if arguments.last == "--worker" {
     arguments.removeLast()
   } else {

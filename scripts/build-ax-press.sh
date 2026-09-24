@@ -40,7 +40,9 @@ mv -f "$OUT.new" "$OUT"
 # standard job gets a daemon's, and Karabiner's own console server, one of those, runs at scheduling
 # priority 20 where an app runs at 31 or above. ThrottleInterval 1: a server that finds the grant
 # missing exits after replying, and the default ten seconds would hold the next press that long once
-# the grant is back.
+# the grant is back. RunAtLoad and --prime: the server switches on the Claude app's complete
+# accessibility when the app launches, not at the first press, which then waited 2.1s after every
+# relaunch; that needs the server running before any rule has connected to it.
 mkdir -p "$HOME/Library/LaunchAgents"
 cat > "$PLIST.new" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -53,7 +55,11 @@ cat > "$PLIST.new" <<EOF
 	<array>
 		<string>$OUT</string>
 		<string>--serve</string>
+		<string>--prime</string>
+		<string>com.anthropic.claudefordesktop</string>
 	</array>
+	<key>RunAtLoad</key>
+	<true/>
 	<key>Sockets</key>
 	<dict>
 		<key>Listeners</key>

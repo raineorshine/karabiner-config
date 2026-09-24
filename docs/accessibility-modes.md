@@ -26,7 +26,8 @@ writes (`--set`) and `--click` do not go through the verb, so they work in basic
 Setting `AXManualAccessibility` (or `AXEnhancedUserInterface`) on the app schedules it
 (`enableScreenReaderCompleteModeAfterDelay` in `shell/browser/mac/electron_application.mm`, a
 debounce written for VoiceOver's quick on-and-off); a set before it fires pushes it back, and once on
-it stays on until the app quits. The helper sets `AXManualAccessibility` at the start of every
+it stays on until the app quits or a client sets the attribute (or `AXEnhancedUserInterface`)
+to `false` while no set of `true` is pending. The helper sets `AXManualAccessibility` at the start of every
 request, so its first request into a freshly launched app starts the countdown and presses about 50ms
 later, in basic mode. On the Claude app's ⋮ menu, presses stopped being dropped just past the 2s mark
 (the sweep is in `fullModeDelay`'s comment). ChatGPT and Brave refuse the attribute (-25205), so the
@@ -46,6 +47,25 @@ have been replaced — and presses, and its report line gains `full_mode_wait_ms
 about 2s of the helper first reaching a process waits: in practice the first AXPress shortcut after
 the app launches, and the first after a helper rebuild, since a restarted server remembers nothing. A
 miss answers before the wait, so `--else-key` is never delayed.
+
+**The server starts the countdown at launch, not at the first press.** Waiting at the press put
+2.1s on the first Cmd+P or Cmd+Shift+U after every launch, and the Claude app relaunches for each
+update: seven launches and five waited presses on 2026-09-24. So the LaunchAgent runs the server at
+login with `--prime com.anthropic.claudefordesktop`, and it sets the attribute when that app
+launches, when it is activated, and when the server itself starts; a press arriving more than 2.1s
+after the launch waits for nothing. A press made while a set of ours is counting down skips its own
+set, so it waits out the remainder rather than a fresh 2.1s. The log has one `primed` line per
+process. Prime only apps that take the attribute: in any other Electron app the set would turn on
+complete accessibility, whose cost that app pays for a press it never gets.
+
+**Complete mode can drop mid-session, and the helper does not know.** On 2026-09-24 the app's log
+showed basic mode at sets with no relaunch between (06:37:45, 07:27:37), and the presses behind them
+logged `pressed=true` without the wait and did nothing; the retry 5s later worked. Something set the
+attribute to `false`. Re-priming on every activation brings the mode back 2s after the user returns
+to the app, but a press inside that window, or a drop while the app stays frontmost, still misses.
+A press on a popup trigger can tell: `AXExpanded` on the Usage button went true 25-31ms after a
+landed press. Codex's computer-use client (`SkyComputerUseClient`) was running while the app's log
+recorded about 90 sets a minute, none of them the helper's.
 
 **What it does not cover.** Another client setting the attribute restarts Electron's countdown without
 the helper knowing. Nor load: with all eight cores pegged, presses in complete mode did not open the
