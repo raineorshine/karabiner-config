@@ -8,7 +8,7 @@
 # records that requirement with the Accessibility grant, and a recompile still satisfies it, so the
 # grant survives rebuilds; an ad-hoc signature's implicit requirement pins the code hash, which
 # changes with every compile. Changing the --identifier below costs a full regrant.
-# docs/accessibility-rules.md has the regrant procedure.
+# docs/ax-press-helper.md has the regrant procedure.
 #
 # Serving: rules do not launch the binary. launchd runs it with --serve and hands it the socket at
 # scripts/bin/ax-press.sock, and rules pipe their arguments there through nc. The agent is restarted
@@ -39,7 +39,7 @@ codesign --force --sign - --identifier "$IDENTIFIER" -r="designated => identifie
 # pressing through whatever binary is in place, and a build from anywhere else swaps it -- and
 # restarts the server -- under that test, which then runs code nobody meant it to. The holder's own
 # builds go through; everyone else's wait for the release. Checked after compiling, not before, so a
-# lock taken during the compile still counts. docs/accessibility-rules.md
+# lock taken during the compile still counts. docs/ax-press-helper.md
 if ! holder=$("$HERE/karabiner-test-lock.sh" check 2>&1); then
   printf 'REFUSED -- another session holds the live-config test lock, and this build would replace the\n' >&2
   printf 'helper it is testing through. Build again once it releases:\n%s\n' "$holder" >&2

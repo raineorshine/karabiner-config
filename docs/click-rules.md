@@ -1,15 +1,13 @@
-# Click rules
-
-## Click rules (move the mouse and click)
+# Click rules (move the mouse and click)
 
 **Check the accessibility tree before writing a click rule at all.** A click rule is a coordinate
 pair that holds only while the window is in its usual position and size, a cursor left somewhere it
 was not, and — whenever the target is not already on screen — a race to tune. `ax-press` has none of
 those: it names the control, costs 29-78ms, and reaches an element scrolled out of view. Shortwave's
 Always apply toast was a coordinate warp-and-click until the tree was dumped, and the target turned
-out to be an `AXButton` titled "Always apply". See [accessibility-rules.md](accessibility-rules.md). What follows is for targets
-the tree does not name — an unlabelled control, a point on a canvas, an app that exposes nothing
-useful. The rules that already click work; this governs new ones.
+out to be an `AXButton` titled "Always apply" ([accessibility-rules.md](accessibility-rules.md)). What
+follows is for targets the tree does not name — an unlabelled control, a point on a canvas, an app
+that exposes nothing useful.
 
 **A coordinate only known at press time belongs to `ax-press --click`.** Karabiner's own warp cannot
 be written for a target whose position is read from the tree, so the helper warps, clicks and puts the
@@ -22,15 +20,16 @@ ChatGPT.** Its effort menu focuses itself only when nothing else holds focus (`d
 is the body). That evidently held after a hand click and did not after the helper's click, which left
 the message field focused, so the arrow keys meant for the menu moved the caret instead. Check where
 focus lands — a background `--unless-editing --dry-run` poll reads it while the user presses (see
-[accessibility-rules.md](accessibility-rules.md)) — and put it where the keys need it with a second
-call chained by `&&`: `--wait --set AXFocused=true` on the item the keys drive.
+"Verifying a rule" in [accessibility-rules.md](accessibility-rules.md)) — and put it where the keys
+need it with a second command chained by `--then`: `--wait --set AXFocused=true` on the item the keys
+drive.
 
 **Once you are clicking, default to Karabiner's own `set_mouse_cursor_position` +
 `pointing_button`.** It stays inside Karabiner, so it is faster than spawning a process, and it is
 fine for any target that is *already on screen*. Done this way a click rule needs no
-`hold_down_milliseconds` at all: Cmd+P and Cmd+Shift+U are a bare warp, click, `vk_none` and fire
-with no deliberate delay. Cmd+Shift+P and Cmd+Shift+G still carry the older spawn-and-hold shape
-described below.
+`hold_down_milliseconds` beyond a measured warp-to-click gap: the Claude app's Cmd+Shift+G is a bare
+warp, click and keystroke. (Cmd+P and Cmd+Shift+U, the first rules in this shape, have since moved to
+`ax-press`.)
 
 **A hover-revealed target may need real motion — observed in Notion, and only there.**
 `set_mouse_cursor_position` *warps* the cursor without posting a mouse event. Notion's archive
@@ -70,7 +69,7 @@ Accessibility nor Screen Recording. And the Claude-app click rules were filtered
 logging its own progress reached the line before its click 14 times while nothing moved on screen.
 Why one rule keeps the permission and another does not is still unresolved — but a helper can opt
 out of the question by disclaiming responsibility for itself, so that TCC judges the binary rather
-than its launcher (see [ax-press-helper.md](ax-press-helper.md)). That is the first spawned helper here whose permission
+than its launcher ([ax-press-helper.md](ax-press-helper.md)). That is the first spawned helper here whose permission
 was the same from a shell and from Karabiner.
 
 **One press settles it, so probe before building rather than after it mysteriously does nothing.**
@@ -96,16 +95,18 @@ whenever posting turns out to be filtered.
 **The cursor restore is what drags in the spawn — dropping it removes the whole problem.** Karabiner
 can move the cursor but not read it, so putting it back afterwards needs a spawned script, and the
 rule must then hold long enough for that script to read the position *before* the warp. That hold
-was 200ms of Cmd+P's 300ms and was never big enough (see the tail figures below). Dropping the
-restore deletes the spawn, the hold and the race together: Cmd+P and Cmd+Shift+U went from 300ms to
+was 200ms of Cmd+P's 300ms and was never big enough (the tail figures are in [pauses.md](pauses.md)).
+Dropping the restore deletes the spawn, the hold and the race together: Cmd+P and Cmd+Shift+U went from 300ms to
 no deliberate delay at all. The cost is that the cursor stays on the button. For a shortcut reached
 from the keyboard that is usually the right trade, but it is a visible behaviour change rather than
 a pure optimisation — ask first.
 
-**Measure the warp-to-click gap per target; do not carry a value between rules.** Cmd+P's was 100ms,
+**Measure the warp-to-click gap per target; do not carry a value between rules.** The gap is a
+`{ "key_code": "vk_none", "hold_down_milliseconds": <ms> }` between the warp and the click. Cmd+P's was 100ms,
 and 0ms opened the project selector 10 times out of 10 — an always-visible button hit-tests
 correctly at the click's own coordinates even though a warp posts no hover event. The Cmd+Shift+P
-Create PR button did need its 100ms. Same app, same mechanism, different answer.
+Create PR button did need a gap — without one the app registered only the hover — and keeps an
+un-searched 100ms ([pauses.md](pauses.md)). Same app, same mechanism, different answer.
 
 **A popup's position can be read rather than predicted.** `CGWindowListCopyWindowInfo` needs no
 permission either — without Screen Recording it drops window *titles*, but bounds, owner, and layer
@@ -119,13 +120,6 @@ never opened at all.
 **Anchor to something you control.** When the target moves with the content — the Messages tapback
 bar follows its bubble's width *and* height — do not chase it. A context menu is anchored to the
 click instead, so right-clicking a point you picked makes every position downstream fixed.
-
-**Adjacent `shell_command`s in one `to` array collapse to the last one.** Two spawns back to back
-run once, not twice, and the survivor is the later one — no error, nothing logged. A probe with five
-stamps, the first three adjacent and the last two behind 150ms gaps, recorded only the third, fourth
-and fifth. This silently ate every start-marker added for timing and cost two rounds of presses
-before it was spotted. Separate them with a `hold_down_milliseconds`, or join them into one
-`shell_command` with a `;`.
 
 **If you do write a Karabiner-native click** (`pointing_button`), three non-obvious rules:
 
@@ -146,6 +140,3 @@ before it was spotted. Separate them with a `hold_down_milliseconds`, or join th
 its usual position and size — say so in the rule's `comment`. `screencapture -R x,y,w,h` takes
 points and returns a 2x image on this machine, which makes the pixel-to-point mapping explicit;
 eyeballing a pasted screenshot does not.
-
-**Validate before handing it over**: `karabiner_cli --lint-complex-modifications` on a
-`{"title":…,"rules":[…]}` file, and `node build.js karabiner.json` to confirm the README renders.

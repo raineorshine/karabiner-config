@@ -11,8 +11,8 @@ Electron app that takes `AXManualAccessibility`. The helper now waits for the sw
 **Chromium turns accessibility on in stages, and the early stage is enough to search.** Reading the
 application object's role turns on native APIs, and reading the web contents container's role turns
 on basic web accessibility (`kNativeAPIs | kWebContents`) — see "Chromium exposes none of the page"
-in [ax-press-helper.md](ax-press-helper.md). Basic mode serializes roles, names, frames and
-class lists, so a walk finds its target and `--dump` looks complete. Complete mode adds
+in [accessibility-rules.md](accessibility-rules.md). Basic mode serializes roles, names, frames
+and class lists, so a walk finds its target and `--dump` looks complete. Complete mode adds
 `kInlineTextBoxes`, `kExtendedProperties` and `kScreenReader`.
 
 **In basic mode every AXPress on a web control is dropped, and the call still returns success.**
@@ -118,11 +118,8 @@ dropped-press retry is `dropped_retry_ms` with `retry_expanded=true` on the line
 opening about 2s late. A press the user makes during the retry's sleep queues behind it and runs
 right after, closing the popup, so ask for exactly one.
 
-**Check the live helper is the build under test before reading a press.** Another session's ship
-can rebuild it from main at any time, and a press then runs the old code with nothing in its log line
-to say so. Search the binary for a report key the change added (Python over the file's bytes;
-`strings` is an Xcode shim here). Pick a key longer than 15 bytes: Swift inlines shorter literals
-into the code, so a missing `AXPopUpButton` proves nothing.
+**Check the live helper is the build under test before reading a press** — another session's ship
+can rebuild it from main at any time ([ax-press-helper.md](ax-press-helper.md) "Building").
 
 **A probe from a Claude desktop session's shell can press, which the helper refuses to do from a
 shell.** That shell carries the Claude app's own Accessibility grant (see "Bisect the underlying UI"

@@ -9,7 +9,7 @@
 // Accessibility permission is granted to a process by TCC, which attributes a command-line tool to
 // whatever launched it: a helper spawned by Karabiner is judged as Karabiner, and the same helper
 // run from a terminal is judged as the terminal. That is why one Karabiner-spawned script can post
-// events while another cannot (see AGENTS.md). This tool sidesteps the question by re-spawning
+// events while another cannot (see docs/click-rules.md). This tool sidesteps the question by re-spawning
 // itself with the responsibility disclaimed, the same private posix_spawn attribute Chromium uses
 // for its helpers, so the child is judged as ax-press itself wherever it was launched from. The
 // grant then goes to this binary alone, not to a terminal, not to osascript, not to Karabiner.
@@ -29,7 +29,7 @@
 // Rules do not launch it. A launch costs two processes -- the re-spawn above -- which is tens of
 // milliseconds warm, and was over half a second for a press after half an hour idle on a machine
 // short of memory, when the launch checks and the pages behind them had gone cold
-// (docs/accessibility-rules.md).
+// (docs/ax-press-helper.md).
 // So launchd keeps one instance running with --serve, from the LaunchAgent the build installs, and
 // a rule pipes its arguments to that instance's socket, NUL-terminated, through nc:
 //

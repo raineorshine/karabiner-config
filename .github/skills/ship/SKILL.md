@@ -45,12 +45,12 @@ test, re-test before shipping.
 npm run build
 ```
 
-- `npm run build` — runs `node build.js karabiner.json > README.md`, regenerating `README.md` from the current rules in `karabiner.json`.
+- `npm run build` — formats `karabiner.json` in Karabiner's own style (`scripts/format-karabiner.js`), then runs `node build.js karabiner.json > README.md`, regenerating `README.md` from the current rules.
 - Works from a worktree without `npm install`: a worktree has no `node_modules`, and node resolves the main checkout's by walking up from `.claude/worktrees/<name>/`. A cloud session's clone has no main checkout above it, so run `npm install` there first: without it the build fails on `qwerty-to-colemak` after `format-karabiner.js` has already run, leaving `README.md` emptied.
 
 `README.md` is a **generated file** — never hand-edit it. If a rule's description reads badly in the README, fix the `description` field in `karabiner.json` and rebuild. Prose that is not derived from the rules (the intro, the trailing section) lives in `readme-template.txt`.
 
-There is no lint, type check, or test suite in this repo. If `karabiner.json` changed, sanity-check that the build succeeded and that the diff of `README.md` matches the rules you edited. Commit `README.md` together with `karabiner.json` so they never drift.
+There is no type check or test suite in this repo; Karabiner's linter runs in the test skill's `install`. If `karabiner.json` changed, sanity-check that the build succeeded and that the diff of `README.md` matches the rules you edited. Commit `README.md` together with `karabiner.json` so they never drift.
 
 ### 2. Commit all staged and unstaged changes
 

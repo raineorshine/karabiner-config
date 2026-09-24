@@ -23,12 +23,13 @@ and a lock abandoned by a dead session is still recoverable.
 |---|---|---|
 | `~/.config/karabiner` (main checkout) | the live config Karabiner reads; `main` | Don't develop here. Treat it as the live slot. |
 | `.claude/worktrees/*` | one branch each, own `karabiner.json` | All rule editing happens here, in parallel, lock-free. |
-| `.claude/karabiner-test.lock/` | the mutex + the pre-test snapshot | Held only while actually testing. |
+| `~/.config/karabiner/.claude/karabiner-test.lock/` | the mutex + the pre-test snapshot | Held only while actually testing. A worktree's copy of this directory is stale; ask `status`. |
 
 **Acquire late, release fast.** Writing the rule, checking the Colemak mapping, and
 `npm run build` need no lock. Take it only for the keypress test itself. An ax-press rule can be
 `--dry-run` from a shell first — it resolves the target without pressing — so acquire only once that
-passes.
+passes. The exception is a change to the ax-press helper itself: building it replaces the live
+binary, so acquire before `scripts/build-ax-press.sh` (docs/ax-press-helper.md).
 
 ## Procedure
 
@@ -154,5 +155,5 @@ Ask before running it, and say what breaking costs: the rule the holder installe
 away, and their session is left believing it still holds the lock.
 
 If everything is wedged, the snapshot is a plain file at
-`.claude/karabiner-test.lock/karabiner.json.pre`; copy it over `~/.config/karabiner/karabiner.json`
-by hand and delete the lock directory.
+`~/.config/karabiner/.claude/karabiner-test.lock/karabiner.json.pre`; copy it over
+`~/.config/karabiner/karabiner.json` by hand and delete that lock directory.
