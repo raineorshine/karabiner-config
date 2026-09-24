@@ -196,7 +196,8 @@ branch behind `main` therefore replaces the live binary with one missing whateve
 meanwhile, and a rule that passes a dropped option fails as an ordinary miss — nothing says the option
 is gone. One from a branch older than the resident helper is worse: its binary has no `--serve`, so
 every rule fails, and its script signs with the old certificate, so the grant goes too. Rebase before
-building. And the Xcode tools can refuse to run at all: `swiftc`, `otool` and every other `xcrun`
+building, and build again after shipping: the binary a test installed predates the ship's rebase,
+so anything that landed on `main` in between is missing from the live helper until the next build. And the Xcode tools can refuse to run at all: `swiftc`, `otool` and every other `xcrun`
 shim exit with "You have not agreed to the Xcode license agreements" while the selected Xcode's
 license is unaccepted, which is the state after an Xcode update. The build falls back to the Command
 Line Tools' own `swiftc`; a probe run by hand needs `DEVELOPER_DIR=/Library/Developer/CommandLineTools`
