@@ -216,6 +216,10 @@ case "$cmd" in
     [ -f "$2" ] || die "no such file: $2"
     node -e 'JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"))' "$2" 2>/dev/null \
       || die "invalid JSON: $2 (live config left untouched)"
+    # Karabiner rewrites the live file in its own style whenever it saves; a file in any other
+    # style turns that into a whole-file diff that blocks the ship's fast-forward.
+    node "$(dirname "$0")/format-karabiner.js" --check "$2" \
+      || die "not in Karabiner's format: run npm run build (live config left untouched)"
     lint "$2"
     replace_live "$2"
     # The daemon logs a file's errors only when it reloads, and an unchanged file

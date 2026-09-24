@@ -2,13 +2,21 @@
 
 ## Editing `karabiner.json`
 
-**Do not round-trip the file through a JSON serializer.** Karabiner-Elements writes it in its own
-style — short objects on one line (`"modifiers": { "mandatory": ["command"] }`), literal non-ASCII in
-descriptions — and `json.dump` reformats all 1500 lines: a 40-line rule addition became a 1446-line
-diff. Nothing breaks, and Karabiner rewrites the file in its own style eventually anyway; what is
-lost is the diff, which is the only review surface a commit has, and clean hunk-level merging between
-the worktrees that ship into this file in parallel. Insert the new rule as text at the surrounding
-indentation, and use the parser to *validate* rather than to write.
+**The file is kept in exactly the format Karabiner-Elements writes, and `npm run build` puts it
+there.** Karabiner rewrites the live file whenever it saves it: keys sorted at every level, 4-space
+indent, every object and array expanded one item per line, non-ASCII literal, no trailing newline —
+byte-for-byte `JSON.stringify(<keys sorted>, null, 4)`, which `scripts/format-karabiner.js`
+reproduces (checked against a file Karabiner had just rewritten). Any other style is a pending
+whole-file diff: the file used to be hand-compacted (`"modifiers": { "mandatory": ["command"] }`),
+Karabiner's rewrite of it left 1500 lines of uncommitted change in the main checkout, and that
+blocked the ship's fast-forward of the live config. So edit however is convenient — a serializer
+round-trip is fine now — and let `npm run build` format before committing; `install` refuses a file
+that is not formatted. What the format protects is the diff, the only review surface a commit has,
+and clean hunk-level merging between the worktrees that ship into this file in parallel.
+
+**A branch cut before the reformat conflicts on every line of `karabiner.json` when rebased.** Format
+the branch's file and commit that first (`npm run build`), then rebase: both sides are then in one
+format and only the real edits conflict.
 
 ## Testing a change (worktrees + the live-config lock)
 
@@ -40,12 +48,8 @@ me to press a key.
   cwd, and the Bash tool's cwd drifts back to the main checkout mid-session: a lock taken from there
   snapshots the live file, and `install karabiner.json` then compares the live file with itself and
   reports "already identical" while installing nothing.
-- **Edit `karabiner.json` in place; never reformat it.** The file is Karabiner's own 4-space format
-  with short arrays inline, and both `json.dump` and `prettier` (the repo's `.prettierrc.json` is
-  2-space) rewrote the whole file — 2016 insertions for a 4-line change. `.prettierignore` now lists
-  `karabiner.json`, so prettier leaves it alone; `json.dump` and any other serializer still will not.
-  Patch the lines, and find a block's closing bracket by counting brackets: matching an indented `]`
-  finds the wrong one and silently eats the lines between.
+- **Never run prettier on `karabiner.json`.** The repo's `.prettierrc.json` is 2-space and would
+  rewrite the whole file; `.prettierignore` lists it. Karabiner's format comes from `npm run build`.
 - **`comment` goes on the rule, beside `description`, never inside a manipulator.** Karabiner drops a
   manipulator with a key it does not know and loads the rest, so the rule never fires. It reached the
   live file twice before `install` learned to refuse it ([load-errors.md](load-errors.md)).

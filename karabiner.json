@@ -1,6 +1,12 @@
 {
-    "global": { "show_in_menu_bar": false },
-    "machine_specific": { "krbn-7fe2a8ef-28b0-459b-9863-1964414114e1": { "external_editor_path": "/Applications/Visual Studio Code.app" } },
+    "global": {
+        "show_in_menu_bar": false
+    },
+    "machine_specific": {
+        "krbn-7fe2a8ef-28b0-459b-9863-1964414114e1": {
+            "external_editor_path": "/Applications/Visual Studio Code.app"
+        }
+    },
     "profiles": [
         {
             "complex_modifications": {
@@ -10,41 +16,60 @@
                         "manipulators": [
                             {
                                 "conditions": [
-                                {
-                                "bundle_identifiers": ["com.apple.iCal"],
-                                "type": "frontmost_application_if"
-                            },
-                                {
-                                "name": "vi_mode",
-                                "type": "variable_if",
-                                "value": 1
-                            }
+                                    {
+                                        "bundle_identifiers": [
+                                            "com.apple.iCal"
+                                        ],
+                                        "type": "frontmost_application_if"
+                                    },
+                                    {
+                                        "name": "vi_mode",
+                                        "type": "variable_if",
+                                        "value": 1
+                                    }
                                 ],
                                 "from": {
                                     "key_code": "j",
-                                    "modifiers": { "mandatory": ["shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "shift"
+                                        ]
+                                    }
                                 },
-                            "to": [
-                                {
-                                    "hold_down_milliseconds": 75,
-                                    "key_code": "down_arrow",
-                                    "modifiers": ["control", "shift"]
-                                }
-                            ],
+                                "to": [
+                                    {
+                                        "hold_down_milliseconds": 75,
+                                        "key_code": "down_arrow",
+                                        "modifiers": [
+                                            "control",
+                                            "shift"
+                                        ]
+                                    }
+                                ],
                                 "type": "basic"
                             },
                             {
                                 "conditions": [
-                                {
-                                "bundle_identifiers": ["com.apple.iCal"],
-                                "type": "frontmost_application_if"
-                            }
+                                    {
+                                        "bundle_identifiers": [
+                                            "com.apple.iCal"
+                                        ],
+                                        "type": "frontmost_application_if"
+                                    }
                                 ],
                                 "from": {
-                                    "modifiers": { "mandatory": ["shift"] },
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "shift"
+                                        ]
+                                    },
                                     "simultaneous": [
-                                        { "key_code": "d" },
-                                        { "key_code": "j" }
+                                        {
+                                            "key_code": "d"
+                                        },
+                                        {
+                                            "key_code": "j"
+                                        }
                                     ],
                                     "simultaneous_options": {
                                         "detect_key_down_uninterruptedly": true,
@@ -60,58 +85,79 @@
                                         ]
                                     }
                                 },
-                            "to": [
-                                {
-                                    "set_variable": {
-                                        "name": "vi_mode",
-                                        "value": 1
+                                "to": [
+                                    {
+                                        "set_variable": {
+                                            "name": "vi_mode",
+                                            "value": 1
+                                        }
+                                    },
+                                    {
+                                        "hold_down_milliseconds": 75,
+                                        "key_code": "down_arrow",
+                                        "modifiers": [
+                                            "control",
+                                            "shift"
+                                        ]
                                     }
-                                },
-                                {
-                                    "hold_down_milliseconds": 75,
-                                    "key_code": "down_arrow",
-                                    "modifiers": ["control", "shift"]
-                                }
-                            ],
+                                ],
                                 "type": "basic"
                             },
                             {
                                 "conditions": [
-                                {
-                                "bundle_identifiers": ["com.apple.iCal"],
-                                "type": "frontmost_application_if"
-                            },
-                                {
-                                "name": "vi_mode",
-                                "type": "variable_if",
-                                "value": 1
-                            }
+                                    {
+                                        "bundle_identifiers": [
+                                            "com.apple.iCal"
+                                        ],
+                                        "type": "frontmost_application_if"
+                                    },
+                                    {
+                                        "name": "vi_mode",
+                                        "type": "variable_if",
+                                        "value": 1
+                                    }
                                 ],
                                 "from": {
                                     "key_code": "j",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
-                            "to": [
-                                {
-                                    "hold_down_milliseconds": 75,
-                                    "key_code": "down_arrow",
-                                    "modifiers": ["control"]
-                                }
-                            ],
+                                "to": [
+                                    {
+                                        "hold_down_milliseconds": 75,
+                                        "key_code": "down_arrow",
+                                        "modifiers": [
+                                            "control"
+                                        ]
+                                    }
+                                ],
                                 "type": "basic"
                             },
                             {
                                 "conditions": [
-                                {
-                                "bundle_identifiers": ["com.apple.iCal"],
-                                "type": "frontmost_application_if"
-                            }
+                                    {
+                                        "bundle_identifiers": [
+                                            "com.apple.iCal"
+                                        ],
+                                        "type": "frontmost_application_if"
+                                    }
                                 ],
                                 "from": {
-                                    "modifiers": { "mandatory": ["command"] },
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    },
                                     "simultaneous": [
-                                        { "key_code": "d" },
-                                        { "key_code": "j" }
+                                        {
+                                            "key_code": "d"
+                                        },
+                                        {
+                                            "key_code": "j"
+                                        }
                                     ],
                                     "simultaneous_options": {
                                         "detect_key_down_uninterruptedly": true,
@@ -127,58 +173,79 @@
                                         ]
                                     }
                                 },
-                            "to": [
-                                {
-                                    "set_variable": {
-                                        "name": "vi_mode",
-                                        "value": 1
+                                "to": [
+                                    {
+                                        "set_variable": {
+                                            "name": "vi_mode",
+                                            "value": 1
+                                        }
+                                    },
+                                    {
+                                        "hold_down_milliseconds": 75,
+                                        "key_code": "down_arrow",
+                                        "modifiers": [
+                                            "control"
+                                        ]
                                     }
-                                },
-                                {
-                                    "hold_down_milliseconds": 75,
-                                    "key_code": "down_arrow",
-                                    "modifiers": ["control"]
-                                }
-                            ],
+                                ],
                                 "type": "basic"
                             },
                             {
                                 "conditions": [
-                                {
-                                "bundle_identifiers": ["com.apple.iCal"],
-                                "type": "frontmost_application_if"
-                            },
-                                {
-                                "name": "vi_mode",
-                                "type": "variable_if",
-                                "value": 1
-                            }
+                                    {
+                                        "bundle_identifiers": [
+                                            "com.apple.iCal"
+                                        ],
+                                        "type": "frontmost_application_if"
+                                    },
+                                    {
+                                        "name": "vi_mode",
+                                        "type": "variable_if",
+                                        "value": 1
+                                    }
                                 ],
                                 "from": {
                                     "key_code": "k",
-                                    "modifiers": { "mandatory": ["shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "shift"
+                                        ]
+                                    }
                                 },
-                            "to": [
-                                {
-                                    "hold_down_milliseconds": 75,
-                                    "key_code": "up_arrow",
-                                    "modifiers": ["control", "shift"]
-                                }
-                            ],
+                                "to": [
+                                    {
+                                        "hold_down_milliseconds": 75,
+                                        "key_code": "up_arrow",
+                                        "modifiers": [
+                                            "control",
+                                            "shift"
+                                        ]
+                                    }
+                                ],
                                 "type": "basic"
                             },
                             {
                                 "conditions": [
-                                {
-                                "bundle_identifiers": ["com.apple.iCal"],
-                                "type": "frontmost_application_if"
-                            }
+                                    {
+                                        "bundle_identifiers": [
+                                            "com.apple.iCal"
+                                        ],
+                                        "type": "frontmost_application_if"
+                                    }
                                 ],
                                 "from": {
-                                    "modifiers": { "mandatory": ["shift"] },
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "shift"
+                                        ]
+                                    },
                                     "simultaneous": [
-                                        { "key_code": "d" },
-                                        { "key_code": "k" }
+                                        {
+                                            "key_code": "d"
+                                        },
+                                        {
+                                            "key_code": "k"
+                                        }
                                     ],
                                     "simultaneous_options": {
                                         "detect_key_down_uninterruptedly": true,
@@ -194,58 +261,79 @@
                                         ]
                                     }
                                 },
-                            "to": [
-                                {
-                                    "set_variable": {
-                                        "name": "vi_mode",
-                                        "value": 1
+                                "to": [
+                                    {
+                                        "set_variable": {
+                                            "name": "vi_mode",
+                                            "value": 1
+                                        }
+                                    },
+                                    {
+                                        "hold_down_milliseconds": 75,
+                                        "key_code": "up_arrow",
+                                        "modifiers": [
+                                            "control",
+                                            "shift"
+                                        ]
                                     }
-                                },
-                                {
-                                    "hold_down_milliseconds": 75,
-                                    "key_code": "up_arrow",
-                                    "modifiers": ["control", "shift"]
-                                }
-                            ],
+                                ],
                                 "type": "basic"
                             },
                             {
                                 "conditions": [
-                                {
-                                "bundle_identifiers": ["com.apple.iCal"],
-                                "type": "frontmost_application_if"
-                            },
-                                {
-                                "name": "vi_mode",
-                                "type": "variable_if",
-                                "value": 1
-                            }
+                                    {
+                                        "bundle_identifiers": [
+                                            "com.apple.iCal"
+                                        ],
+                                        "type": "frontmost_application_if"
+                                    },
+                                    {
+                                        "name": "vi_mode",
+                                        "type": "variable_if",
+                                        "value": 1
+                                    }
                                 ],
                                 "from": {
                                     "key_code": "k",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
-                            "to": [
-                                {
-                                    "hold_down_milliseconds": 75,
-                                    "key_code": "up_arrow",
-                                    "modifiers": ["control"]
-                                }
-                            ],
+                                "to": [
+                                    {
+                                        "hold_down_milliseconds": 75,
+                                        "key_code": "up_arrow",
+                                        "modifiers": [
+                                            "control"
+                                        ]
+                                    }
+                                ],
                                 "type": "basic"
                             },
                             {
                                 "conditions": [
-                                {
-                                "bundle_identifiers": ["com.apple.iCal"],
-                                "type": "frontmost_application_if"
-                            }
+                                    {
+                                        "bundle_identifiers": [
+                                            "com.apple.iCal"
+                                        ],
+                                        "type": "frontmost_application_if"
+                                    }
                                 ],
                                 "from": {
-                                    "modifiers": { "mandatory": ["command"] },
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    },
                                     "simultaneous": [
-                                        { "key_code": "d" },
-                                        { "key_code": "k" }
+                                        {
+                                            "key_code": "d"
+                                        },
+                                        {
+                                            "key_code": "k"
+                                        }
                                     ],
                                     "simultaneous_options": {
                                         "detect_key_down_uninterruptedly": true,
@@ -261,19 +349,21 @@
                                         ]
                                     }
                                 },
-                            "to": [
-                                {
-                                    "set_variable": {
-                                        "name": "vi_mode",
-                                        "value": 1
+                                "to": [
+                                    {
+                                        "set_variable": {
+                                            "name": "vi_mode",
+                                            "value": 1
+                                        }
+                                    },
+                                    {
+                                        "hold_down_milliseconds": 75,
+                                        "key_code": "up_arrow",
+                                        "modifiers": [
+                                            "control"
+                                        ]
                                     }
-                                },
-                                {
-                                    "hold_down_milliseconds": 75,
-                                    "key_code": "up_arrow",
-                                    "modifiers": ["control"]
-                                }
-                            ],
+                                ],
                                 "type": "basic"
                             },
                             {
@@ -286,7 +376,11 @@
                                 ],
                                 "from": {
                                     "key_code": "j",
-                                    "modifiers": { "optional": ["any"] }
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -298,10 +392,18 @@
                             },
                             {
                                 "from": {
-                                    "modifiers": { "optional": ["any"] },
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    },
                                     "simultaneous": [
-                                        { "key_code": "d" },
-                                        { "key_code": "j" }
+                                        {
+                                            "key_code": "d"
+                                        },
+                                        {
+                                            "key_code": "j"
+                                        }
                                     ],
                                     "simultaneous_options": {
                                         "detect_key_down_uninterruptedly": true,
@@ -341,7 +443,11 @@
                                 ],
                                 "from": {
                                     "key_code": "k",
-                                    "modifiers": { "optional": ["any"] }
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -353,10 +459,18 @@
                             },
                             {
                                 "from": {
-                                    "modifiers": { "optional": ["any"] },
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    },
                                     "simultaneous": [
-                                        { "key_code": "d" },
-                                        { "key_code": "k" }
+                                        {
+                                            "key_code": "d"
+                                        },
+                                        {
+                                            "key_code": "k"
+                                        }
                                     ],
                                     "simultaneous_options": {
                                         "detect_key_down_uninterruptedly": true,
@@ -396,7 +510,11 @@
                                 ],
                                 "from": {
                                     "key_code": "h",
-                                    "modifiers": { "optional": ["any"] }
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -408,10 +526,18 @@
                             },
                             {
                                 "from": {
-                                    "modifiers": { "optional": ["any"] },
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    },
                                     "simultaneous": [
-                                        { "key_code": "d" },
-                                        { "key_code": "h" }
+                                        {
+                                            "key_code": "d"
+                                        },
+                                        {
+                                            "key_code": "h"
+                                        }
                                     ],
                                     "simultaneous_options": {
                                         "detect_key_down_uninterruptedly": true,
@@ -451,7 +577,11 @@
                                 ],
                                 "from": {
                                     "key_code": "l",
-                                    "modifiers": { "optional": ["any"] }
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -463,10 +593,18 @@
                             },
                             {
                                 "from": {
-                                    "modifiers": { "optional": ["any"] },
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    },
                                     "simultaneous": [
-                                        { "key_code": "d" },
-                                        { "key_code": "l" }
+                                        {
+                                            "key_code": "d"
+                                        },
+                                        {
+                                            "key_code": "l"
+                                        }
                                     ],
                                     "simultaneous_options": {
                                         "detect_key_down_uninterruptedly": true,
@@ -506,7 +644,11 @@
                                 ],
                                 "from": {
                                     "key_code": "f",
-                                    "modifiers": { "optional": ["any"] }
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -518,10 +660,18 @@
                             },
                             {
                                 "from": {
-                                    "modifiers": { "optional": ["any"] },
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    },
                                     "simultaneous": [
-                                        { "key_code": "d" },
-                                        { "key_code": "f" }
+                                        {
+                                            "key_code": "d"
+                                        },
+                                        {
+                                            "key_code": "f"
+                                        }
                                     ],
                                     "simultaneous_options": {
                                         "detect_key_down_uninterruptedly": true,
@@ -561,22 +711,36 @@
                                 ],
                                 "from": {
                                     "key_code": "b",
-                                    "modifiers": { "optional": ["any"] }
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "left_arrow",
-                                        "modifiers": ["left_option"]
+                                        "modifiers": [
+                                            "left_option"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
                             },
                             {
                                 "from": {
-                                    "modifiers": { "optional": ["any"] },
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    },
                                     "simultaneous": [
-                                        { "key_code": "d" },
-                                        { "key_code": "b" }
+                                        {
+                                            "key_code": "d"
+                                        },
+                                        {
+                                            "key_code": "b"
+                                        }
                                     ],
                                     "simultaneous_options": {
                                         "detect_key_down_uninterruptedly": true,
@@ -601,7 +765,9 @@
                                     },
                                     {
                                         "key_code": "left_arrow",
-                                        "modifiers": ["left_option"]
+                                        "modifiers": [
+                                            "left_option"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -616,22 +782,36 @@
                                 ],
                                 "from": {
                                     "key_code": "w",
-                                    "modifiers": { "optional": ["any"] }
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "right_arrow",
-                                        "modifiers": ["left_option"]
+                                        "modifiers": [
+                                            "left_option"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
                             },
                             {
                                 "from": {
-                                    "modifiers": { "optional": ["any"] },
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    },
                                     "simultaneous": [
-                                        { "key_code": "d" },
-                                        { "key_code": "w" }
+                                        {
+                                            "key_code": "d"
+                                        },
+                                        {
+                                            "key_code": "w"
+                                        }
                                     ],
                                     "simultaneous_options": {
                                         "detect_key_down_uninterruptedly": true,
@@ -656,7 +836,9 @@
                                     },
                                     {
                                         "key_code": "right_arrow",
-                                        "modifiers": ["left_option"]
+                                        "modifiers": [
+                                            "left_option"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -671,22 +853,36 @@
                                 ],
                                 "from": {
                                     "key_code": "0",
-                                    "modifiers": { "optional": ["any"] }
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "a",
-                                        "modifiers": ["left_control"]
+                                        "modifiers": [
+                                            "left_control"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
                             },
                             {
                                 "from": {
-                                    "modifiers": { "optional": ["any"] },
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    },
                                     "simultaneous": [
-                                        { "key_code": "d" },
-                                        { "key_code": "0" }
+                                        {
+                                            "key_code": "d"
+                                        },
+                                        {
+                                            "key_code": "0"
+                                        }
                                     ],
                                     "simultaneous_options": {
                                         "detect_key_down_uninterruptedly": true,
@@ -711,7 +907,9 @@
                                     },
                                     {
                                         "key_code": "a",
-                                        "modifiers": ["left_control"]
+                                        "modifiers": [
+                                            "left_control"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -726,22 +924,36 @@
                                 ],
                                 "from": {
                                     "key_code": "4",
-                                    "modifiers": { "optional": ["any"] }
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "e",
-                                        "modifiers": ["left_control"]
+                                        "modifiers": [
+                                            "left_control"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
                             },
                             {
                                 "from": {
-                                    "modifiers": { "optional": ["any"] },
+                                    "modifiers": {
+                                        "optional": [
+                                            "any"
+                                        ]
+                                    },
                                     "simultaneous": [
-                                        { "key_code": "d" },
-                                        { "key_code": "4" }
+                                        {
+                                            "key_code": "d"
+                                        },
+                                        {
+                                            "key_code": "4"
+                                        }
                                     ],
                                     "simultaneous_options": {
                                         "detect_key_down_uninterruptedly": true,
@@ -766,7 +978,9 @@
                                     },
                                     {
                                         "key_code": "e",
-                                        "modifiers": ["left_control"]
+                                        "modifiers": [
+                                            "left_control"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -790,14 +1004,22 @@
                                 "from": {
                                     "key_code": "m",
                                     "modifiers": {
-                                        "mandatory": ["command"],
-                                        "optional": ["any"]
+                                        "mandatory": [
+                                            "command"
+                                        ],
+                                        "optional": [
+                                            "any"
+                                        ]
                                     }
                                 },
                                 "to": [
                                     {
                                         "key_code": "m",
-                                        "modifiers": ["command", "option", "shift"]
+                                        "modifiers": [
+                                            "command",
+                                            "option",
+                                            "shift"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -811,22 +1033,32 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "bundle_identifiers": [
+                                            "com.anthropic.claudefordesktop"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "j",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "n",
-                                        "modifiers": ["command"]
+                                        "modifiers": [
+                                            "command"
+                                        ]
                                     },
                                     {
                                         "key_code": "3",
-                                        "modifiers": ["command"]
+                                        "modifiers": [
+                                            "command"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -840,18 +1072,26 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "bundle_identifiers": [
+                                            "com.anthropic.claudefordesktop"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "j",
-                                    "modifiers": { "mandatory": ["option"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "option"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "n",
-                                        "modifiers": ["command"]
+                                        "modifiers": [
+                                            "command"
+                                        ]
                                     },
                                     {
                                         "key_code": "return_or_enter"
@@ -868,13 +1108,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "bundle_identifiers": [
+                                            "com.anthropic.claudefordesktop"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "r",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -892,13 +1138,20 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "bundle_identifiers": [
+                                            "com.anthropic.claudefordesktop"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "r",
-                                    "modifiers": { "mandatory": ["command", "shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command",
+                                            "shift"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -918,7 +1171,9 @@
                                         "modifiers": [],
                                         "pointing_button": "button1"
                                     },
-                                    { "key_code": "vk_none" }
+                                    {
+                                        "key_code": "vk_none"
+                                    }
                                 ],
                                 "type": "basic"
                             }
@@ -931,13 +1186,20 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "bundle_identifiers": [
+                                            "com.anthropic.claudefordesktop"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "g",
-                                    "modifiers": { "mandatory": ["command", "shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command",
+                                            "shift"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -955,7 +1217,10 @@
                                     },
                                     {
                                         "key_code": "d",
-                                        "modifiers": ["command", "shift"]
+                                        "modifiers": [
+                                            "command",
+                                            "shift"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -963,19 +1228,26 @@
                         ]
                     },
                     {
-                        "comment": "Opens the usage popover (the meter beside the composer) by pressing it through the accessibility tree rather than clicking a hardcoded coordinate. It is an AXPopUpButton whose AXDescription is the usage summary itself -- \"Usage: Weekly \u00b7 Fable: 64%, Resets Thu 1:00 PM, Context 129k / 1M (13%)\" -- so the rule matches the stable \"Usage: \" prefix with the {} wildcard and lets the numbers vary. --role AXPopUpButton keeps it off the sidebar chat rows, whose titles can contain the word Usage. The default reverse walk reaches it in 47 elements, 29ms, since it sits at the end of the document beside the composer. The coordinate this replaces was (696, 938) and was already stale: the button measured (690,935 15x15) here, and it only ever landed while the window sat in its usual position and size. AXPress on an AXPopUpButton opens its popover. Logs one line per press to .claude/ax-press.log.",
+                        "comment": "Opens the usage popover (the meter beside the composer) by pressing it through the accessibility tree rather than clicking a hardcoded coordinate. It is an AXPopUpButton whose AXDescription is the usage summary itself -- \"Usage: Weekly · Fable: 64%, Resets Thu 1:00 PM, Context 129k / 1M (13%)\" -- so the rule matches the stable \"Usage: \" prefix with the {} wildcard and lets the numbers vary. --role AXPopUpButton keeps it off the sidebar chat rows, whose titles can contain the word Usage. The default reverse walk reaches it in 47 elements, 29ms, since it sits at the end of the document beside the composer. The coordinate this replaces was (696, 938) and was already stale: the button measured (690,935 15x15) here, and it only ever landed while the window sat in its usual position and size. AXPress on an AXPopUpButton opens its popover. Logs one line per press to .claude/ax-press.log.",
                         "description": "Claude: ⇧⌘U → Usage (physical key i in Colemak)",
                         "manipulators": [
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "bundle_identifiers": [
+                                            "com.anthropic.claudefordesktop"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "i",
-                                    "modifiers": { "mandatory": ["command", "shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command",
+                                            "shift"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -992,18 +1264,26 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "bundle_identifiers": [
+                                            "com.anthropic.claudefordesktop"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "b",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "period",
-                                        "modifiers": ["command"]
+                                        "modifiers": [
+                                            "command"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -1017,18 +1297,27 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "bundle_identifiers": [
+                                            "com.anthropic.claudefordesktop"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "b",
-                                    "modifiers": { "mandatory": ["command", "option"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command",
+                                            "option"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "backslash",
-                                        "modifiers": ["command"]
+                                        "modifiers": [
+                                            "command"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -1042,18 +1331,27 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "bundle_identifiers": [
+                                            "com.anthropic.claudefordesktop"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "period",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "i",
-                                        "modifiers": ["command", "shift"]
+                                        "modifiers": [
+                                            "command",
+                                            "shift"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -1066,18 +1364,26 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "bundle_identifiers": [
+                                            "com.anthropic.claudefordesktop"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "f",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "grave_accent_and_tilde",
-                                        "modifiers": ["control"]
+                                        "modifiers": [
+                                            "control"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -1091,13 +1397,20 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "bundle_identifiers": [
+                                            "com.anthropic.claudefordesktop"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "f",
-                                    "modifiers": { "mandatory": ["command", "shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command",
+                                            "shift"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -1115,13 +1428,20 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "bundle_identifiers": [
+                                            "com.anthropic.claudefordesktop"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "k",
-                                    "modifiers": { "mandatory": ["command", "shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command",
+                                            "shift"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -1139,27 +1459,53 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "bundle_identifiers": [
+                                            "com.anthropic.claudefordesktop"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "1",
-                                    "modifiers": { "mandatory": ["command", "shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command",
+                                            "shift"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "f2",
-                                        "modifiers": ["fn", "control"]
+                                        "modifiers": [
+                                            "fn",
+                                            "control"
+                                        ]
                                     },
-                                    { "key_code": "t" },
-                                    { "key_code": "semicolon" },
-                                    { "key_code": "return_or_enter" },
-                                    { "key_code": "c" },
-                                    { "key_code": "h" },
-                                    { "key_code": "a" },
-                                    { "key_code": "f" },
-                                    { "key_code": "return_or_enter" },
+                                    {
+                                        "key_code": "t"
+                                    },
+                                    {
+                                        "key_code": "semicolon"
+                                    },
+                                    {
+                                        "key_code": "return_or_enter"
+                                    },
+                                    {
+                                        "key_code": "c"
+                                    },
+                                    {
+                                        "key_code": "h"
+                                    },
+                                    {
+                                        "key_code": "a"
+                                    },
+                                    {
+                                        "key_code": "f"
+                                    },
+                                    {
+                                        "key_code": "return_or_enter"
+                                    },
                                     {
                                         "hold_down_milliseconds": 10,
                                         "key_code": "vk_none"
@@ -1170,27 +1516,53 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "bundle_identifiers": [
+                                            "com.anthropic.claudefordesktop"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "2",
-                                    "modifiers": { "mandatory": ["command", "shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command",
+                                            "shift"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "f2",
-                                        "modifiers": ["fn", "control"]
+                                        "modifiers": [
+                                            "fn",
+                                            "control"
+                                        ]
                                     },
-                                    { "key_code": "t" },
-                                    { "key_code": "semicolon" },
-                                    { "key_code": "return_or_enter" },
-                                    { "key_code": "c" },
-                                    { "key_code": "semicolon" },
-                                    { "key_code": "g" },
-                                    { "key_code": "k" },
-                                    { "key_code": "return_or_enter" },
+                                    {
+                                        "key_code": "t"
+                                    },
+                                    {
+                                        "key_code": "semicolon"
+                                    },
+                                    {
+                                        "key_code": "return_or_enter"
+                                    },
+                                    {
+                                        "key_code": "c"
+                                    },
+                                    {
+                                        "key_code": "semicolon"
+                                    },
+                                    {
+                                        "key_code": "g"
+                                    },
+                                    {
+                                        "key_code": "k"
+                                    },
+                                    {
+                                        "key_code": "return_or_enter"
+                                    },
                                     {
                                         "hold_down_milliseconds": 10,
                                         "key_code": "vk_none"
@@ -1207,13 +1579,20 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "bundle_identifiers": [
+                                            "com.anthropic.claudefordesktop"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "period",
-                                    "modifiers": { "mandatory": ["command", "option"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command",
+                                            "option"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -1231,13 +1610,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "bundle_identifiers": [
+                                            "com.anthropic.claudefordesktop"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "s",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -1255,13 +1640,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.anthropic.claudefordesktop"],
+                                        "bundle_identifiers": [
+                                            "com.anthropic.claudefordesktop"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "u",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -1278,20 +1669,34 @@
                             {
                                 "from": {
                                     "key_code": "quote",
-                                    "modifiers": { "mandatory": ["left_option"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "left_option"
+                                        ]
+                                    }
                                 },
-                                "to": [{ "key_code": "grave_accent_and_tilde" }],
+                                "to": [
+                                    {
+                                        "key_code": "grave_accent_and_tilde"
+                                    }
+                                ],
                                 "type": "basic"
                             },
                             {
                                 "from": {
                                     "key_code": "f",
-                                    "modifiers": { "mandatory": ["left_option"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "left_option"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "grave_accent_and_tilde",
-                                        "modifiers": ["left_shift"]
+                                        "modifiers": [
+                                            "left_shift"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -1299,28 +1704,51 @@
                             {
                                 "from": {
                                     "key_code": "h",
-                                    "modifiers": { "mandatory": ["left_option"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "left_option"
+                                        ]
+                                    }
                                 },
-                                "to": [{ "key_code": "hyphen" }],
+                                "to": [
+                                    {
+                                        "key_code": "hyphen"
+                                    }
+                                ],
                                 "type": "basic"
                             },
                             {
                                 "from": {
                                     "key_code": "q",
-                                    "modifiers": { "mandatory": ["left_option"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "left_option"
+                                        ]
+                                    }
                                 },
-                                "to": [{ "key_code": "equal_sign" }],
+                                "to": [
+                                    {
+                                        "key_code": "equal_sign"
+                                    }
+                                ],
                                 "type": "basic"
                             },
                             {
                                 "from": {
                                     "key_code": "q",
-                                    "modifiers": { "mandatory": ["left_shift", "left_option"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "left_shift",
+                                            "left_option"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "equal_sign",
-                                        "modifiers": ["left_shift"]
+                                        "modifiers": [
+                                            "left_shift"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -1328,12 +1756,18 @@
                             {
                                 "from": {
                                     "key_code": "i",
-                                    "modifiers": { "mandatory": ["left_option"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "left_option"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "hyphen",
-                                        "modifiers": ["left_shift"]
+                                        "modifiers": [
+                                            "left_shift"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -1341,16 +1775,24 @@
                             {
                                 "from": {
                                     "key_code": "b",
-                                    "modifiers": { "mandatory": ["left_option"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "left_option"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "backslash",
-                                        "modifiers": ["left_shift"]
+                                        "modifiers": [
+                                            "left_shift"
+                                        ]
                                     },
                                     {
                                         "key_code": "backslash",
-                                        "modifiers": ["left_shift"]
+                                        "modifiers": [
+                                            "left_shift"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -1359,22 +1801,36 @@
                                 "from": {
                                     "key_code": "spacebar",
                                     "modifiers": {
-                                        "mandatory": ["left_option"],
-                                        "optional": ["left_shift"]
+                                        "mandatory": [
+                                            "left_option"
+                                        ],
+                                        "optional": [
+                                            "left_shift"
+                                        ]
                                     }
                                 },
-                                "to": [{ "key_code": "spacebar" }],
+                                "to": [
+                                    {
+                                        "key_code": "spacebar"
+                                    }
+                                ],
                                 "type": "basic"
                             },
                             {
                                 "from": {
                                     "key_code": "comma",
-                                    "modifiers": { "mandatory": ["left_option"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "left_option"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "comma",
-                                        "modifiers": ["left_shift"]
+                                        "modifiers": [
+                                            "left_shift"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -1382,12 +1838,18 @@
                             {
                                 "from": {
                                     "key_code": "period",
-                                    "modifiers": { "mandatory": ["left_option"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "left_option"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "period",
-                                        "modifiers": ["left_shift"]
+                                        "modifiers": [
+                                            "left_shift"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -1400,28 +1862,15 @@
                             {
                                 "from": {
                                     "key_code": "l",
-                                    "modifiers": { "mandatory": ["left_option"] }
-                                },
-                                "to": [{ "key_code": "open_bracket" }],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "key_code": "semicolon",
-                                    "modifiers": { "mandatory": ["left_option"] }
-                                },
-                                "to": [{ "key_code": "close_bracket" }],
-                                "type": "basic"
-                            },
-                            {
-                                "from": {
-                                    "key_code": "l",
-                                    "modifiers": { "mandatory": ["left_shift", "left_option"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "left_option"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
-                                        "key_code": "open_bracket",
-                                        "modifiers": ["left_shift"]
+                                        "key_code": "open_bracket"
                                     }
                                 ],
                                 "type": "basic"
@@ -1429,12 +1878,55 @@
                             {
                                 "from": {
                                     "key_code": "semicolon",
-                                    "modifiers": { "mandatory": ["left_shift", "left_option"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "left_option"
+                                        ]
+                                    }
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "close_bracket"
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "l",
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "left_shift",
+                                            "left_option"
+                                        ]
+                                    }
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "open_bracket",
+                                        "modifiers": [
+                                            "left_shift"
+                                        ]
+                                    }
+                                ],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "semicolon",
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "left_shift",
+                                            "left_option"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "close_bracket",
-                                        "modifiers": ["left_shift"]
+                                        "modifiers": [
+                                            "left_shift"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -1442,12 +1934,19 @@
                             {
                                 "from": {
                                     "key_code": "l",
-                                    "modifiers": { "mandatory": ["left_command", "left_option"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "left_command",
+                                            "left_option"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "open_bracket",
-                                        "modifiers": ["left_command"]
+                                        "modifiers": [
+                                            "left_command"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -1460,12 +1959,18 @@
                             {
                                 "from": {
                                     "key_code": "open_bracket",
-                                    "modifiers": { "mandatory": ["right_shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "right_shift"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "left_arrow",
-                                        "modifiers": ["left_control"]
+                                        "modifiers": [
+                                            "left_control"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -1473,12 +1978,18 @@
                             {
                                 "from": {
                                     "key_code": "close_bracket",
-                                    "modifiers": { "mandatory": ["right_shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "right_shift"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "right_arrow",
-                                        "modifiers": ["left_control"]
+                                        "modifiers": [
+                                            "left_control"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -1492,16 +2003,27 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "bundle_identifiers": [
+                                            "com.electron.shortwave"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "t",
-                                    "modifiers": { "mandatory": ["shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "shift"
+                                        ]
+                                    }
                                 },
                                 "to": [
-                                    { "key_code": "t", "modifiers": ["shift"] },
+                                    {
+                                        "key_code": "t",
+                                        "modifiers": [
+                                            "shift"
+                                        ]
+                                    },
                                     {
                                         "shell_command": "printf '%s\\0' com.electron.shortwave \"Avatar for {}\" --role AXImage --within 40,100,300,1200 --ancestor '*:6' --scroll-to-end --budget-ms 5000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
@@ -1516,113 +2038,225 @@
                             {
                                 "from": {
                                     "key_code": "a",
-                                    "modifiers": { "mandatory": ["right_shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "right_shift"
+                                        ]
+                                    }
                                 },
-                                "to": [{ "shell_command": "open '/Applications/Utilities/Activity Monitor.app'" }],
+                                "to": [
+                                    {
+                                        "shell_command": "open '/Applications/Utilities/Activity Monitor.app'"
+                                    }
+                                ],
                                 "type": "basic"
                             },
                             {
                                 "from": {
                                     "key_code": "c",
-                                    "modifiers": { "mandatory": ["right_shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "right_shift"
+                                        ]
+                                    }
                                 },
-                                "to": [{ "shell_command": "open '/Applications/Calendar.app'" }],
+                                "to": [
+                                    {
+                                        "shell_command": "open '/Applications/Calendar.app'"
+                                    }
+                                ],
                                 "type": "basic"
                             },
                             {
                                 "from": {
                                     "key_code": "k",
-                                    "modifiers": { "mandatory": ["right_shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "right_shift"
+                                        ]
+                                    }
                                 },
-                                "to": [{ "shell_command": "open '/Applications/Sublime Text.app'" }],
+                                "to": [
+                                    {
+                                        "shell_command": "open '/Applications/Sublime Text.app'"
+                                    }
+                                ],
                                 "type": "basic"
                             },
                             {
                                 "from": {
                                     "key_code": "e",
-                                    "modifiers": { "mandatory": ["right_shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "right_shift"
+                                        ]
+                                    }
                                 },
-                                "to": [{ "shell_command": "open /System/Library/CoreServices/Finder.app" }],
+                                "to": [
+                                    {
+                                        "shell_command": "open /System/Library/CoreServices/Finder.app"
+                                    }
+                                ],
                                 "type": "basic"
                             },
                             {
                                 "from": {
                                     "key_code": "t",
-                                    "modifiers": { "mandatory": ["right_shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "right_shift"
+                                        ]
+                                    }
                                 },
-                                "to": [{ "shell_command": "open '/Applications/GitHub Desktop.app'" }],
+                                "to": [
+                                    {
+                                        "shell_command": "open '/Applications/GitHub Desktop.app'"
+                                    }
+                                ],
                                 "type": "basic"
                             },
                             {
                                 "from": {
                                     "key_code": "h",
-                                    "modifiers": { "mandatory": ["right_shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "right_shift"
+                                        ]
+                                    }
                                 },
-                                "to": [{ "shell_command": "open '/Applications/Google Chrome.app'" }],
+                                "to": [
+                                    {
+                                        "shell_command": "open '/Applications/Google Chrome.app'"
+                                    }
+                                ],
                                 "type": "basic"
                             },
                             {
                                 "from": {
                                     "key_code": "j",
-                                    "modifiers": { "mandatory": ["right_shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "right_shift"
+                                        ]
+                                    }
                                 },
-                                "to": [{ "shell_command": "open '/Applications/Notion.app'" }],
+                                "to": [
+                                    {
+                                        "shell_command": "open '/Applications/Notion.app'"
+                                    }
+                                ],
                                 "type": "basic"
                             },
                             {
                                 "from": {
                                     "key_code": "n",
-                                    "modifiers": { "mandatory": ["right_shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "right_shift"
+                                        ]
+                                    }
                                 },
-                                "to": [{ "shell_command": "open '/Applications/Karabiner-Elements.app'" }],
+                                "to": [
+                                    {
+                                        "shell_command": "open '/Applications/Karabiner-Elements.app'"
+                                    }
+                                ],
                                 "type": "basic"
                             },
                             {
                                 "from": {
                                     "key_code": "m",
-                                    "modifiers": { "mandatory": ["right_shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "right_shift"
+                                        ]
+                                    }
                                 },
-                                "to": [{ "shell_command": "open '/Applications/Messages.app'" }],
+                                "to": [
+                                    {
+                                        "shell_command": "open '/Applications/Messages.app'"
+                                    }
+                                ],
                                 "type": "basic"
                             },
                             {
                                 "from": {
                                     "key_code": "d",
-                                    "modifiers": { "mandatory": ["right_shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "right_shift"
+                                        ]
+                                    }
                                 },
-                                "to": [{ "shell_command": "open '/Applications/Spotify.app'" }],
+                                "to": [
+                                    {
+                                        "shell_command": "open '/Applications/Spotify.app'"
+                                    }
+                                ],
                                 "type": "basic"
                             },
                             {
                                 "from": {
                                     "key_code": "f",
-                                    "modifiers": { "mandatory": ["right_shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "right_shift"
+                                        ]
+                                    }
                                 },
-                                "to": [{ "shell_command": "open '/Applications/iTerm.app'" }],
+                                "to": [
+                                    {
+                                        "shell_command": "open '/Applications/iTerm.app'"
+                                    }
+                                ],
                                 "type": "basic"
                             },
                             {
                                 "from": {
                                     "key_code": "v",
-                                    "modifiers": { "mandatory": ["right_shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "right_shift"
+                                        ]
+                                    }
                                 },
-                                "to": [{ "shell_command": "open '/Applications/Brave Browser.app'" }],
+                                "to": [
+                                    {
+                                        "shell_command": "open '/Applications/Brave Browser.app'"
+                                    }
+                                ],
                                 "type": "basic"
                             },
                             {
                                 "from": {
                                     "key_code": "w",
-                                    "modifiers": { "mandatory": ["right_shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "right_shift"
+                                        ]
+                                    }
                                 },
-                                "to": [{ "shell_command": "open '/Applications/WhatsApp.app'" }],
+                                "to": [
+                                    {
+                                        "shell_command": "open '/Applications/WhatsApp.app'"
+                                    }
+                                ],
                                 "type": "basic"
                             },
                             {
                                 "from": {
                                     "key_code": "z",
-                                    "modifiers": { "mandatory": ["right_shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "right_shift"
+                                        ]
+                                    }
                                 },
-                                "to": [{ "shell_command": "open '/Applications/zoom.us.app'" }],
+                                "to": [
+                                    {
+                                        "shell_command": "open '/Applications/zoom.us.app'"
+                                    }
+                                ],
                                 "type": "basic"
                             }
                         ]
@@ -1633,12 +2267,19 @@
                             {
                                 "from": {
                                     "key_code": "l",
-                                    "modifiers": { "mandatory": ["command", "control"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command",
+                                            "control"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "l",
-                                        "modifiers": ["command"]
+                                        "modifiers": [
+                                            "command"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -1651,12 +2292,19 @@
                             {
                                 "from": {
                                     "key_code": "h",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "open_bracket",
-                                        "modifiers": ["command", "left_shift"]
+                                        "modifiers": [
+                                            "command",
+                                            "left_shift"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -1664,12 +2312,19 @@
                             {
                                 "from": {
                                     "key_code": "l",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "close_bracket",
-                                        "modifiers": ["command", "left_shift"]
+                                        "modifiers": [
+                                            "command",
+                                            "left_shift"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -1682,9 +2337,18 @@
                             {
                                 "from": {
                                     "key_code": "t",
-                                    "modifiers": { "mandatory": ["left_command", "left_option"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "left_command",
+                                            "left_option"
+                                        ]
+                                    }
                                 },
-                                "to": [{ "shell_command": "open 'https://github.com/notifications'" }],
+                                "to": [
+                                    {
+                                        "shell_command": "open 'https://github.com/notifications'"
+                                    }
+                                ],
                                 "type": "basic"
                             }
                         ]
@@ -1695,9 +2359,19 @@
                             {
                                 "from": {
                                     "key_code": "k",
-                                    "modifiers": { "mandatory": ["left_command", "left_control", "left_option"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "left_command",
+                                            "left_control",
+                                            "left_option"
+                                        ]
+                                    }
                                 },
-                                "to": [{ "shell_command": "open 'https://github.com/cybersemics/em/issues/'" }],
+                                "to": [
+                                    {
+                                        "shell_command": "open 'https://github.com/cybersemics/em/issues/'"
+                                    }
+                                ],
                                 "type": "basic"
                             }
                         ]
@@ -1717,9 +2391,18 @@
                                 ],
                                 "from": {
                                     "key_code": "s",
-                                    "modifiers": { "mandatory": ["command", "option"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command",
+                                            "option"
+                                        ]
+                                    }
                                 },
-                                "to": [{ "shell_command": "/usr/bin/osascript -l JavaScript \"$HOME/.config/karabiner/scripts/clear-site-data.js\"" }],
+                                "to": [
+                                    {
+                                        "shell_command": "/usr/bin/osascript -l JavaScript \"$HOME/.config/karabiner/scripts/clear-site-data.js\""
+                                    }
+                                ],
                                 "type": "basic"
                             }
                         ]
@@ -1730,18 +2413,26 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "bundle_identifiers": [
+                                            "com.electron.shortwave"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "b",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "slash",
-                                        "modifiers": ["command"]
+                                        "modifiers": [
+                                            "command"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -1754,18 +2445,27 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "bundle_identifiers": [
+                                            "com.electron.shortwave"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "b",
-                                    "modifiers": { "mandatory": ["command", "option"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command",
+                                            "option"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "key_code": "backslash",
-                                        "modifiers": ["command"]
+                                        "modifiers": [
+                                            "command"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -1779,13 +2479,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "bundle_identifiers": [
+                                            "com.electron.shortwave"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "a",
-                                    "modifiers": { "mandatory": ["option"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "option"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -1803,13 +2509,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "bundle_identifiers": [
+                                            "com.electron.shortwave"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "return_or_enter",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -1827,13 +2539,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "bundle_identifiers": [
+                                            "com.electron.shortwave"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
-                                "from": { "key_code": "1" },
+                                "from": {
+                                    "key_code": "1"
+                                },
                                 "to": [
-                                    { "key_code": "1" },
+                                    {
+                                        "key_code": "1"
+                                    },
                                     {
                                         "shell_command": "printf '%s\\0' com.electron.shortwave \"Overview\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
@@ -1843,13 +2561,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "bundle_identifiers": [
+                                            "com.electron.shortwave"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
-                                "from": { "key_code": "2" },
+                                "from": {
+                                    "key_code": "2"
+                                },
                                 "to": [
-                                    { "key_code": "2" },
+                                    {
+                                        "key_code": "2"
+                                    },
                                     {
                                         "shell_command": "printf '%s\\0' com.electron.shortwave \"Inbox setup\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
@@ -1859,13 +2583,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "bundle_identifiers": [
+                                            "com.electron.shortwave"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
-                                "from": { "key_code": "3" },
+                                "from": {
+                                    "key_code": "3"
+                                },
                                 "to": [
-                                    { "key_code": "3" },
+                                    {
+                                        "key_code": "3"
+                                    },
                                     {
                                         "shell_command": "printf '%s\\0' com.electron.shortwave \"Appearance\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
@@ -1875,13 +2605,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "bundle_identifiers": [
+                                            "com.electron.shortwave"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
-                                "from": { "key_code": "4" },
+                                "from": {
+                                    "key_code": "4"
+                                },
                                 "to": [
-                                    { "key_code": "4" },
+                                    {
+                                        "key_code": "4"
+                                    },
                                     {
                                         "shell_command": "printf '%s\\0' com.electron.shortwave \"Compose\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
@@ -1891,13 +2627,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "bundle_identifiers": [
+                                            "com.electron.shortwave"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
-                                "from": { "key_code": "5" },
+                                "from": {
+                                    "key_code": "5"
+                                },
                                 "to": [
-                                    { "key_code": "5" },
+                                    {
+                                        "key_code": "5"
+                                    },
                                     {
                                         "shell_command": "printf '%s\\0' com.electron.shortwave \"Notifications\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
@@ -1907,13 +2649,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "bundle_identifiers": [
+                                            "com.electron.shortwave"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
-                                "from": { "key_code": "6" },
+                                "from": {
+                                    "key_code": "6"
+                                },
                                 "to": [
-                                    { "key_code": "6" },
+                                    {
+                                        "key_code": "6"
+                                    },
                                     {
                                         "shell_command": "printf '%s\\0' com.electron.shortwave \"AI Personalization\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
@@ -1923,13 +2671,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "bundle_identifiers": [
+                                            "com.electron.shortwave"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
-                                "from": { "key_code": "7" },
+                                "from": {
+                                    "key_code": "7"
+                                },
                                 "to": [
-                                    { "key_code": "7" },
+                                    {
+                                        "key_code": "7"
+                                    },
                                     {
                                         "shell_command": "printf '%s\\0' com.electron.shortwave \"AI Integrations\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
@@ -1939,13 +2693,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "bundle_identifiers": [
+                                            "com.electron.shortwave"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
-                                "from": { "key_code": "8" },
+                                "from": {
+                                    "key_code": "8"
+                                },
                                 "to": [
-                                    { "key_code": "8" },
+                                    {
+                                        "key_code": "8"
+                                    },
                                     {
                                         "shell_command": "printf '%s\\0' com.electron.shortwave \"Labels\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
@@ -1955,13 +2715,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "bundle_identifiers": [
+                                            "com.electron.shortwave"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
-                                "from": { "key_code": "9" },
+                                "from": {
+                                    "key_code": "9"
+                                },
                                 "to": [
-                                    { "key_code": "9" },
+                                    {
+                                        "key_code": "9"
+                                    },
                                     {
                                         "shell_command": "printf '%s\\0' com.electron.shortwave \"Filters\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
@@ -1971,13 +2737,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "bundle_identifiers": [
+                                            "com.electron.shortwave"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
-                                "from": { "key_code": "a" },
+                                "from": {
+                                    "key_code": "a"
+                                },
                                 "to": [
-                                    { "key_code": "a" },
+                                    {
+                                        "key_code": "a"
+                                    },
                                     {
                                         "shell_command": "printf '%s\\0' com.electron.shortwave \"Calendar\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
@@ -1987,13 +2759,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "bundle_identifiers": [
+                                            "com.electron.shortwave"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
-                                "from": { "key_code": "b" },
+                                "from": {
+                                    "key_code": "b"
+                                },
                                 "to": [
-                                    { "key_code": "b" },
+                                    {
+                                        "key_code": "b"
+                                    },
                                     {
                                         "shell_command": "printf '%s\\0' com.electron.shortwave \"Miscellaneous\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
@@ -2003,13 +2781,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "bundle_identifiers": [
+                                            "com.electron.shortwave"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
-                                "from": { "key_code": "c" },
+                                "from": {
+                                    "key_code": "c"
+                                },
                                 "to": [
-                                    { "key_code": "c" },
+                                    {
+                                        "key_code": "c"
+                                    },
                                     {
                                         "shell_command": "printf '%s\\0' com.electron.shortwave \"AI Agents\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
@@ -2019,13 +2803,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "bundle_identifiers": [
+                                            "com.electron.shortwave"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
-                                "from": { "key_code": "g" },
+                                "from": {
+                                    "key_code": "g"
+                                },
                                 "to": [
-                                    { "key_code": "g" },
+                                    {
+                                        "key_code": "g"
+                                    },
                                     {
                                         "shell_command": "printf '%s\\0' com.electron.shortwave \"Members & Billing\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
@@ -2035,13 +2825,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "bundle_identifiers": [
+                                            "com.electron.shortwave"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
-                                "from": { "key_code": "k" },
+                                "from": {
+                                    "key_code": "k"
+                                },
                                 "to": [
-                                    { "key_code": "k" },
+                                    {
+                                        "key_code": "k"
+                                    },
                                     {
                                         "shell_command": "printf '%s\\0' com.electron.shortwave \"Team collaboration\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
@@ -2051,13 +2847,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.electron.shortwave"],
+                                        "bundle_identifiers": [
+                                            "com.electron.shortwave"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
-                                "from": { "key_code": "e" },
+                                "from": {
+                                    "key_code": "e"
+                                },
                                 "to": [
-                                    { "key_code": "e" },
+                                    {
+                                        "key_code": "e"
+                                    },
                                     {
                                         "shell_command": "printf '%s\\0' com.electron.shortwave \"Team AI Assistant\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
@@ -2073,13 +2875,20 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["notion.id"],
+                                        "bundle_identifiers": [
+                                            "notion.id"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "k",
-                                    "modifiers": { "mandatory": ["command", "shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command",
+                                            "shift"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -2097,32 +2906,60 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.apple.MobileSMS"],
+                                        "bundle_identifiers": [
+                                            "com.apple.MobileSMS"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "k",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "shell_command": "/usr/bin/osascript -l JavaScript \"$HOME/.config/karabiner/scripts/restore-mouse-position.js\" 1.4"
                                     },
-                                    { "hold_down_milliseconds": 200, "key_code": "vk_none" },
+                                    {
+                                        "hold_down_milliseconds": 200,
+                                        "key_code": "vk_none"
+                                    },
                                     {
                                         "software_function": {
-                                            "set_mouse_cursor_position": { "screen": 0, "x": 360, "y": 890 }
+                                            "set_mouse_cursor_position": {
+                                                "screen": 0,
+                                                "x": 360,
+                                                "y": 890
+                                            }
                                         }
                                     },
-                                    { "hold_down_milliseconds": 100, "key_code": "vk_none" },
-                                    { "hold_down_milliseconds": 150, "modifiers": [], "pointing_button": "button2" },
+                                    {
+                                        "hold_down_milliseconds": 100,
+                                        "key_code": "vk_none"
+                                    },
+                                    {
+                                        "hold_down_milliseconds": 150,
+                                        "modifiers": [],
+                                        "pointing_button": "button2"
+                                    },
                                     {
                                         "shell_command": "/usr/bin/osascript -l JavaScript \"$HOME/.config/karabiner/scripts/move-to-tapback-picker.js\""
                                     },
-                                    { "hold_down_milliseconds": 550, "key_code": "vk_none" },
-                                    { "modifiers": [], "pointing_button": "button1" },
-                                    { "key_code": "vk_none" }
+                                    {
+                                        "hold_down_milliseconds": 550,
+                                        "key_code": "vk_none"
+                                    },
+                                    {
+                                        "modifiers": [],
+                                        "pointing_button": "button1"
+                                    },
+                                    {
+                                        "key_code": "vk_none"
+                                    }
                                 ],
                                 "type": "basic"
                             }
@@ -2135,13 +2972,20 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.openai.codex"],
+                                        "bundle_identifiers": [
+                                            "com.openai.codex"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "c",
-                                    "modifiers": { "mandatory": ["command", "shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command",
+                                            "shift"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -2159,13 +3003,20 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.openai.codex"],
+                                        "bundle_identifiers": [
+                                            "com.openai.codex"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "e",
-                                    "modifiers": { "mandatory": ["command", "shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command",
+                                            "shift"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -2183,13 +3034,20 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.openai.codex"],
+                                        "bundle_identifiers": [
+                                            "com.openai.codex"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "i",
-                                    "modifiers": { "mandatory": ["command", "shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command",
+                                            "shift"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -2207,13 +3065,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["org.pqrs.Karabiner-Elements.Settings"],
+                                        "bundle_identifiers": [
+                                            "org.pqrs.Karabiner-Elements.Settings"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "1",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -2225,13 +3089,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["org.pqrs.Karabiner-Elements.Settings"],
+                                        "bundle_identifiers": [
+                                            "org.pqrs.Karabiner-Elements.Settings"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "2",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -2243,13 +3113,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["org.pqrs.Karabiner-Elements.Settings"],
+                                        "bundle_identifiers": [
+                                            "org.pqrs.Karabiner-Elements.Settings"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "3",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -2261,13 +3137,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["org.pqrs.Karabiner-Elements.Settings"],
+                                        "bundle_identifiers": [
+                                            "org.pqrs.Karabiner-Elements.Settings"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "4",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -2279,13 +3161,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["org.pqrs.Karabiner-Elements.Settings"],
+                                        "bundle_identifiers": [
+                                            "org.pqrs.Karabiner-Elements.Settings"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "5",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -2297,13 +3185,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["org.pqrs.Karabiner-Elements.Settings"],
+                                        "bundle_identifiers": [
+                                            "org.pqrs.Karabiner-Elements.Settings"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "6",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -2315,13 +3209,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["org.pqrs.Karabiner-Elements.Settings"],
+                                        "bundle_identifiers": [
+                                            "org.pqrs.Karabiner-Elements.Settings"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "7",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -2333,13 +3233,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["org.pqrs.Karabiner-Elements.Settings"],
+                                        "bundle_identifiers": [
+                                            "org.pqrs.Karabiner-Elements.Settings"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "8",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -2351,13 +3257,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["org.pqrs.Karabiner-Elements.Settings"],
+                                        "bundle_identifiers": [
+                                            "org.pqrs.Karabiner-Elements.Settings"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "9",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -2369,13 +3281,19 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["org.pqrs.Karabiner-Elements.Settings"],
+                                        "bundle_identifiers": [
+                                            "org.pqrs.Karabiner-Elements.Settings"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "0",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
@@ -2393,19 +3311,28 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.apple.iCal"],
+                                        "bundle_identifiers": [
+                                            "com.apple.iCal"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "down_arrow",
-                                    "modifiers": { "mandatory": ["shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "shift"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "hold_down_milliseconds": 75,
                                         "key_code": "down_arrow",
-                                        "modifiers": ["control", "shift"]
+                                        "modifiers": [
+                                            "control",
+                                            "shift"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -2413,19 +3340,28 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.apple.iCal"],
+                                        "bundle_identifiers": [
+                                            "com.apple.iCal"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "up_arrow",
-                                    "modifiers": { "mandatory": ["shift"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "shift"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "hold_down_milliseconds": 75,
                                         "key_code": "up_arrow",
-                                        "modifiers": ["control", "shift"]
+                                        "modifiers": [
+                                            "control",
+                                            "shift"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -2433,19 +3369,27 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.apple.iCal"],
+                                        "bundle_identifiers": [
+                                            "com.apple.iCal"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "down_arrow",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "hold_down_milliseconds": 75,
                                         "key_code": "down_arrow",
-                                        "modifiers": ["control"]
+                                        "modifiers": [
+                                            "control"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -2453,19 +3397,27 @@
                             {
                                 "conditions": [
                                     {
-                                        "bundle_identifiers": ["com.apple.iCal"],
+                                        "bundle_identifiers": [
+                                            "com.apple.iCal"
+                                        ],
                                         "type": "frontmost_application_if"
                                     }
                                 ],
                                 "from": {
                                     "key_code": "up_arrow",
-                                    "modifiers": { "mandatory": ["command"] }
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
                                 },
                                 "to": [
                                     {
                                         "hold_down_milliseconds": 75,
                                         "key_code": "up_arrow",
-                                        "modifiers": ["control"]
+                                        "modifiers": [
+                                            "control"
+                                        ]
                                     }
                                 ],
                                 "type": "basic"
@@ -2476,64 +3428,148 @@
             },
             "fn_function_keys": [
                 {
-                    "from": { "key_code": "f1" },
-                    "to": [{ "key_code": "display_brightness_decrement" }]
+                    "from": {
+                        "key_code": "f1"
+                    },
+                    "to": [
+                        {
+                            "key_code": "display_brightness_decrement"
+                        }
+                    ]
                 },
                 {
-                    "from": { "key_code": "f2" },
-                    "to": [{ "key_code": "display_brightness_increment" }]
+                    "from": {
+                        "key_code": "f2"
+                    },
+                    "to": [
+                        {
+                            "key_code": "display_brightness_increment"
+                        }
+                    ]
                 },
                 {
-                    "from": { "key_code": "f3" },
-                    "to": [{ "key_code": "mission_control" }]
+                    "from": {
+                        "key_code": "f3"
+                    },
+                    "to": [
+                        {
+                            "key_code": "mission_control"
+                        }
+                    ]
                 },
                 {
-                    "from": { "key_code": "f4" },
-                    "to": [{ "key_code": "launchpad" }]
+                    "from": {
+                        "key_code": "f4"
+                    },
+                    "to": [
+                        {
+                            "key_code": "launchpad"
+                        }
+                    ]
                 },
                 {
-                    "from": { "key_code": "f5" },
-                    "to": [{ "key_code": "illumination_decrement" }]
+                    "from": {
+                        "key_code": "f5"
+                    },
+                    "to": [
+                        {
+                            "key_code": "illumination_decrement"
+                        }
+                    ]
                 },
                 {
-                    "from": { "key_code": "f6" },
-                    "to": [{ "key_code": "illumination_increment" }]
+                    "from": {
+                        "key_code": "f6"
+                    },
+                    "to": [
+                        {
+                            "key_code": "illumination_increment"
+                        }
+                    ]
                 },
                 {
-                    "from": { "key_code": "f7" },
-                    "to": [{ "key_code": "rewind" }]
+                    "from": {
+                        "key_code": "f7"
+                    },
+                    "to": [
+                        {
+                            "key_code": "rewind"
+                        }
+                    ]
                 },
                 {
-                    "from": { "key_code": "f8" },
-                    "to": [{ "key_code": "play_or_pause" }]
+                    "from": {
+                        "key_code": "f8"
+                    },
+                    "to": [
+                        {
+                            "key_code": "play_or_pause"
+                        }
+                    ]
                 },
                 {
-                    "from": { "key_code": "f9" },
-                    "to": [{ "key_code": "fastforward" }]
+                    "from": {
+                        "key_code": "f9"
+                    },
+                    "to": [
+                        {
+                            "key_code": "fastforward"
+                        }
+                    ]
                 },
                 {
-                    "from": { "key_code": "f10" },
-                    "to": [{ "key_code": "mute" }]
+                    "from": {
+                        "key_code": "f10"
+                    },
+                    "to": [
+                        {
+                            "key_code": "mute"
+                        }
+                    ]
                 },
                 {
-                    "from": { "key_code": "f11" },
-                    "to": [{ "key_code": "volume_decrement" }]
+                    "from": {
+                        "key_code": "f11"
+                    },
+                    "to": [
+                        {
+                            "key_code": "volume_decrement"
+                        }
+                    ]
                 },
                 {
-                    "from": { "key_code": "f12" },
-                    "to": [{ "key_code": "volume_increment" }]
+                    "from": {
+                        "key_code": "f12"
+                    },
+                    "to": [
+                        {
+                            "key_code": "volume_increment"
+                        }
+                    ]
                 }
             ],
             "name": "Default profile",
             "selected": true,
             "simple_modifications": [
                 {
-                    "from": { "key_code": "caps_lock" },
-                    "to": [{ "key_code": "delete_or_backspace" }]
+                    "from": {
+                        "key_code": "caps_lock"
+                    },
+                    "to": [
+                        {
+                            "key_code": "delete_or_backspace"
+                        }
+                    ]
                 },
                 {
-                    "from": { "key_code": "right_command" },
-                    "to": [{ "key_code": "escape" }]
+                    "from": {
+                        "key_code": "right_command"
+                    },
+                    "to": [
+                        {
+                            "key_code": "escape"
+                        }
+                    ]
                 }
             ],
             "virtual_hid_keyboard": {

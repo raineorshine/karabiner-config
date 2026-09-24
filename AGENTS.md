@@ -70,6 +70,9 @@ physical key that produces it in Colemak before writing the rule.
   an empty menu read is not proof the chord is free, and it also means a menu-bar sequence cannot
   reach it.
 
+After editing `karabiner.json`, run `npm run build`: it rewrites the file in exactly the format
+Karabiner-Elements writes, so Karabiner's own saves leave no diff ([docs/workflow.md](docs/workflow.md)).
+
 Always add a `description` (and a `(physical key <x> in Colemak)` note when it helps,
 like the em-issues rule) so the mapping is self-documenting.
 

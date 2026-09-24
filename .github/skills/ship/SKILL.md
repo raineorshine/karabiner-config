@@ -56,7 +56,7 @@ There is no lint, type check, or test suite in this repo. If `karabiner.json` ch
 
 Generate a commit message from the diff. Use an imperative, sentence-case subject (`Add …`, `Remap …`, `Move …`, `Remove …`) to match the repo's history — no `type:` prefix. Describe the binding and its purpose, e.g. `Remap Cmd+J to Cmd+K, Cmd+3 in the Claude app for Colemak bug`.
 
-Note that Karabiner-Elements rewrites `karabiner.json` itself (reformatting, `automatic_backups/`), so check `git diff` for incidental changes you did not make and leave them out of the commit if they are unrelated.
+`npm run build` also rewrites `karabiner.json` in Karabiner-Elements' own format (docs/workflow.md "Editing `karabiner.json`"), so Karabiner's own saves of the live file leave no diff behind. Check `git diff` for changes you did not make — a setting changed in Karabiner's window lands in the same file — and leave them out of the commit if they are unrelated.
 
 ### 3. Rebase on origin/main
 

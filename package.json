@@ -8,7 +8,7 @@
     "url": "https://github.com/raineorshine"
   },
   "scripts": {
-    "build": "node build.js karabiner.json > README.md"
+    "build": "node scripts/format-karabiner.js && node build.js karabiner.json > README.md"
   },
   "license": "ISC",
   "private": true,
