@@ -4,6 +4,21 @@ This is my [Karabiner](https://karabiner-elements.pqrs.org) setup for custom key
 
 The default config file is located at `~/.config/karabiner/karabiner.json`.
 
+- Dictation Mode: tap fn (emits ⌃⌥⌘F18, Dictation's rebound system shortcut)
+  - [any] + `fn` → `fn`
+- Function keys: fn+Shift+F1-F12
+  - [any] + fn + Shift + `f1` → fn + `f1`
+  - [any] + fn + Shift + `f2` → fn + `f2`
+  - [any] + fn + Shift + `f3` → fn + `f3`
+  - [any] + fn + Shift + `f4` → fn + `f4`
+  - [any] + fn + Shift + `f5` → fn + `f5`
+  - [any] + fn + Shift + `f6` → fn + `f6`
+  - [any] + fn + Shift + `f7` → fn + `f7`
+  - [any] + fn + Shift + `f8` → fn + `f8`
+  - [any] + fn + Shift + `f9` → fn + `f9`
+  - [any] + fn + Shift + `f10` → fn + `f10`
+  - [any] + fn + Shift + `f11` → fn + `f11`
+  - [any] + fn + Shift + `f12` → fn + `f12`
 - Disable Cmd+M to minimize globally.
   - [any] + Command + `M` → Command + Option + Shift + `M`
 - Claude: ⌘J → ⌘K, ⌘3 (New Session)

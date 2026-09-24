@@ -988,6 +988,164 @@
                         ]
                     },
                     {
+                        "comment": "A Karabiner-emitted fn does not start Dictation: CGEvent, System Events and hardware-level delivery through Karabiner's own virtual HID device were each measured against it and none works (~/projects/vocalize/docs/macos-input-surfaces.md). An ordinary chord does, so macOS Dictation's shortcut (symbolichotkey 164) was rebound from the right-Command double-press it shipped with -- unreachable by hand anyway, since right_command is remapped to escape -- to ⌃⌥⌘F18, and this rule emits that chord. F18 is not on the internal keyboard, so nothing can press it by hand. The chord is a toggle: a second tap stops Dictation (measured 270ms from the chord to StartedListening and 70ms to StoppedListening, injected into the Claude app). The rule re-emits fn while it is held, so fn+arrow, fn+delete and the function-key row keep working; what is given up is the macOS double-fn trigger, since Karabiner now consumes the key. The rule depends on machine state outside this repo -- see docs/system-shortcut-rules.md.",
+                        "description": "Dictation Mode: tap fn (emits ⌃⌥⌘F18, Dictation's rebound system shortcut)",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "fn",
+                                    "modifiers": { "optional": ["any"] }
+                                },
+                                "to": [{ "key_code": "fn" }],
+                                "to_if_alone": [
+                                    {
+                                        "key_code": "f18",
+                                        "modifiers": ["left_control", "left_option", "left_command"]
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
+                        "comment": "A second way to the function keys, in case owning the fn tap costs fn its modifier role. shift is consumed, so the top row arrives as a plain F1-F12. The fn has to be re-asserted on the emitted key: a complex modification goes through the fn_function_keys translation on its way out, so a bare f1 emitted here comes out as the brightness key -- measured, and the same reason the Claude Go-menu rule emits f2 with fn and control. the macOS ⌃F1-F7 keyboard-navigation family keeps fn+ctrl, which is why this is not bound there.",
+                        "description": "Function keys: fn+Shift+F1-F12",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "f1",
+                                    "modifiers": {
+                                        "mandatory": ["fn", "shift"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "key_code": "f1", "modifiers": ["fn"] }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "f2",
+                                    "modifiers": {
+                                        "mandatory": ["fn", "shift"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "key_code": "f2", "modifiers": ["fn"] }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "f3",
+                                    "modifiers": {
+                                        "mandatory": ["fn", "shift"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "key_code": "f3", "modifiers": ["fn"] }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "f4",
+                                    "modifiers": {
+                                        "mandatory": ["fn", "shift"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "key_code": "f4", "modifiers": ["fn"] }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "f5",
+                                    "modifiers": {
+                                        "mandatory": ["fn", "shift"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "key_code": "f5", "modifiers": ["fn"] }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "f6",
+                                    "modifiers": {
+                                        "mandatory": ["fn", "shift"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "key_code": "f6", "modifiers": ["fn"] }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "f7",
+                                    "modifiers": {
+                                        "mandatory": ["fn", "shift"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "key_code": "f7", "modifiers": ["fn"] }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "f8",
+                                    "modifiers": {
+                                        "mandatory": ["fn", "shift"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "key_code": "f8", "modifiers": ["fn"] }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "f9",
+                                    "modifiers": {
+                                        "mandatory": ["fn", "shift"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "key_code": "f9", "modifiers": ["fn"] }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "f10",
+                                    "modifiers": {
+                                        "mandatory": ["fn", "shift"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "key_code": "f10", "modifiers": ["fn"] }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "f11",
+                                    "modifiers": {
+                                        "mandatory": ["fn", "shift"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "key_code": "f11", "modifiers": ["fn"] }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "f12",
+                                    "modifiers": {
+                                        "mandatory": ["fn", "shift"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "key_code": "f12", "modifiers": ["fn"] }],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "comment": "This will disable Cmd + Shift + M in everye app unless you add the app id to the frontmost_application_unless block. Use `osascript -e 'id of app {APP_NAME}'` to determine the app name.",
                         "description": "Disable Cmd+M to minimize globally.",
                         "manipulators": [

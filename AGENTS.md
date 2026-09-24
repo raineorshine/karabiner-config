@@ -18,6 +18,10 @@ that matches what you are about to write, before writing it.
   manipulators Karabiner drops at load, the daemon log that names them, and what `install` checks.
 - [docs/menu-bar-rules.md](docs/menu-bar-rules.md) — driving an app's own menus when it will not
   give a chord up.
+- [docs/system-shortcut-rules.md](docs/system-shortcut-rules.md) — driving a macOS system action
+  whose trigger cannot be synthesized: rebinding its `symbolichotkeys` record to a chord no key can
+  reach, owning the fn key, and the `fn_function_keys` translation a rule's output still passes
+  through.
 - [docs/pauses.md](docs/pauses.md) — when `hold_down_milliseconds` is load-bearing and when it is
   superstition, and probing several values per round on a rule with equivalent chords.
 - [docs/workflow.md](docs/workflow.md) — editing `karabiner.json`, testing under the live-config
