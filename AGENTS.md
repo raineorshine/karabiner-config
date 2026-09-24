@@ -59,7 +59,9 @@ physical key that produces it in Colemak before writing the rule.
   `AXMenuItemCmdModifiers` of each menu item), and the ChatGPT app keeps my own overrides in
   `~/.codex/keybindings.json`, over the `defaultKeybindings` of the command registry in its
   `app.asar`: Cmd+Shift+F was already Toggle File Tree there. The Claude app's are literal
-  `cmd+shift+<x>` strings in `Contents/Resources/ion-dist/assets/v1/*.js` (not `app.asar`). Brave's
+  `cmd+<x>` / `cmd+shift+<x>` strings in `Contents/Resources/ion-dist/assets/v1/*.js` (not `app.asar`),
+  some behind a flag (`shortcut:c?["cmd+l","cmd+alt+l"]:"cmd+alt+l"`), so a listed chord may do nothing
+  for me; `--else-key` hands it back either way. Brave's
   are `brave.accelerators` in
   `~/Library/Application Support/BraveSoftware/Brave-Browser/Default/Preferences`, with extensions'
   own shortcuts under `extensions.commands` there; a System Events walk of Brave's menus ran past 60s

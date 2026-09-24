@@ -73,6 +73,14 @@ enough that the rule needs no `--wait`. Query one letter (`a`) when the wording 
 the dumps for what appeared. The empty query is the trap the paragraph above names: a first run of
 400 dumps passed `""` and could not have found anything.
 
+**A screen the agent cannot reach is inspected the same way, by a watcher the user walks onto.** The
+Claude app's New Session screen exists only while the user has it open, in the window they are
+using, so a background loop of `--dump-all` saved each dump that matched a marker of that screen (a
+control only it has) while the user navigated there — and a second loop, keyed on the marker
+disappearing, caught the other state of the same control after they toggled it. Key the marker on
+something only the wanted screen carries: a first loop keyed on an absence also fired on an ordinary
+session view.
+
 **Shortwave (`com.electron.shortwave`) exposes its web content like any Chromium tree**, and labels
 its own controls: `AXButton AXTitle="Compose"`, `AXImage AXDescription="Avatar for …"`, and the
 Always apply toast's `AXButton AXTitle="Always apply"`. So a target there is worth dumping for before
