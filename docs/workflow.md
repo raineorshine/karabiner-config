@@ -42,6 +42,10 @@ me to press a key.
   that, in those words, and say the dry run is what it unblocks. By the time the turn
   comes back to me the rule is either dry-run clean and ready to lock, or the ask is a specific
   action, not a status report.
+- **A lock broken out from under you took the installed config with it.** `break` restores the
+  snapshot before dropping the lock, so the live file is whatever it was before the test and the
+  branch's rules are simply gone — nothing in this session says so. Re-acquire and re-install before
+  asking for another press.
 - Run `./scripts/karabiner-test-lock.sh status` before committing `karabiner.json` from the main
   checkout. While another worktree holds the lock, the live file contains *their* rules.
 - The lock covers the ax-press helper as well as the file: `scripts/build-ax-press.sh` replaces the

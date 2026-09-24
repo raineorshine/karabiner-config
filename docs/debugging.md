@@ -34,6 +34,13 @@ Learned the slow way on the Notion archive and Messages tapback rules:
   after its own `Load .../karabiner.json...` line. `install` now fails `REJECTED` on those errors, but
   a config that went live another way — a ship's fast-forward, a hand edit — was never checked: read
   that log before spending a press on instrumentation ([load-errors.md](load-errors.md)).
+- **A raw key echo says which key arrived, which no screenshot can.** `cat -v` in the user's own
+  terminal prints a function key as its escape sequence (F1 `^[OP`, F3 `^[OR`, F5 `^[[15~`) and a
+  media key as nothing at all, so it separates the two states that look identical everywhere else — a
+  plain F-key does nothing observable in most apps, and its absence is not evidence. A modifier that
+  leaked through shows up in the same sequence (`^[[1;2P` for Shift+F1). Run it in the tab the user
+  presses in, so the press and the reading are on one clock, and read it back with the terminal tools
+  rather than asking what they saw.
 - **A plain remap can log that it fired.** Append `{ "shell_command": "echo <rule> fired" }` to
   the `to` list; each press lands as a line in
   `~/.local/share/karabiner/log/console_user_server.log`, so one batch of presses separates "the

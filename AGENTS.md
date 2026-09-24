@@ -73,6 +73,12 @@ physical key that produces it in Colemak before writing the rule.
   chord back everywhere else. A chord the app handles in a view rather than a menu item (Calendar's Ctrl+arrow resize and nudge) shows up in neither place;
   an empty menu read is not proof the chord is free, and it also means a menu-bar sequence cannot
   reach it.
+- **Check what macOS itself binds, too**, which neither of those reads can see. The F-row is largely
+  spoken for: Ctrl+F1-F7 is the keyboard-navigation family (menu bar, Dock, toolbar, window pane),
+  Cmd+F5 is VoiceOver, and Option on a brightness or volume key opens that settings pane.
+  `com.apple.symbolichotkeys` is where the system's own bindings are stored, so it answers what a
+  chord costs before the rule takes it — and it is also how a system action's trigger is *moved* onto
+  a chord a rule can emit ([docs/system-shortcut-rules.md](docs/system-shortcut-rules.md)).
 
 After editing `karabiner.json`, run `npm run build`: it rewrites the file in exactly the format
 Karabiner-Elements writes, so Karabiner's own saves leave no diff ([docs/workflow.md](docs/workflow.md)).

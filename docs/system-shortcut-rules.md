@@ -78,11 +78,9 @@ timestamps a press without a screenshot or a menu-title read. `DidExitDictationM
 while Dictation is idle, so key on `DidEnterDictationMode` and `StartedListening`.
 (`~/projects/dictation-glow/docs/detection.md` establishes the names.)
 
-**`cat -v` in a terminal is the cheapest way to tell a function key from a media key.** F1 prints
-`^[OP`, F3 `^[OR`, F5 `^[[15~`; a media key prints nothing and moves the brightness or volume HUD
-instead. That distinction is invisible in every other channel — a plain F-key does nothing observable
-in most apps — and it is what caught the `fn_function_keys` translation above. Run it in the user's own
-terminal so the presses and the reading are on the same tab.
+**Which key actually arrived is read with a raw key echo** — it is what caught the
+`fn_function_keys` translation above, since a media key and a plain F-key look identical everywhere
+else. See [debugging.md](debugging.md).
 
 **Do not force an app frontmost to probe it.** A sweep that activated the target every twelve seconds
 while the user was working scored a press at 70% in one app and 100% in another, and the whole spread
