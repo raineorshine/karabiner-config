@@ -101,7 +101,10 @@ MAIN=$(git worktree list | head -1 | awk '{print $1}') && git -C "$MAIN" merge -
 
 The main checkout is `~/.config/karabiner`, whose `karabiner.json` *is* the file Karabiner-Elements reads, so this is what puts the shipped rule into the live config. It takes effect immediately; no reload.
 
-**If it fails with "Your local changes … would be overwritten":** another worktree is mid-test and has its config installed in the live slot. Leave it — never `checkout --` their work away. The ship already happened at step 5; only the local ref and the live file lag. `./scripts/karabiner-test-lock.sh status` names the holder. **Say so in the report**, with the command above, since until someone runs it the live config still lacks the rule that was just shipped.
+**If it fails with "Your local changes … would be overwritten", resolving it is this session's job, not the user's.** Run `./scripts/karabiner-test-lock.sh status` first:
+
+- **Locked:** another worktree is mid-test with its config in the live slot. Leave it — never `checkout --` their work away. The ship already happened at step 5; only the local ref and the live file lag, and the holder's release is what unblocks it. One line in the report.
+- **Unlocked:** nobody's test is installed, so find out what the change is. Compare the live file with `HEAD` *parsed* (`json.load` both): equal means the diff is formatting alone — Karabiner rewriting the file in its own style, which `npm run build` now prevents for anything shipped after it — and it is safe to `checkout --` and fast-forward. Unequal means real edits someone made there (the settings window, a hand edit): copy the live file aside, then decide from what the edits are, and do not hand the user a command to run instead.
 
 Whoever fast-forwards next picks up every commit that accumulated on `origin/main`, so a skipped one costs nothing but the delay.
 
@@ -135,7 +138,10 @@ Put `📚 ` on the title as you invoke it — the user-level `learn` sets none i
 `🚀 `, and put `🚀 ` back when it finishes: the session
 shipped, and that is the stage it rests at.
 
-If `learn` finds nothing worth recording, that is a normal outcome — say so in one line and move on.
+Run it on every ship — a second ship in the same session, and a ship whose change was itself an
+instruction-file edit, included. A ship that skipped it with "nothing new" was caught by the user:
+the stretch since the last pass had a user correction in it, which is exactly what `learn` exists to
+keep. If `learn` finds nothing worth recording, that is a normal outcome — say so in one line and move on.
 
 ### 10. Print the completion message
 
