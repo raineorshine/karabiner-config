@@ -5,9 +5,9 @@
 The rest of what has been learned here lives in `docs/`. Read the one that matches what you are
 about to write, before writing it.
 
-- [docs/workflow.md](docs/workflow.md) — editing `karabiner.json` (its format, `comment` placement),
-  testing under the live-config lock from a worktree, shell traps in the Bash tool, and what the
-  session-title prefixes mean here.
+- [docs/workflow.md](docs/workflow.md) — editing `karabiner.json` (its format, `comment` placement)
+  and the docs themselves, testing under the live-config lock from a worktree, shell traps in the
+  Bash tool, and what the session-title prefixes mean here.
 - [docs/accessibility-rules.md](docs/accessibility-rules.md) — pressing a control by name with
   `ax-press`, the first thing to try for any control: finding labels, reading dumps, telling rival
   controls apart, walk direction, sharing a chord with the app (`--else-key`, `--unless-editing`),

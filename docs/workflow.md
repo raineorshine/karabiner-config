@@ -101,11 +101,17 @@ is the full procedure; landing on main is the **ship** skill.
   `command not found`. Name it something else.
 - `log` is a zsh builtin; call `/usr/bin/log`.
 
-## Editing a skill
+## Editing skills and docs
 
 The repo's skills live in `.github/skills/<name>/SKILL.md`; `.claude/skills` is a symlink to that
 directory. Git only ever names the `.github/` path — a diff that mentions `.github/skills/...` after
 you edited `.claude/skills/...` is the same file, not a stray change.
+
+**Docs are edited in parallel too, so fetch before restructuring one.** Every session's `learn` pass
+writes into the same files, and two sessions once split the same doc the same day. Before moving
+sections, `git fetch origin` and read `git log HEAD..origin/main -- AGENTS.md docs .github/skills`.
+When a rebase collides with another restructure, keep one structure and port the other side's
+additions into it; resolving hunk by hunk interleaves two layouts.
 
 ## Session titles
 
