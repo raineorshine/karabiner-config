@@ -47,6 +47,14 @@ me to press a key.
 - The lock covers the ax-press helper as well as the file: `scripts/build-ax-press.sh` replaces the
   one live binary, so it refuses while another worktree holds the lock, post-ship rebuilds included.
   Build once `status` reads `unlocked` ([accessibility-rules.md](accessibility-rules.md)).
+- A worktree's own `.claude/karabiner-test.lock/` is not the lock. The desktop app copies the main
+  checkout's ignored `.claude/` contents into a worktree when it creates one, lock directory
+  included, so that copy names whoever held the lock at that moment and never changes. The lock is
+  the main checkout's; ask `karabiner-test-lock.sh status`, never `ls`.
+- Test a guard on a live resource without the live resource. A refusal tested by running the real
+  script does the harm the guard exists to prevent when the guard is wrong. Point `KARABINER_ROOT` at
+  a scratch directory holding a hand-made lock, and run only the guard, cut out of the script, with
+  a stand-in line for whatever it protects.
 - Run the lock script with an explicit `cd` into the worktree. It derives the owner from the shell's
   cwd, and the Bash tool's cwd drifts back to the main checkout mid-session: a lock taken from there
   snapshots the live file, and `install karabiner.json` then compares the live file with itself and
