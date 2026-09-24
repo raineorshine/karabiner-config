@@ -58,17 +58,29 @@ set, so it waits out the remainder rather than a fresh 2.1s. The log has one `pr
 process. Prime only apps that take the attribute: in any other Electron app the set would turn on
 complete accessibility, whose cost that app pays for a press it never gets.
 
-**Complete mode can drop mid-session, and the helper does not know.** On 2026-09-24 the app's log
-showed basic mode at sets with no relaunch between (06:37:45, 07:27:37), and the presses behind them
-logged `pressed=true` without the wait and did nothing; the retry 5s later worked. Something set the
-attribute to `false`. Re-priming on every activation brings the mode back 2s after the user returns
-to the app, but a press inside that window, or a drop while the app stays frontmost, still misses.
-A press on a popup trigger can tell: `AXExpanded` on the Usage button went true 25-31ms after a
-landed press. Codex's computer-use client (`SkyComputerUseClient`) was running while the app's log
-recorded about 90 sets a minute, none of them the helper's.
+**Complete mode can drop mid-session, and nothing says so before the press.** On 2026-09-24 the
+app's log showed basic mode at sets with no relaunch between (06:37:45, 07:27:37), and the presses
+behind them logged `pressed=true` without the wait and did nothing; the retry 5s later worked.
+Something set the attribute to `false`. Re-priming on every activation brings the mode back 2s after
+the user returns to the app, but a press inside that window, or a drop while the app stays
+frontmost, still misses. Codex's computer-use client (`SkyComputerUseClient`) was running while the
+app's log recorded about 90 sets a minute, none of them the helper's.
+
+**A popup trigger says after the press, so the helper retries a dropped one.** `AXExpanded` on the
+Usage button went true 25-31ms after a landed press. So an AXPress on an `AXPopUpButton` whose `AXExpanded`
+is `false` polls it for 200ms; still false, the press was dropped, and the request's own set (made at
+its start, since none was pending) has started a switch. The helper records that switch as due,
+sleeps until it lands, finds the target again and presses once more, and the report line gains
+`dropped_retry_ms` (the sleep) and `retry_expanded`. A trigger that did expand is never pressed
+again, since a second press closes the popup -- including one that opened during the sleep, which
+under load a landed press can (`retry=skipped-expanded`). Only the role says which targets can tell:
+Chromium answers `AXExpanded` false on a plain button too, which no press flips, so the task chip's
+Start button, pressed and gone, was taken for a drop and pressed again. A plain button's dropped
+press still goes unnoticed.
 
 **What it does not cover.** Another client setting the attribute restarts Electron's countdown without
-the helper knowing. Nor load: with all eight cores pegged, presses in complete mode did not open the
+the helper knowing, so a retry timed to the helper's own set can land early and drop again
+(`retry_expanded=false`). Nor load: with all eight cores pegged, presses in complete mode did not open the
 menu within 3s either, so a probe polling the tree under load measures the load, not the switch.
 
 ## Reading the mode

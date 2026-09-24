@@ -883,14 +883,17 @@ func handle(_ options: Options, peer: pid_t?) throws -> Int32 {
   // complete mode it brings 2s later is what an AXPress there needs (see fullModeDelay).
   let appRole = string(appElement, kAXRoleAttribute) ?? "?"
   // A set before the switch lands pushes it back, so none is made while one of ours is counting
-  // down (the server's priming, usually); one after it changes nothing.
+  // down (the server's priming, usually); one after it changes nothing, unless complete mode has
+  // dropped since, when it starts a new switch -- which a dropped press below waits out.
   let instance = instanceKey(app.processIdentifier)
-  let manual = fullModePending(instance)
+  let pending = fullModePending(instance)
+  let manual = pending
     ? AXError.success
     : AXUIElementSetAttributeValue(appElement, "AXManualAccessibility" as CFString, kCFBooleanTrue)
+  let manualSetAt = pending ? fullModeDue[instance]!.addingTimeInterval(-fullModeDelay) : Date()
   let enhanced = options.enhanced ? AXUIElementSetAttributeValue(appElement, "AXEnhancedUserInterface" as CFString, kCFBooleanTrue) : nil
   if manual == .success, fullModeDue[instance] == nil {
-    fullModeDue[instance] = Date().addingTimeInterval(fullModeDelay)
+    fullModeDue[instance] = manualSetAt.addingTimeInterval(fullModeDelay)
   }
 
   // An app with no window open answers AXFocusedWindow with its own application element (seen
@@ -1072,10 +1075,8 @@ func handle(_ options: Options, peer: pid_t?) throws -> Int32 {
   // --ancestor: the match names the target but is not it. Climb by AXParent, which every element
   // answers, to the nearest ancestor with the given role. The cap is a backstop, not a limit worth
   // tuning: the Karabiner sidebar's static text is two levels under its AXRow.
-  var acted = match
-  var ancestorText = ""
-  if let (role, nth) = options.ancestor {
-    var climbed: AXUIElement? = nil
+  func climb(from match: AXUIElement) -> AXUIElement? {
+    guard let (role, nth) = options.ancestor else { return match }
     var current = match
     var matched = 0
     // A web app's rows are nested anonymous groups, so the cap has to allow a climb of a dozen
@@ -1085,10 +1086,15 @@ func handle(_ options: Options, peer: pid_t?) throws -> Int32 {
       current = parent as! AXUIElement
       guard role == "*" || string(current, kAXRoleAttribute) == role else { continue }
       matched += 1
-      if matched == nth { climbed = current; break }
+      if matched == nth { return current }
     }
+    return nil
+  }
+  var acted = match
+  var ancestorText = ""
+  if let (role, nth) = options.ancestor {
     ancestorText = " ancestor=\(role)\(nth > 1 ? ":\(nth)" : "")"
-    guard let found = climbed else {
+    guard let found = climb(from: match) else {
       let elseText = elseKey()
       report(options, "trusted=true app=\(options.bundleId) found=true\(ancestorText) ancestor_found=false\(elseText) \(stats) \(timing()) \(describe(match))")
       throw Finished(code: 4)
@@ -1112,7 +1118,7 @@ func handle(_ options: Options, peer: pid_t?) throws -> Int32 {
   // --set writes an attribute instead of performing an action, for a control that offers no action
   // for what it does: an AXRow in a SwiftUI sidebar has only AXShowDefaultUI/AXShowAlternateUI, and
   // setting its AXSelected to true is what selects it.
-  let pressed: AXError
+  var pressed: AXError
   var actionText: String
   if options.click {
     // Refused unless the target is inside the window: an element scrolled out of view has a frame
@@ -1138,8 +1144,48 @@ func handle(_ options: Options, peer: pid_t?) throws -> Int32 {
     pressed = AXUIElementSetAttributeValue(acted, name as CFString, written)
     actionText = " set=\(name)=\(value)"
   } else {
+    // Complete mode can also drop mid-session -- another client setting the attribute false does it
+    // -- and then this press lands in basic mode and is dropped like a first one, success and all.
+    // A popup trigger says whether it landed: a press that did flips AXExpanded true in 25-31ms. One
+    // still false after 200ms was dropped, and the set at the top of this request is what brings
+    // complete mode back, so wait out that switch, find the target again, and press once more. Not
+    // when it did expand: a second press would close the popup. And no further set while waiting,
+    // since a set before the switch lands pushes it back.
+    // Only an AXPopUpButton: Chromium answers AXExpanded false on a plain button too (the task chip's
+    // Start button), which no press ever flips, so a landed press there would be pressed again.
+    let expandable = options.action == "AXPress" && string(acted, kAXRoleAttribute) == "AXPopUpButton"
+      && (attribute(acted, "AXExpanded") as? Bool) == false
+    func expands(_ element: AXUIElement) -> Bool {
+      let polledAt = Date()
+      repeat {
+        if (attribute(element, "AXExpanded") as? Bool) == true { return true }
+        usleep(5_000)
+      } while Date().timeIntervalSince(polledAt) < 0.2
+      return false
+    }
     pressed = AXUIElementPerformAction(acted, options.action as CFString)
     actionText = options.action == "AXPress" ? "" : " action=\(options.action)"
+    if pressed == .success, expandable, manual == .success, !expands(acted) {
+      let due = manualSetAt.addingTimeInterval(fullModeDelay)
+      fullModeDue[instance] = due
+      let wait = max(0, due.timeIntervalSinceNow)
+      Thread.sleep(forTimeInterval: wait)
+      search.deadline = search.deadline.addingTimeInterval(wait)
+      search.visited = 0
+      if let found = locate(), let target = climb(from: found.match) {
+        acted = target
+        matchWindow = found.window
+      }
+      // Under load a landed press can take longer than the poll to open its popup, and pressing that
+      // again would close it, so look once more after the sleep.
+      if (attribute(acted, "AXExpanded") as? Bool) == true {
+        actionText += " dropped_retry_ms=\(Int(wait * 1000)) retry=skipped-expanded"
+      } else {
+        pressed = AXUIElementPerformAction(acted, options.action as CFString)
+        actionText += " dropped_retry_ms=\(Int(wait * 1000))"
+        if pressed == .success { actionText += " retry_expanded=\(expands(acted))" }
+      }
+    }
   }
   actionText += scrollText
   let ok = pressed == .success
