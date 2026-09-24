@@ -44,6 +44,9 @@ me to press a key.
   action, not a status report.
 - Run `./scripts/karabiner-test-lock.sh status` before committing `karabiner.json` from the main
   checkout. While another worktree holds the lock, the live file contains *their* rules.
+- The lock covers the ax-press helper as well as the file: `scripts/build-ax-press.sh` replaces the
+  one live binary, so it refuses while another worktree holds the lock, post-ship rebuilds included.
+  Build once `status` reads `unlocked` ([accessibility-rules.md](accessibility-rules.md)).
 - Run the lock script with an explicit `cd` into the worktree. It derives the owner from the shell's
   cwd, and the Bash tool's cwd drifts back to the main checkout mid-session: a lock taken from there
   snapshots the live file, and `install karabiner.json` then compares the live file with itself and

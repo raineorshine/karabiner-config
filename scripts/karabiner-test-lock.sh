@@ -30,6 +30,9 @@
 #                     --force    restore even if the live config changed
 #                     --if-mine  no-op unless this session took the lock
 #   status            who holds it and since when -- no verdict on either
+#   check             exit 0 if unlocked or held by this worktree; otherwise print
+#                     the holder and exit 1 -- for scripts that touch what the lock
+#                     guards (scripts/build-ax-press.sh)
 #   break --confirmed force-release a lock, only ever after the user has said
 #                     nobody is mid-test -- no age says that on its own
 set -eu
@@ -294,6 +297,13 @@ case "$cmd" in
     exit 0
     ;;
 
+  check)
+    [ -d "$LOCK" ] || exit 0
+    owned && exit 0
+    holder_report >&2
+    exit 1
+    ;;
+
   break)
     [ -d "$LOCK" ] || { printf 'no lock held\n'; exit 0; }
     # No age is a sanction to break, so there is no age-gated path in here. The
@@ -317,5 +327,5 @@ case "$cmd" in
     printf 'lock broken\n'
     ;;
 
-  *) die "unknown command: $cmd (acquire|install|release|status|break)" ;;
+  *) die "unknown command: $cmd (acquire|install|release|status|check|break)" ;;
 esac

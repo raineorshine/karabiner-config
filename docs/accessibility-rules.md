@@ -197,7 +197,19 @@ meanwhile, and a rule that passes a dropped option fails as an ordinary miss —
 is gone. One from a branch older than the resident helper is worse: its binary has no `--serve`, so
 every rule fails, and its script signs with the old certificate, so the grant goes too. Rebase before
 building, and build again after shipping: the binary a test installed predates the ship's rebase,
-so anything that landed on `main` in between is missing from the live helper until the next build. And the Xcode tools can refuse to run at all: `swiftc`, `otool` and every other `xcrun`
+so anything that landed on `main` in between is missing from the live helper until the next build.
+
+**The live helper is under the test lock too.** A build swaps the binary and restarts the server,
+so one run while another session is testing changes the code that session's presses go through,
+and nothing in its test says so: a post-ship rebuild did exactly that to a session mid-test on the
+helper, whose result then described a binary it had never built. `scripts/build-ax-press.sh`
+therefore refuses while `scripts/karabiner-test-lock.sh` is held by another worktree, and lets the
+holder's own builds through. A refused post-ship rebuild is deferred, not dropped: check `status`
+again before the session ends and build once it reads `unlocked`, and if it never does, name the
+pending rebuild in the report with the command, since the live helper lacks what just shipped until
+someone runs it.
+
+**The Xcode tools can refuse to run at all.** `swiftc`, `otool` and every other `xcrun`
 shim exit with "You have not agreed to the Xcode license agreements" while the selected Xcode's
 license is unaccepted, which is the state after an Xcode update. The build falls back to the Command
 Line Tools' own `swiftc`; a probe run by hand needs `DEVELOPER_DIR=/Library/Developer/CommandLineTools`

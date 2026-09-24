@@ -34,6 +34,18 @@ fi
 mkdir -p "$ROOT/scripts/bin"
 swiftc -O -swift-version 5 -o "$OUT.new" "$HERE/ax-press.swift"
 codesign --force --sign - --identifier "$IDENTIFIER" -r="designated => identifier \"$IDENTIFIER\"" "$OUT.new"
+
+# The live binary is part of what the test lock guards: a session testing an ax-press rule is
+# pressing through whatever binary is in place, and a build from anywhere else swaps it -- and
+# restarts the server -- under that test, which then runs code nobody meant it to. The holder's own
+# builds go through; everyone else's wait for the release. Checked after compiling, not before, so a
+# lock taken during the compile still counts. docs/accessibility-rules.md
+if ! holder=$("$HERE/karabiner-test-lock.sh" check 2>&1); then
+  printf 'REFUSED -- another session holds the live-config test lock, and this build would replace the\n' >&2
+  printf 'helper it is testing through. Build again once it releases:\n%s\n' "$holder" >&2
+  rm -f "$OUT.new"
+  exit 1
+fi
 mv -f "$OUT.new" "$OUT"
 
 # ProcessType Interactive gives the server an app's resource limits, which is to say none; a
