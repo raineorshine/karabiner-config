@@ -14,9 +14,12 @@ round-trip is fine now — and let `npm run build` format before committing; `in
 that is not formatted. What the format protects is the diff, the only review surface a commit has,
 and clean hunk-level merging between the worktrees that ship into this file in parallel.
 
-**A branch cut before the reformat conflicts on every line of `karabiner.json` when rebased.** Format
-the branch's file and commit that first (`npm run build`), then rebase: both sides are then in one
-format and only the real edits conflict.
+**A branch cut before the reformat runs the old tooling.** Its `npm run build` is its own
+`package.json`'s, which only regenerates the README, and its ship skill is its own checkout's copy —
+so a rule hand-written there stays compact through the whole ship, and the rebase carries it onto
+the reformatted base as-is. The ship's
+`format-karabiner.js --check` after the squash catches it; on such a branch, rebase first and then
+build, so the formatter that runs is main's.
 
 ## Testing a change (worktrees + the live-config lock)
 
