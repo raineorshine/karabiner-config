@@ -78,6 +78,18 @@ git reset --soft origin/main && git commit -m "subject" -m "body"
 
 Use a single message that describes the overall diff.
 
+Then check that the squashed `karabiner.json` is still in Karabiner's format:
+
+```bash
+node scripts/format-karabiner.js --check
+```
+
+Step 1's build ran before the rebase, so it formatted the branch's file with the branch's own
+tooling. A branch cut before the formatter existed ran a README-only build, and the rebase then
+brought in the formatter without anything re-running it — which is how a hand-edited rule reached
+`origin/main` unformatted. On failure, run `npm run build`, confirm the diff is formatting only,
+`git commit --amend --no-edit -a`, and check again.
+
 ### 5. Push to origin/main
 
 ```bash
