@@ -43,8 +43,8 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Command + `F` → Ctrl + `` ` ``
 - Claude: ⇧⌘T → Start the suggested task (physical key f in Colemak)
   - Command + Shift + `F` → `printf '%s\0' com.anthropic.claudefordesktop "{}" --role AXButton --sibling "More start options" --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
-- Claude: ⇧⌘E → Archive Session via its ⋮ menu, then ⌘1 (physical key k in Colemak)
-  - Command + Shift + `K` → `printf '%s\0' com.anthropic.claudefordesktop "More options for {}" --role AXPopUpButton --label-from "{}, rename session" --log --then com.anthropic.claudefordesktop Archive --role AXMenuItem --wait --key cmd+1 --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
+- Claude: ⇧⌘E → Archive Session via its ⋮ menu, then ⌘1; Unarchive and focus the composer when already archived (physical key k in Colemak)
+  - Command + Shift + `K` → `S="$HOME/.config/karabiner/scripts/bin/ax-press.sock"; A=com.anthropic.claudefordesktop; case $(printf '%s\0' $A "More options for {}" --role AXPopUpButton --label-from "{}, rename session" --log --then $A "{}" --role AXMenuItem --wait --dry-run --then $A Archive --role AXMenuItem --key cmd+1 --else-key escape --log | /usr/bin/nc -U "$S") in *exit=4*) printf '%s\0' $A Unarchive --role AXButton --label-attr AXTitle --wait --log --then $A Prompt --role AXTextArea --label-attr AXDescription --wait --set AXFocused=true --log | /usr/bin/nc -U "$S" ;; esac`
 - Claude: ⇧⌘1 → Go to Chat; ⇧⌘2 → Go to Code
   - Command + Shift + `1` → fn + Ctrl + `f2`, `T`, `;`, `return_or_enter`, `C`, `H`, `A`, `F`, `return_or_enter`
   - Command + Shift + `2` → fn + Ctrl + `f2`, `T`, `;`, `return_or_enter`, `C`, `;`, `G`, `K`, `return_or_enter`
