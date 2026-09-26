@@ -1,6 +1,6 @@
 ---
 name: ship
-description: 'Finish a change in this karabiner config repo: regenerate README.md from karabiner.json, commit, rebase on origin/main, squash, push to origin/main, fast-forward the local main if it can, and extract the session's learnings. Use when done with a key binding change and want it landed without opening a PR.'
+description: 'Finish a change in this karabiner config repo: regenerate README.md from karabiner.json, commit, rebase on origin/main, squash, push to origin/main, fast-forward the local main if it can, extract the session's learnings, and archive the session. Use when done with a key binding change and want it landed without opening a PR.'
 ---
 
 # Ship (finish feature → merge to main)
@@ -131,13 +131,7 @@ Whoever fast-forwards next picks up every commit that accumulated on `origin/mai
 
   It refuses while another session holds the test lock, since the rebuild would swap the helper under that session's test. Refused, check `./scripts/karabiner-test-lock.sh status` again before the session ends and build once it reads `unlocked`; if it never does, **say so in the report** with the command, since the live helper lacks what just shipped until someone runs it (docs/ax-press-helper.md).
 - Verify the key actually works before considering the change done — ideally *before* shipping, via the `test` skill, which installs the branch's config into the live slot under a mutex so parallel sessions do not clobber each other.
-- The branch is now on `origin/main`. If this worktree is finished with, it and the branch can be cleaned up from the main checkout:
-
-  ```bash
-  BRANCH=$(git branch --show-current) && MAIN=$(git worktree list | head -1 | awk '{print $1}') && git -C "$MAIN" worktree remove <this-worktree-path> && git -C "$MAIN" branch -d "$BRANCH"
-  ```
-
-  Only do this when the user confirms the worktree is no longer needed. `git branch -d` refuses while local `main` is behind the pushed commit; `git branch -d` against `origin/main` is not a thing, so wait for step 6 to land rather than forcing with `-D`.
+- The branch is now on `origin/main`. The worktree goes with the session in step 11.
 
 ### 8. Check the title still says what is true
 
@@ -164,4 +158,19 @@ keep. If `learn` finds nothing worth recording, that is a normal outcome — say
 
 ### 10. Print the completion message
 
-Print `🚀 Shipped` as the last line of the response, after the learn report.
+Print `🚀 Shipped` as the last line of the response, after the learn report. Write it before step
+11's call, in the same response: nothing after the archive reaches the user.
+
+### 11. Archive the session
+
+Last of all, after `learn` has made and landed its commit and `🚀 ` is back on the title, archive
+this session: `mcp__ccd_session_mgmt__archive_session` with `"self"` and a reason naming the ship.
+The conversation ends with that call, so it is the final tool call of the ship. Asking to ship is
+the agreement to archive; do not ask again.
+
+Only a ship whose push in step 5 landed archives. One that fell over short of the push is still work
+in progress and keeps its session. Archiving also removes this worktree, which is safe only once the
+live slot is not serving it — step 0 released this session's lock, so re-check with
+`./scripts/karabiner-test-lock.sh status` if anything since took it again, and release it first.
+The branch outlives the worktree; it is reopened from the Archived list if the session is ever
+needed again.
