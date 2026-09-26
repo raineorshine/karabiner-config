@@ -221,6 +221,19 @@ sidebar group away, + button included, so no sequencing behind the app's own nav
 it and the press had to happen before the archive instead. Ask what the tree looks like after the
 first press before reaching for `--wait`, and reorder when the second target no longer exists.
 
+**A menu item that may be absent is waited on through the menu, not the item.** `--wait` on the
+item itself polls out the whole budget whenever the menu lacks it. Wait for the menu instead — `"{}"
+--role AXMenuItem --wait --dry-run` in the chain presses nothing and passes once any item is up —
+then search the item once without `--wait`, so a miss costs one pass. `--else-key escape` on that
+search closes the menu on a miss, and the reply's `exit=4` lets the shell take the fallback. The
+Claude app's ⇧⌘E rule archives this way and unarchives on the miss. An open menu is modal
+("A modal empties the tree behind it"), so the fallback's search behind it needs `--wait` for the
+page to come back.
+
+**`--set AXFocused=true` puts the caret in a Chromium text field.** The Claude app's composer
+(`AXTextArea` described `Prompt`) took it, which is how a rule leaves the user typing after a press
+elsewhere on the page.
+
 ## Sharing a chord with the app
 
 **Karabiner's conditions see the frontmost app and nothing inside it**, so a shortcut that should
@@ -305,7 +318,7 @@ apply toast's `AXButton AXTitle="Always apply"`. Dump there before measuring any
 finds the row while the sidebar is visible and the header button once it is hidden. `AXShowMenu` on
 the header button gets Electron's default Copy/Select All menu; `AXPress` on it opens the chat's
 dropdown (Archive and the rest) with no sidebar needed, which the Cmd+Shift+E archive rule uses.
-Titles may begin with an emoji, and they are **not unique** across projects; the header's
+On an archived chat that dropdown has **no Archive and no Unarchive item**; the only Unarchive control is an `AXButton` titled `Unarchive` in the banner that stands where the composer is (the composer returns once it is pressed). ion-dist has an `isArchived ? Unarchive : Archive` menu component that is not this dropdown, so a bundle string beside a plausible component is a lead to dump, not the tree. Titles may begin with an emoji, and they are **not unique** across projects; the header's
 `AXPopUpButton` titled with the project's name says which project the current chat is in. The Chat
 tab's header was not inspected. The suggested-task chip (top right of the transcript) is a split
 button: an `AXGroup` *described* with the primary label wraps an `AXButton` *titled* with it and an
