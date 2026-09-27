@@ -51,6 +51,31 @@ defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add 164 '<di
   `DictationIMNotificationStartedListening`, 70ms from the second chord to `StoppedListening`, injected
   into the Claude app with nothing frontmost changed.
 
+## Keeping DictationIM resident
+
+**DictationIM quits itself when idle, and the next tap pays a cold launch.** It called `terminate:`
+8 times in one morning, 2-37 min after its last use. The next tap spawns it through launchd
+(`Successfully spawned DictationIM ... because ipc (mach)`) 1.6s before it logs `Hotkey start
+triggered`; warm, the hotkey reaches `Recognizer start listening` in 13-50ms, and the microphone opens
+~0.5s later either way.
+
+**`scripts/dictation-warm.c` relaunches it as soon as it quits**, installed as a LaunchAgent by
+`scripts/build-dictation-warm.sh` (`com.raine.karabiner-config-dictation-warm`). It blocks on a kqueue
+for DictationIM's exit and wakes it with one empty Mach message to `com.apple.DictationIM.startup`,
+which launchd answers by spawning the job; a quit is replaced 1.1s later. The first tap into a
+process it launched listened in 28-37ms. Cost: 0.8MB and no CPU for the helper, ~32MB for the
+resident DictationIM.
+
+- **Nothing else launches it.** `launchctl kickstart` is refused under SIP, and `open -b` or an
+  AppleScript `launch` starts it outside its launchd job, which macOS kills as a `Launch Constraint
+  Violation` crash report.
+- **`NSDisableAutomaticTermination` does not keep it up.** Set in `com.apple.inputmethod.ironwood`
+  (its bundle ID), the process still quit 17 min later: the `terminate:` is its own call.
+- **SIGTERM is ignored.** To quit it for a test, `osascript -e 'tell application id
+  "com.apple.inputmethod.ironwood" to quit'`.
+- Same machine-state caveat as the symbolichotkeys record: a machine without the agent loaded pays
+  the cold launch again.
+
 ## Owning the fn key
 
 **Karabiner grabs `fn`, and `to_if_alone` on it works.** A tap is a clean trigger: it fires on release,
@@ -90,6 +115,13 @@ listens has already done its part. In the one cluster measured, each start stopp
 Claude app answering where the insertion point was, 1.2s after an archive. Taps of the same rule
 before and after listened normally. Read those two lines with
 `/usr/bin/log show --predicate 'process == "DictationIM"'` before touching the rule.
+
+**A tap with no text field to dictate into is refused, then stalls for ~3.4s.** `DictationIM` logged
+`Dictation did not start because there is bottom line input` 2ms after `Hotkey start triggered`, then
+blocked its main thread building the audio queue for its refusal sound (a cold
+`AudioComponentRegistrar` connection, 3.3s) until `IMKServer Stall detected ... (3.37 secs)`. The
+retap 260ms after the stall listened normally. Healthy starts reach `setting dictation stage = 2` in
+10-130ms after the hotkey, so a multi-second start with that refusal line is focus, not Karabiner.
 
 **Which key actually arrived is read with a raw key echo** — it is what caught the
 `fn_function_keys` translation above, since a media key and a plain F-key look identical everywhere
