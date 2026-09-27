@@ -25,8 +25,9 @@ about to write, before writing it.
   give a chord up.
 - [docs/system-shortcut-rules.md](docs/system-shortcut-rules.md) — driving a macOS system action
   whose trigger cannot be synthesized: rebinding its `symbolichotkeys` record to a chord no key can
-  reach, owning the fn key, and the `fn_function_keys` translation a rule's output still passes
-  through.
+  reach, owning the fn key, the `fn_function_keys` translation a rule's output still passes
+  through, and why a Dictation tap is slow (a refused start, a cold DictationIM, the keep-warm
+  helper).
 - [docs/pauses.md](docs/pauses.md) — when `hold_down_milliseconds` is load-bearing and when it is
   superstition, finding and sizing a floor, and probing several values per round.
 - [docs/load-errors.md](docs/load-errors.md) — why a rule can reload cleanly and never fire:

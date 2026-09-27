@@ -72,7 +72,8 @@ resident DictationIM.
 - **`NSDisableAutomaticTermination` does not keep it up.** Set in `com.apple.inputmethod.ironwood`
   (its bundle ID), the process still quit 17 min later: the `terminate:` is its own call.
 - **SIGTERM is ignored.** To quit it for a test, `osascript -e 'tell application id
-  "com.apple.inputmethod.ironwood" to quit'`.
+  "com.apple.inputmethod.ironwood" to quit'` -- only once the last `setting dictation stage` line
+  reads 0, since the user may be mid-dictation.
 - Same machine-state caveat as the symbolichotkeys record: a machine without the agent loaded pays
   the cold launch again.
 
@@ -103,6 +104,13 @@ timestamps a press without a screenshot or a menu-title read. `DidExitDictationM
 while Dictation is idle, and `DidEnterDictationMode` and `WillStartListening` fire for a start that
 then stalls, so key on `StartedListening` alone.
 (`~/projects/dictation-glow/docs/detection.md` establishes the names.)
+
+**Real taps are timed from the log, with no probe at all.** `DictationIM` logs `Dictation Hotkey start
+triggered` and `Recognizer start listening` for every tap the user made, so a day of their own
+dictation answers "how slow, and how often" without injecting anything: pair each hotkey line with
+the next listening line (or the `did not start` refusal), and a PID change in the process column
+marks a cold relaunch. That is how both slow paths below were found. Default-level lines are enough;
+no `--info`.
 
 **Inject the chord through System Events, not `CGEvent`.** `key code 79 using {control down, option
 down, command down}` starts Dictation; a `CGEventPost` of keycode 79 with the same three flags, from a

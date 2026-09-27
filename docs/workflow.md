@@ -100,6 +100,10 @@ is the full procedure; landing on main is the **ship** skill.
   (`while read -r id path`) empties `PATH`, and every later command in the loop reports
   `command not found`. Name it something else.
 - `log` is a zsh builtin; call `/usr/bin/log`.
+- **A LaunchAgent needs the user's yes in chat before any part of it is written.** Auto mode refuses
+  installing one as unauthorized persistence, and once refused it also refuses writing the installer
+  script and even reading the doc section about it. Ask with the ask tool first, naming the standing
+  cost (memory, CPU, runs at every login); after a yes, the install goes through.
 
 ## Editing skills and docs
 
