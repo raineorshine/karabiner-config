@@ -40,6 +40,14 @@ from `assets-proxy.anthropic.com` (the URLs are in `~/Library/Logs/Claude/claude
 traces), and a chunk's hash there can differ from the bundled one's, so read ion-dist as close to
 what runs rather than exactly it.
 
+**A label can change with what the app has loaded, so a wildcard prefix comes from the code, not one
+dump.** The Claude app's usage meter reads `"Usage: Context …"` only once the chat's context numbers
+have loaded — which hovering or opening it triggers — and `"Usage, 29% of 5-hour limit, …"` before,
+so a `"Usage: {}"` taken from a dump of the loaded state missed every press until a click. Find the
+`formatMessage` that builds the aria-label in ion-dist and match the prefix every branch shares
+(`"Usage{}"`); a `{}` needs at least one character, so a branch that renders the bare prefix still
+misses.
+
 **SwiftUI puts a native label in `AXValue`, and the control that acts is often not the labelled
 one.** Karabiner-Elements' own settings sidebar is an AXOutline whose rows each hold an AXImage (the
 SF Symbol, `AXIdentifier="gearshape"`) and an AXStaticText carrying the section name in `AXValue`.

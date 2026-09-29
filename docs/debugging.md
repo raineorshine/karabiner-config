@@ -13,6 +13,12 @@
   pattern is in time instead — an `ax-press` rule that logs `pressed=true`, does nothing, and works on
   the next try — it is the app's accessibility mode, not the rule
   ([accessibility-modes.md](accessibility-modes.md)).
+- **A run of `found=false` ending in a hit is a label that changed, not a flaky press.** When a
+  rule "works only after I click it", the log shows several misses a second apart, each walking the
+  whole tree (a high `visited=`), then `found=true` once the user's click changed the control. A miss
+  line does not name its query, so attribute it by timing against the hit that follows, then
+  `--dry-run` the rule's label in the failing state and `--dump` its prefix to see what the control is
+  called there ([accessibility-rules.md](accessibility-rules.md) "Finding the label").
 - **A rule that never fires may never have loaded.** Karabiner drops a manipulator it cannot parse
   and loads the rest, and says so only in the root daemon's log, `/var/log/karabiner/core_service.log`.
   `install` fails `REJECTED` on those errors, but a config that went live another way — a ship's
