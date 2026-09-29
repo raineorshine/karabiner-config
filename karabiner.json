@@ -1542,7 +1542,7 @@
                         ]
                     },
                     {
-                        "comment": "Opens the usage popover (the meter beside the composer) by pressing it through the accessibility tree rather than clicking a hardcoded coordinate. It is an AXPopUpButton whose AXDescription is the usage summary itself -- \"Usage: Weekly · Fable: 64%, Resets Thu 1:00 PM, Context 129k / 1M (13%)\" -- so the rule matches the stable \"Usage: \" prefix with the {} wildcard and lets the numbers vary. --role AXPopUpButton keeps it off the sidebar chat rows, whose titles can contain the word Usage. The default reverse walk reaches it in 47 elements, 29ms, since it sits at the end of the document beside the composer. The coordinate this replaces was (696, 938) and was already stale: the button measured (690,935 15x15) here, and it only ever landed while the window sat in its usual position and size. AXPress on an AXPopUpButton opens its popover. Logs one line per press to .claude/ax-press.log.",
+                        "comment": "Opens the usage popover (the meter beside the composer) by pressing it through the accessibility tree rather than clicking a hardcoded coordinate. It is an AXPopUpButton whose AXDescription is the usage summary itself -- \"Usage: Weekly · Fable: 64%, Resets Thu 1:00 PM, Context 129k / 1M (13%)\" -- and the rule matches the stable \"Usage\" prefix with the {} wildcard and lets the numbers vary. The prefix is \"Usage\", not \"Usage: \": the app adds the colon only once the chat's context numbers have loaded, which hovering or opening the popover triggers, so until then the label reads \"Usage, 29% of 5-hour limit, Resets in 3 hr 56 min\" -- and a \"Usage: {}\" search missed every press (found=false in ax-press.log) until a manual click loaded them. The wildcard needs at least one character, so a bare \"Usage\", which the app shows only before its plan limits have loaded either, still misses. --role AXPopUpButton keeps it off the sidebar chat rows, whose titles can contain the word Usage. The default reverse walk reaches it in 47 elements, 29ms, since it sits at the end of the document beside the composer. The coordinate this replaces was (696, 938) and was already stale: the button measured (690,935 15x15) here, and it only ever landed while the window sat in its usual position and size. AXPress on an AXPopUpButton opens its popover. Logs one line per press to .claude/ax-press.log.",
                         "description": "Claude: ⇧⌘U → Usage (physical key i in Colemak)",
                         "manipulators": [
                             {
@@ -1565,7 +1565,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "printf '%s\\0' com.anthropic.claudefordesktop \"Usage: {}\" --role AXPopUpButton --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "shell_command": "printf '%s\\0' com.anthropic.claudefordesktop \"Usage{}\" --role AXPopUpButton --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
