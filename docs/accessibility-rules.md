@@ -255,19 +255,31 @@ has no shortcut at all. A miss in a populated tree ends on the first pass rather
 `--budget-ms`, and Karabiner does not see the posted chord (a CGEvent is posted below its IOKit grab),
 so a rule can post the very chord that fired it. The cost moves onto the *common* path: every send
 pays a request plus a full walk, and `--log` writes a line for each. It works only for a chord the
-app treats as a command: bound to character keys, every letter reported `else_key_posted=true` and
-not one reached the focused input.
+app treats as a command: bound to character keys in Shortwave, every letter reported
+`else_key_posted=true` and not one reached the focused input. That is not true of posted letters in
+general — a CGEvent posted from a shell typed into a Brave text field — but a typing key handed back
+this way still arrives a request later than the keys around it, so a fast typist's next letter can
+overtake it. A posted key also passes through the active input source: the chord names the physical
+key, and physical `r` typed `p` under Colemak.
 
 **A rule bound to a key you also type emits the key itself rather than handing it back.** Shift plus
 a letter counts: Shortwave's Shift+G swallowed every capital G typed in a reply until it took this
 shape. `to` takes a `key_code` and a `shell_command` together, so Karabiner types the character and
 the helper runs behind it: nothing is swallowed, nothing waits on a launch, and the app's own
-single-key shortcuts still fire. `--unless-editing` makes the press stand down: it reads the app's
+single-key shortcuts still fire — unless the app grabs letters typed outside a text field, which
+the Claude app's Code tab does (below), and then a bare letter is not available at all.
+`--unless-editing` makes the press stand down: it reads the app's
 `AXFocusedUIElement` and does nothing while that is a text control. Without it, Shortwave's settings
 sidebar jumped on every letter typed into a label picker's search box. The read comes before any
 walk, so typing is the cheap path. Leave `--log` off such a rule: nothing rotates that file.
 
 ## Verifying a rule
+
+**A key posted from a shell goes to whatever app is frontmost — the user's, while they work.** Read
+`NSWorkspace.shared.frontmostApplication` before posting and refuse unless it is the target: a test
+`r` meant for the Claude app landed mid-word in a Brave field the user was typing in. computer-use
+cannot be granted the Claude app at all (it is the agent's own window), so a Claude-app rule whose
+target needs a screen state — a text selection — is pressed by the user.
 
 **An agent cannot fire the rule, so it checks each half.** The helper refuses presses from a shell
 ([ax-press-helper.md](ax-press-helper.md)), and keys a computer-use tool posts never reach
@@ -315,6 +327,13 @@ so delete the scratch profile afterwards.
 **Shortwave (`com.electron.shortwave`) exposes its web content like any Chromium tree**, and labels
 its own controls: `AXButton AXTitle="Compose"`, `AXImage AXDescription="Avatar for …"`, and the Always
 apply toast's `AXButton AXTitle="Always apply"`. Dump there before measuring any coordinate.
+
+**The Claude app's Code tab types any letter pressed outside a text field into the composer.** A
+window keydown listener `preventDefault`s every one-character key unless focus is in an input or a
+`menu`/`listbox`/`dialog` role is open, then focuses the composer and inserts it. The popup over
+selected transcript text ("Start a side chat" / `AXButton AXTitle="Reply"`) is none of those, so a
+bare-letter rule that types the key and presses behind it puts the letter in the composer and the
+selection, and the popup with it, is gone before the press — the Reply rule took Option+R instead.
 
 **Claude desktop app, Code tab** (inspected on 1.40609.0). The sidebar is an `AXGroup` (subrole
 `AXLandmarkComplementary`, description `Sidebar`). Each chat row is an `AXButton` titled `"<status>
