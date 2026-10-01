@@ -238,6 +238,15 @@ Claude app's ⇧⌘E rule archives this way and unarchives on the miss. An open 
 ("A modal empties the tree behind it"), so the fallback's search behind it needs `--wait` for the
 page to come back.
 
+**A control that exists only over a selection can make its own selection with `--else-click`.**
+On a miss it posts an n-click where the pointer already is and then waits for the control like
+`--wait`; each down/up pair carries its click state, so a triple click needs no timing between
+clicks. The Claude app's Option+R replies to the selection when there is one and otherwise
+triple-clicks the paragraph under the pointer. A Chromium selection popup comes up a beat after the
+selection (about half a second there), so the budget has to cover that. Do not pair it with
+`--else-key`: the click may have selected text in a field, and a handed-back chord that types would
+replace it.
+
 **`--set AXFocused=true` puts the caret in a Chromium text field.** The Claude app's composer
 (`AXTextArea` described `Prompt`) took it, which is how a rule leaves the user typing after a press
 elsewhere on the page.
