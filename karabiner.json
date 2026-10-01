@@ -1978,6 +1978,36 @@
                         ]
                     },
                     {
+                        "comment": "Selecting text in a Claude response puts up a popup with \"Start a side chat\" and \"Reply\"; the app gives Reply no shortcut. Reply is a plain AXButton titled Reply whose onClick opens the inline reply box, so AXPress reaches it. Where no popup is up, --else-key hands Option+R back to the app. Bare r was the first choice but cannot be done cleanly: the Code tab moves any letter typed outside a text field into the composer (the popup does not stop it), so a rule that types r and presses Reply behind it puts the r in the composer and closes the popup, and a rule that lets the helper decide whether to type r can reorder a fast r behind the next letter.",
+                        "description": "Claude: ⌥R → Reply to the selected text (physical key s in Colemak)",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": [
+                                            "com.anthropic.claudefordesktop"
+                                        ],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "s",
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "option"
+                                        ]
+                                    }
+                                },
+                                "to": [
+                                    {
+                                        "shell_command": "printf '%s\\0' com.anthropic.claudefordesktop Reply --else-key option+s --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "description": "Quick Chars",
                         "manipulators": [
                             {
