@@ -108,12 +108,12 @@ push is not a ship, so retry the round above and set it only when one lands. Do 
 ### 6. Fast-forward the local main if it can
 
 ```bash
-MAIN=$(git worktree list | head -1 | awk '{print $1}') && git -C "$MAIN" merge --ff-only origin/main
+git fetch origin main && MAIN=$(git worktree list --porcelain | awk '/^worktree /{w=substr($0,10)} $0=="branch refs/heads/main"{print w}') && if [ -z "$MAIN" ]; then git fetch origin main:main; elif [ -n "$(git -C "$MAIN" status --porcelain --untracked-files=no)" ]; then echo "local main left behind: $MAIN has local changes"; else git -C "$MAIN" merge --ff-only origin/main; fi
 ```
 
 The main checkout is `~/.config/karabiner`, whose `karabiner.json` *is* the file Karabiner-Elements reads, so this is what puts the shipped rule into the live config. It takes effect immediately; no reload.
 
-**If it fails with "Your local changes … would be overwritten", resolving it is this session's job, not the user's.** Run `./scripts/karabiner-test-lock.sh status` first:
+**If it reports local changes, resolving it is this session's job, not the user's.** Run `./scripts/karabiner-test-lock.sh status` first:
 
 - **Locked:** another worktree is mid-test with its config in the live slot. Leave it — never `checkout --` their work away. The ship already happened at step 5; only the local ref and the live file lag, and the holder's release is what unblocks it. One line in the report.
 - **Unlocked:** nobody's test is installed, so find out what the change is. Compare the live file with `HEAD` *parsed* (`json.load` both): equal means the diff is formatting alone — Karabiner rewriting the file in its own style, which `npm run build` now prevents for anything shipped after it — and it is safe to `checkout --` and fast-forward. Unequal means real edits someone made there (the settings window, a hand edit): copy the live file aside, then decide from what the edits are, and do not hand the user a command to run instead.
