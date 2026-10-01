@@ -75,6 +75,13 @@
 //                     Posted before the report so the fall-through is as prompt as the search was
 //                     (a populated tree misses in tens of milliseconds), and never under --dry-run,
 //                     which is the one path reaching a miss without the Karabiner-launched check
+//   --else-click <n>  when no control was found, click <n> times where the pointer already is (an
+//                     n-click: 2 selects a word, 3 a paragraph) and keep looking until the control
+//                     appears or the budget runs out. This is for a control that only exists once
+//                     something is selected: the Claude app's Reply button sits in a popup over
+//                     selected transcript text, so Option+R replies to the selection when there is
+//                     one and otherwise triple-clicks the paragraph under the pointer and replies to
+//                     that. The pointer is not moved. Skipped under --dry-run
 //   --unless-editing  do nothing, and fall through to --else-key, while the app's focused element
 //                     is a text control (AXTextField, AXTextArea, AXComboBox, AXSearchField).
 //                     A bare key bound to a control is still a character wherever one is being
@@ -236,6 +243,7 @@ struct Options {
   var wait = false
   var key: (code: CGKeyCode, flags: CGEventFlags)?
   var elseKey: (code: CGKeyCode, flags: CGEventFlags)?
+  var elseClick = 0
   var unlessEditing = false
   var enhanced = false
   var pid: pid_t = 0
@@ -362,7 +370,7 @@ func startPriming() {
 }
 
 func usage() throws -> Never {
-  output.error("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--nth N] [--dry-run] [--dump] [--dump-all] [--actions] [--prompt] [--log] [--budget-ms N] [--wait] [--key CHORD] [--unless-editing] [--else-key CHORD] [--enhanced] [--pid N] [--sibling TEXT] [--label-attr ATTR] [--action A] [--click] [--scroll-first] [--scroll-to-end] [--label-from PATTERN] [--ancestor ROLE[:N]] [--within X0,Y0,X1,Y1] [--under ROLE[:LABEL]] [--set ATTR=VALUE] [--then <bundle-id> <label> ...]\n       karabiner-config-ax-press --serve [--prime <bundle-id>]...")
+  output.error("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--nth N] [--dry-run] [--dump] [--dump-all] [--actions] [--prompt] [--log] [--budget-ms N] [--wait] [--key CHORD] [--unless-editing] [--else-key CHORD] [--else-click N] [--enhanced] [--pid N] [--sibling TEXT] [--label-attr ATTR] [--action A] [--click] [--scroll-first] [--scroll-to-end] [--label-from PATTERN] [--ancestor ROLE[:N]] [--within X0,Y0,X1,Y1] [--under ROLE[:LABEL]] [--set ATTR=VALUE] [--then <bundle-id> <label> ...]\n       karabiner-config-ax-press --serve [--prime <bundle-id>]...")
   throw Finished(code: 64)
 }
 
@@ -387,6 +395,7 @@ func parse(_ argv: [String]) throws -> Options {
     case "--wait": options.wait = true
     case "--key": i += 1; guard i < argv.count, let chord = parseChord(argv[i]) else { try usage() }; options.key = chord
     case "--unless-editing": options.unlessEditing = true
+    case "--else-click": i += 1; guard i < argv.count, let n = Int(argv[i]), (1...3).contains(n) else { try usage() }; options.elseClick = n
     case "--else-key": i += 1; guard i < argv.count, let chord = parseChord(argv[i]) else { try usage() }; options.elseKey = chord
     case "--enhanced": options.enhanced = true
     case "--pid": i += 1; guard i < argv.count, let n = Int32(argv[i]) else { try usage() }; options.pid = n
@@ -485,6 +494,21 @@ func postClick(at point: CGPoint) -> Bool {
   down.post(tap: .cgSessionEventTap)
   up.post(tap: .cgSessionEventTap)
   if let previous { CGWarpMouseCursorPosition(previous) }
+  return true
+}
+
+/// Click `count` times where the pointer is, as one multi-click: each pair carries its click state,
+/// which is what an app reads as a double or triple click, so no timing between them matters.
+func postMultiClick(_ count: Int) -> Bool {
+  guard let point = CGEvent(source: nil)?.location else { return false }
+  for state in 1...count {
+    guard let down = CGEvent(mouseEventSource: nil, mouseType: .leftMouseDown, mouseCursorPosition: point, mouseButton: .left),
+          let up = CGEvent(mouseEventSource: nil, mouseType: .leftMouseUp, mouseCursorPosition: point, mouseButton: .left) else { return false }
+    down.setIntegerValueField(.mouseEventClickState, value: Int64(state))
+    up.setIntegerValueField(.mouseEventClickState, value: Int64(state))
+    down.post(tap: .cgSessionEventTap)
+    up.post(tap: .cgSessionEventTap)
+  }
   return true
 }
 
@@ -991,6 +1015,7 @@ func handle(_ options: Options, peer: pid_t?) throws -> Int32 {
   var matchWindow: AXUIElement?
   var filled: String?
   var attempts = 0
+  var elseClickText = ""
   while true {
     attempts += 1
     search.visited = 0
@@ -1006,12 +1031,20 @@ func handle(_ options: Options, peer: pid_t?) throws -> Int32 {
       hit = found.match
       matchWindow = found.window
     }
-    if hit != nil || (search.visited >= unpopulatedElementCount && !options.wait) || search.timedOut || Date() > search.deadline { break }
+    // --else-click: a miss in a populated tree is where the selection that brings the control up is
+    // made, once; the search then waits for the control as --wait would.
+    if hit == nil && options.elseClick > 0 && elseClickText.isEmpty && search.visited >= unpopulatedElementCount
+      && !search.timedOut && Date() <= search.deadline {
+      elseClickText = options.dryRun ? " else_click=skipped-dry-run" : " else_click_posted=\(postMultiClick(options.elseClick))"
+      if options.dryRun { break }
+    }
+    let waiting = options.wait || (!elseClickText.isEmpty && !options.dryRun)
+    if hit != nil || (search.visited >= unpopulatedElementCount && !waiting) || search.timedOut || Date() > search.deadline { break }
     usleep(retryInterval)
   }
   let findMs = millis(since: start)
   let labelText = options.labelFrom == nil ? "" : " label=\"\(search.label)\""
-  let stats = "attempts=\(attempts) visited=\(search.visited)\(focusedText)\(search.timedOut ? " timed_out=true" : "")\(labelText) app_role=\(appRole) find_ms=\(findMs)"
+  let stats = "attempts=\(attempts) visited=\(search.visited)\(focusedText)\(search.timedOut ? " timed_out=true" : "")\(labelText) app_role=\(appRole)\(elseClickText) find_ms=\(findMs)"
 
   if options.labelFrom != nil && filled == nil {
     let unpopulated = search.visited < unpopulatedElementCount

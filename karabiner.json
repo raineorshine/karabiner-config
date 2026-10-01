@@ -1978,8 +1978,8 @@
                         ]
                     },
                     {
-                        "comment": "Selecting text in a Claude response puts up a popup with \"Start a side chat\" and \"Reply\"; the app gives Reply no shortcut. Reply is a plain AXButton titled Reply whose onClick opens the inline reply box, so AXPress reaches it. Where no popup is up, --else-key hands Option+R back to the app. Bare r was the first choice but cannot be done cleanly: the Code tab moves any letter typed outside a text field into the composer (the popup does not stop it), so a rule that types r and presses Reply behind it puts the r in the composer and closes the popup, and a rule that lets the helper decide whether to type r can reorder a fast r behind the next letter.",
-                        "description": "Claude: ⌥R → Reply to the selected text (physical key s in Colemak)",
+                        "comment": "Selecting text in a Claude response puts up a popup with \"Start a side chat\" and \"Reply\"; the app gives Reply no shortcut. Reply is a plain AXButton titled Reply whose onClick opens the inline reply box, so AXPress reaches it. With no selection, --else-click 3 triple-clicks where the pointer is, which selects the paragraph under it, and the search waits for the popup that brings up -- 571-614ms from the request to the press in three presses, hence --budget-ms 1000; a pointer over a link or button activates it instead. No --else-key: after a triple-click that selected composer text, a handed-back Option+R would type over the selection. Bare r cannot be done cleanly: the Code tab moves any letter typed outside a text field into the composer (the popup does not stop it), so a rule that types r and presses Reply behind it puts the r in the composer and closes the popup, and a rule that lets the helper decide whether to type r can reorder a fast r behind the next letter (docs/accessibility-rules.md).",
+                        "description": "Claude: ⌥R → Reply to the selected text, or to the paragraph under the pointer (physical key s in Colemak)",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -2000,7 +2000,7 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "printf '%s\\0' com.anthropic.claudefordesktop Reply --else-key option+s --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "shell_command": "printf '%s\\0' com.anthropic.claudefordesktop Reply --else-click 3 --budget-ms 1000 --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
                                     }
                                 ],
                                 "type": "basic"
