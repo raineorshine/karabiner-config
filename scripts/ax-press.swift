@@ -90,6 +90,15 @@
 //                     was swallowed and the sidebar jumped mid-word. Checked before the walk, from
 //                     one AXFocusedUIElement read, so typing costs an attribute read rather than a
 //                     tree
+//   --unless-selection
+//                     do nothing, and fall through to --else-key, while the app holds a selection
+//                     that is not collapsed: text selected in a web page (any AXWebArea's
+//                     AXSelectedTextMarkerRange spans at least one character) or in the focused
+//                     text control (its AXSelectedTextRange has a length). A caret is not a
+//                     selection. This is what lets a rule take Cmd+C: the Claude app copies the
+//                     last response when nothing is selected, and a selection still copies itself
+//                     through the handed-back Cmd+C. Checked before the walk; the web areas are a
+//                     dozen levels down, a few milliseconds to reach
 //   --wait            keep looking until the control appears or the budget runs out, for a target
 //                     that a previous action is still bringing on screen: the Archive item of a
 //                     context menu that an AXShowMenu a moment earlier is still opening. Without
@@ -105,6 +114,13 @@
 //                     -- an unlabelled group holding one child -- does not count as a level on
 //                     either side: ChatGPT's composer wraps each of its controls in one, so the
 //                     model picker and "Add files and more" are cousins in the tree, not siblings
+//   --stop-at <text>  end the walk with a miss on reaching an element labelled <text> before a
+//                     match. In the default reverse walk this means "only if nothing labelled
+//                     <text> comes after it": the Claude app mounts a message's toolbar only once
+//                     the message has been hovered, rendering a screen-reader-only "Show message
+//                     actions" button until then, so the Cmd+C rule presses that button with
+//                     --stop-at "Read aloud" -- for the last response when its toolbar is not up,
+//                     and for nothing when it is, rather than for some earlier unhovered message
 //   --action <AXAction>
 //                     perform this action instead of AXPress. AXShowMenu opens the control's
 //                     context menu, the same one a right-click would: Chromium implements it for
@@ -217,6 +233,7 @@
 // miss, so --else-key hands the key on exactly as it does when nothing matched. When it does not
 // stand down it reports focused=<role> in the stats instead, which is what says whether the app
 // is answering AXFocusedUIElement at all -- a backgrounded app answers focused=none.
+// --unless-selection reports found=false with selection=<where> and exits 4 the same way.
 // --else-key does not change any of these: a miss is still reported as a miss, with the posted
 // chord named in the same line, so a rule that falls through every time still says so in the log.
 
@@ -245,9 +262,11 @@ struct Options {
   var elseKey: (code: CGKeyCode, flags: CGEventFlags)?
   var elseClick = 0
   var unlessEditing = false
+  var unlessSelection = false
   var enhanced = false
   var pid: pid_t = 0
   var sibling: String?
+  var stopAt: String?
   var labelAttr: String?
   var action = "AXPress"
   var labelFrom: String?
@@ -370,7 +389,7 @@ func startPriming() {
 }
 
 func usage() throws -> Never {
-  output.error("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--nth N] [--dry-run] [--dump] [--dump-all] [--actions] [--prompt] [--log] [--budget-ms N] [--wait] [--key CHORD] [--unless-editing] [--else-key CHORD] [--else-click N] [--enhanced] [--pid N] [--sibling TEXT] [--label-attr ATTR] [--action A] [--click] [--scroll-first] [--scroll-to-end] [--label-from PATTERN] [--ancestor ROLE[:N]] [--within X0,Y0,X1,Y1] [--under ROLE[:LABEL]] [--set ATTR=VALUE] [--then <bundle-id> <label> ...]\n       karabiner-config-ax-press --serve [--prime <bundle-id>]...")
+  output.error("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--nth N] [--dry-run] [--dump] [--dump-all] [--actions] [--prompt] [--log] [--budget-ms N] [--wait] [--key CHORD] [--unless-editing] [--unless-selection] [--else-key CHORD] [--else-click N] [--enhanced] [--pid N] [--sibling TEXT] [--stop-at TEXT] [--label-attr ATTR] [--action A] [--click] [--scroll-first] [--scroll-to-end] [--label-from PATTERN] [--ancestor ROLE[:N]] [--within X0,Y0,X1,Y1] [--under ROLE[:LABEL]] [--set ATTR=VALUE] [--then <bundle-id> <label> ...]\n       karabiner-config-ax-press --serve [--prime <bundle-id>]...")
   throw Finished(code: 64)
 }
 
@@ -395,6 +414,8 @@ func parse(_ argv: [String]) throws -> Options {
     case "--wait": options.wait = true
     case "--key": i += 1; guard i < argv.count, let chord = parseChord(argv[i]) else { try usage() }; options.key = chord
     case "--unless-editing": options.unlessEditing = true
+    case "--unless-selection": options.unlessSelection = true
+    case "--stop-at": i += 1; guard i < argv.count else { try usage() }; options.stopAt = argv[i]
     case "--else-click": i += 1; guard i < argv.count, let n = Int(argv[i]), (1...3).contains(n) else { try usage() }; options.elseClick = n
     case "--else-key": i += 1; guard i < argv.count, let chord = parseChord(argv[i]) else { try usage() }; options.elseKey = chord
     case "--enhanced": options.enhanced = true
@@ -624,6 +645,33 @@ func children(_ element: AXUIElement) -> [AXUIElement] {
   (attribute(element, kAXChildrenAttribute) as? [AXUIElement]) ?? []
 }
 
+// The selection a Cmd+C would copy, if there is one: "text" for a focused native text control
+// with a non-empty AXSelectedTextRange, "web" for a page whose AXSelectedTextMarkerRange spans
+// text. Chromium keeps one selection per document, contenteditable composers included, and a
+// caret is a collapsed range of length 0. AXWebArea elements sit a dozen levels under the window
+// and are not nested in each other's pages here, so the search stops descending at each one.
+func selection(_ app: AXUIElement, windows: [AXUIElement]) -> String? {
+  if let focused = attribute(app, kAXFocusedUIElementAttribute), CFGetTypeID(focused) == AXUIElementGetTypeID(),
+     let value = attribute(focused as! AXUIElement, kAXSelectedTextRangeAttribute), CFGetTypeID(value) == AXValueGetTypeID() {
+    var range = CFRange()
+    if AXValueGetValue(value as! AXValue, .cfRange, &range), range.length > 0 { return "text" }
+  }
+  func webAreas(_ element: AXUIElement, depth: Int) -> [AXUIElement] {
+    if string(element, kAXRoleAttribute) == "AXWebArea" { return [element] }
+    if depth > 16 { return [] }
+    return children(element).flatMap { webAreas($0, depth: depth + 1) }
+  }
+  for window in windows {
+    for area in webAreas(window, depth: 0) {
+      guard let range = attribute(area, "AXSelectedTextMarkerRange") else { continue }
+      var length: CFTypeRef?
+      if AXUIElementCopyParameterizedAttributeValue(area, "AXLengthForTextMarkerRange" as CFString, range, &length) == .success,
+         let n = length as? Int, n > 0 { return "web" }
+    }
+  }
+  return nil
+}
+
 func frame(_ element: AXUIElement) -> CGRect? {
   guard let positionValue = attribute(element, kAXPositionAttribute),
         let sizeValue = attribute(element, kAXSizeAttribute),
@@ -675,6 +723,8 @@ final class Search {
   var deadline: Date
   var visited = 0
   var timedOut = false
+  /// Set when the walk reached --stop-at before a match; every later element is then refused.
+  var stopped = false
 
   // The tree is not always a tree. A freshly launched ChatGPT answered a walk with an element whose
   // children led back to an ancestor, and the recursion ran until the stack overflowed (SIGSEGV,
@@ -726,6 +776,13 @@ final class Search {
     }
   }
 
+  /// --stop-at: marks the walk stopped when this element carries the label. Always nil, so a
+  /// walk can return it in place of a miss.
+  func stop(_ element: AXUIElement) -> AXUIElement? {
+    if let text = options.stopAt, labels(element).contains(where: { $0.1 == text }) { stopped = true }
+    return nil
+  }
+
   /// An unlabelled group with exactly one child: a layout box, not a level of the row.
   func isWrapper(_ element: AXUIElement) -> Bool {
     string(element, kAXRoleAttribute) == "AXGroup" && labels(element).isEmpty && children(element).count == 1
@@ -734,7 +791,7 @@ final class Search {
   /// True when this element should be walked into: not an ancestor of itself, not too deep, and
   /// the budget not spent. Registers it on the path; the caller must `leave` it afterwards.
   func enter(_ element: AXUIElement, depth: Int) -> Bool {
-    if timedOut || depth > maxDepth { return false }
+    if timedOut || stopped || depth > maxDepth { return false }
     let key = ElementKey(element: element)
     if path.contains(key) { return false }
     path.insert(key)
@@ -749,24 +806,26 @@ final class Search {
   /// order. Children are visited before their parent to keep the traversal an exact reversal of
   /// document order.
   func findLast(_ element: AXUIElement, depth: Int = 0) -> AXUIElement? {
-    if depth == 0 { seen = 0 }
+    if depth == 0 { seen = 0; stopped = false }
     guard enter(element, depth: depth) else { return nil }
     defer { leave(element) }
     for child in children(element).reversed() {
       if let hit = findLast(child, depth: depth + 1) { return hit }
     }
-    guard matches(element) else { return nil }
+    guard matches(element) else { return stop(element) }
     seen += 1
     return seen >= options.nth ? element : nil
   }
 
   func findFirst(_ element: AXUIElement, depth: Int = 0) -> AXUIElement? {
-    if depth == 0 { seen = 0 }
+    if depth == 0 { seen = 0; stopped = false }
     guard enter(element, depth: depth) else { return nil }
     defer { leave(element) }
     if matches(element) {
       seen += 1
       if seen >= options.nth { return element }
+    } else if stop(element) != nil {
+      return nil
     }
     for child in children(element) {
       if let hit = findFirst(child, depth: depth + 1) { return hit }
@@ -1010,6 +1069,13 @@ func handle(_ options: Options, peer: pid_t?) throws -> Int32 {
     }
   }
   let focusedText = options.unlessEditing ? " focused=\(focusedRole)" : ""
+
+  // --unless-selection: a copy chord belongs to the selection while there is one.
+  if options.unlessSelection, let selected = selection(appElement, windows: windows) {
+    let elseText = elseKey()
+    report(options, "trusted=true app=\(options.bundleId) found=false selection=\(selected)\(elseText) app_role=\(appRole) \(timing())")
+    throw Finished(code: 4)
+  }
 
   var hit: AXUIElement?
   var matchWindow: AXUIElement?

@@ -90,15 +90,10 @@ cat > "$PLIST.new" <<EOF
 </plist>
 EOF
 
-if cmp -s "$PLIST.new" "$PLIST" && launchctl print "$DOMAIN/$LABEL" >/dev/null 2>&1; then
-  rm -f "$PLIST.new"
-  # -k replaces a running server with one on the new binary.
-  launchctl kickstart -k "$DOMAIN/$LABEL"
-else
-  mv -f "$PLIST.new" "$PLIST"
+# bootout returns before the job is fully gone, and a bootstrap that lands first fails with an I/O
+# error, so retry briefly.
+rebootstrap() {
   launchctl bootout "$DOMAIN/$LABEL" 2>/dev/null || true
-  # bootout returns before the job is fully gone, and a bootstrap that lands first fails with an
-  # I/O error, so retry briefly.
   tries=0
   until launchctl bootstrap "$DOMAIN" "$PLIST" 2>/dev/null; do
     tries=$((tries + 1))
@@ -108,6 +103,30 @@ else
     fi
     sleep 0.1
   done
+}
+
+# One request for an app that is not running; any reply ends exit=<code>.
+answers() {
+  printf '%s\0' com.raine.karabiner-config-ax-press.probe x --dry-run | /usr/bin/nc -w 3 -U "$SOCKET" 2>/dev/null | grep -q '^exit='
+}
+
+if cmp -s "$PLIST.new" "$PLIST" && launchctl print "$DOMAIN/$LABEL" >/dev/null 2>&1; then
+  rm -f "$PLIST.new"
+  # -k replaces a running server with one on the new binary.
+  launchctl kickstart -k "$DOMAIN/$LABEL"
+else
+  mv -f "$PLIST.new" "$PLIST"
+  rebootstrap
+fi
+
+# A kickstart can leave the job unable to spawn at all -- launchd logged "Unable to get updated
+# LWCR ... error 0x3" and "spawn failed" (exit 78) after a second rebuild in one session -- and
+# then every rule's nc waits on a socket nobody answers, so every ax-press shortcut goes dead
+# without a word. A fresh bootstrap clears it.
+if ! answers; then
+  echo "server did not answer after the restart; bootstrapping the agent again" >&2
+  rebootstrap
+  answers || { echo "server still not answering: launchctl print $DOMAIN/$LABEL" >&2; exit 1; }
 fi
 
 printf 'built %s (ad-hoc, designated => identifier "%s"); serving on %s\n' "$OUT" "$IDENTIFIER" "$SOCKET"

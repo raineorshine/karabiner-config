@@ -2008,6 +2008,66 @@
                         ]
                     },
                     {
+                        "comment": "Presses the Copy button in the last Claude response's \"Message actions\" toolbar (AXButton described Copy). A user message's toolbar has a Copy button too, so --sibling \"Read aloud\" keeps to responses; the default reverse walk finds the last one. The app mounts a message's toolbar only once it has been hovered (or focused): until then the message carries a screen-reader-only 1x1 AXButton described \"Show message actions for Claude responded: <the turn's first line>\" whose press mounts the toolbar and focuses it (the wildcard keeps it to responses). So the first request presses that button, with --stop-at \"Read aloud\" so it fires only when the last response's toolbar is not up -- the reverse walk reaches a mounted toolbar's Read aloud first and gives up -- and the second request waits for Copy (--wait) and presses it. Two requests joined with ';' because --then runs only after a press, and the first one usually misses. --unless-selection reads the selection before any walk -- a web area's AXSelectedTextMarkerRange with any length, or the focused text control's AXSelectedTextRange -- and while there is one, or when no response is on screen, --else-key cmd+c hands the copy back to the app, so a selection still copies itself. A caret in the composer is not a selection. Key c is the same in Colemak and QWERTY.",
+                        "description": "Claude: ⌘C → copy the last response when nothing is selected",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": [
+                                            "com.anthropic.claudefordesktop"
+                                        ],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "c",
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "command"
+                                        ]
+                                    }
+                                },
+                                "to": [
+                                    {
+                                        "shell_command": "printf '%s\\0' com.anthropic.claudefordesktop 'Show message actions for Claude responded: {}' --stop-at 'Read aloud' --unless-selection --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\"; printf '%s\\0' com.anthropic.claudefordesktop Copy --sibling 'Read aloud' --unless-selection --wait --budget-ms 1000 --else-key cmd+c --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
+                        "comment": "Presses the copy button of the last code block (AXButton described \"Copy code\", the aria-label both the Code tab and the Chat tab give it; the default reverse walk finds the last one). For 1.2s after a copy the button is described \"Copied\", so a second press inside that finds the block before it. --unless-selection stands down while text is selected (see the ⌘C rule), and that case and a screen with no code block both hand Option+C back through --else-key, which types ç as it would have. Key c is the same in Colemak and QWERTY.",
+                        "description": "Claude: ⌥C → copy the last code block when nothing is selected",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": [
+                                            "com.anthropic.claudefordesktop"
+                                        ],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "c",
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "option"
+                                        ]
+                                    }
+                                },
+                                "to": [
+                                    {
+                                        "shell_command": "printf '%s\\0' com.anthropic.claudefordesktop 'Copy code' --unless-selection --else-key option+c --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "description": "Quick Chars",
                         "manipulators": [
                             {

@@ -56,6 +56,10 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Command + `U` → `S="$HOME/.config/karabiner/scripts/bin/ax-press.sock"; case $(printf '%s\0' com.anthropic.claudefordesktop Local --role AXPopUpButton --label-attr AXTitle --log | /usr/bin/nc -U "$S") in *exit=4*) printf '%s\0' com.anthropic.claudefordesktop Cloud --role AXPopUpButton --label-attr AXTitle --else-key cmd+u --log | /usr/bin/nc -U "$S" ;; esac`
 - Claude: ⌥R → Reply to the selected text, or to the paragraph under the pointer (physical key s in Colemak)
   - Option + `S` → `printf '%s\0' com.anthropic.claudefordesktop Reply --else-click 3 --budget-ms 1000 --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
+- Claude: ⌘C → copy the last response when nothing is selected
+  - Command + `C` → `printf '%s\0' com.anthropic.claudefordesktop 'Show message actions for Claude responded: {}' --stop-at 'Read aloud' --unless-selection --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"; printf '%s\0' com.anthropic.claudefordesktop Copy --sibling 'Read aloud' --unless-selection --wait --budget-ms 1000 --else-key cmd+c --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
+- Claude: ⌥C → copy the last code block when nothing is selected
+  - Option + `C` → `printf '%s\0' com.anthropic.claudefordesktop 'Copy code' --unless-selection --else-key option+c --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
 - Quick Chars
   - L-Option + `'` → `` ` ``
   - L-Option + `T` → `~`
