@@ -18,6 +18,18 @@ notarization lookup over the network and an XProtect pass, a few hundred millise
 file — before any press can. `launchctl print gui/$(id -u)/com.raine.karabiner-config-ax-press` says
 whether it is running, how many times launchd has started it, and its last exit code.
 
+**Every ax-press rule going dead at once is the server, not the rule just edited.** Each rule's
+`nc` waits on the socket, so a server launchd cannot start silences every rule together, and
+`.claude/ax-press.log` stops gaining lines — no line at all means the request never reached the
+helper. `ps` shows the stuck `nc -U …/ax-press.sock` clients piling up. A `kickstart -k` after a
+second rebuild in one session left the job unable to spawn: `launchctl print` read `job state = spawn
+failed`, last exit 78 (EX_CONFIG), and `log show` had launchd's "Unable to get updated LWCR … error
+0x3". Another kickstart does not clear that; `launchctl bootout` and a retried `launchctl bootstrap`
+of the plist does, and the build script now probes the socket after its restart and re-bootstraps
+when nothing answers. Probe by hand with `nc -w`, so a dead server cannot hang the check: `printf
+'%s\0' x y --dry-run | /usr/bin/nc -w 3 -U ~/.config/karabiner/scripts/bin/ax-press.sock` answers
+`exit=3` (app not running) at once from a live server.
+
 **The wire format.** A request is the arguments, each NUL-terminated, then end of file; the reply is
 what a one-shot run would print, then a last line `exit=<code>`. macOS's `nc -U` half-closes once its
 input ends and prints the reply until the server closes, then exits 0 whatever the code said, which

@@ -30,7 +30,14 @@ that renders the tooltip names the aria-label beside it: ChatGPT's "Thinking eff
 `AXDescription="Select ChatGPT model"`, which no dump query for "effort" could have found. Its event
 handlers sit there too, which is what explains a press that does nothing ("Pressing" below). Search it
 with Python `mmap` and `re`: this machine's `grep` is ugrep, which refuses a context pattern such as
-`.{0,160}effort.{0,160}` on a file that size ("exceeds complexity limits").
+`.{0,160}effort.{0,160}` on a file that size ("exceeds complexity limits"). Across the Claude app's
+many ion-dist chunks even Python's `re` with that context pattern ran past two minutes: find the files
+with `grep -l -F` on the literal, then print a slice around `str.find`.
+
+**A bundle string is a lead; the label is what the live tree says.** The Claude app's lazy toolbar
+button is `"Show message actions"` in ion-dist and `AXDescription="Show message actions for Claude
+responded: <the turn's first line>"` on screen — a different component from the one the search found.
+Confirm against a dump before writing the rule.
 
 **The Claude desktop app's renderer is not in its `app.asar`.** The Code tab's components and their
 `defaultMessage` strings live in `Contents/Resources/ion-dist/assets/v1/*.js`, where a plain `grep -l`
@@ -179,6 +186,18 @@ local/cloud popup immediately before the project picker — only their order sep
 `--nth` takes the nth match in walk order, counted per window. Reach for it last: an ordinal breaks
 silently when the app inserts a control ahead of the target.
 
+**A control the app mounts on hover is absent from a dump of anything not yet hovered.** The Claude
+app renders a message's "Message actions" toolbar (Copy, Fork, Read aloud) only after a hover or a
+focus; before that the message carries a screen-reader-only 1x1 button whose press mounts the toolbar
+and focuses it. Dumps of hovered messages hid this, and the Cmd+C rule missed on every fresh reply.
+For any hover-revealed control, read its mount condition in the bundle and dump content nobody has
+hovered (the watcher above catches it). `--stop-at <label>` keeps the mounting press on the right
+message: the reverse walk gives up on reaching `<label>` before a match, so `"Show message actions
+for Claude responded: {}" --stop-at "Read aloud"` presses only when the last response's toolbar is
+not already up, and never an earlier unhovered one. Dry-run it with and without `--stop-at` to see
+the guard doing that. The press that follows is a second request joined with `;`, because `--then`
+runs only after a press and the first request usually misses.
+
 **A qualifier has to be in the row in every state the screen has.** A control the app renders only
 once something is chosen — the folder row's add-another-folder button appears with a folder and not
 without one — qualifies the row in the state you dumped and empties the match set in the other, and
@@ -282,6 +301,16 @@ the Claude app's Code tab does (below), and then a bare letter is not available 
 sidebar jumped on every letter typed into a label picker's search box. The read comes before any
 walk, so typing is the cheap path. Leave `--log` off such a rule: nothing rotates that file.
 
+**`--unless-selection` gives a copy chord back while text is selected.** Chromium exposes each
+page's selection as `AXSelectedTextMarkerRange` on its `AXWebArea`, and `AXLengthForTextMarkerRange`
+over it is 0 for a caret and the character count for a selection — contenteditable composers
+included, since a document has one selection. A focused native field answers `AXSelectedTextRange`
+instead. A window can hold several web areas (the Claude app had three or four), and the selection
+may be in any of them, so the check reads them all. The Claude app's Cmd+C and Option+C copy the
+last response and code block this way and hand the chord on whenever something is selected. Writing
+`AXSelectedTextMarkerRange` returned success and selected nothing, so a selection check cannot be
+self-tested by making a selection through accessibility; the selected case is the user's press.
+
 ## Verifying a rule
 
 **A key posted from a shell goes to whatever app is frontmost — the user's, while they work.** Read
@@ -354,7 +383,7 @@ selection, and the popup with it, is gone before the press — the Reply rule to
 finds the row while the sidebar is visible and the header button once it is hidden. `AXShowMenu` on
 the header button gets Electron's default Copy/Select All menu; `AXPress` on it opens the chat's
 dropdown (Archive and the rest) with no sidebar needed, which the Cmd+Shift+E archive rule uses.
-On an archived chat that dropdown has **no Archive and no Unarchive item**; the only Unarchive control is an `AXButton` titled `Unarchive` in the banner that stands where the composer is (the composer returns once it is pressed). ion-dist has an `isArchived ? Unarchive : Archive` menu component that is not this dropdown, so a bundle string beside a plausible component is a lead to dump, not the tree. Titles may begin with an emoji, and they are **not unique** across projects; the header's
+On an archived chat that dropdown has **no Archive and no Unarchive item**; the only Unarchive control is an `AXButton` titled `Unarchive` in the banner that stands where the composer is (the composer returns once it is pressed). ion-dist has an `isArchived ? Unarchive : Archive` menu component that is not this dropdown, so a bundle string beside a plausible component is a lead to dump, not the tree. A response's Copy button is `AXButton AXDescription="Copy"` in an `AXToolbar` described `Message actions`, beside `Read aloud`, which user messages' toolbars lack; a code block's is `"Copy code"` (`"Copied"` for 1.2s after a press) in both tabs. Titles may begin with an emoji, and they are **not unique** across projects; the header's
 `AXPopUpButton` titled with the project's name says which project the current chat is in. The Chat
 tab's header was not inspected. The suggested-task chip (top right of the transcript) is a split
 button: an `AXGroup` *described* with the primary label wraps an `AXButton` *titled* with it and an
