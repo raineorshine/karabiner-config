@@ -36,7 +36,10 @@
   const ALLOWED_URL =
     /^(?:https?:\/\/localhost|https:\/\/[a-z0-9-]+(?:\.[a-z0-9-]+)*\.vercel\.app)(?::\d+)?(?:[/?#]|$)/i
 
-  if (!ALLOWED_URL.test(pageUrl)) return
+  // The dev server on port 3100 keeps its site data, on either scheme.
+  const EXCLUDED_URL = /^https?:\/\/localhost:3100(?:[/?#]|$)/i
+
+  if (!ALLOWED_URL.test(pageUrl) || EXCLUDED_URL.test(pageUrl)) return
 
   // hit escape until the cursor is null, otherwise Cmd + Shift + P will shadow the native shortcut
   systemEvents.keyCode(ESCAPE)
