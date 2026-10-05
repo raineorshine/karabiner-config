@@ -74,6 +74,10 @@ is the full procedure; landing on main is the **ship** skill.
   holds the lock, the live file contains *their* rules.
 - The lock covers the ax-press helper as well as the file: `scripts/build-ax-press.sh` refuses while
   another worktree holds it, post-ship rebuilds included ([ax-press-helper.md](ax-press-helper.md)).
+- **A script change is not installed by the lock.** Rules call scripts by their main-checkout path
+  (`$HOME/.config/karabiner/scripts/...`), so installing a worktree's `karabiner.json` still runs
+  main's copy of each script. A worktree's script edit goes live only when the ship fast-forwards the
+  main checkout; check its pure logic offline (e.g. a regex over sample inputs in `node -e`) instead.
 - **The snapshot is content, not a commit, and nothing checks it against `main`.** `release` puts
   back byte-exactly what was live at `acquire`, so a live file *already* behind `main` then is put
   back just as faithfully. `acquire` notes when the live file differs from HEAD and names the

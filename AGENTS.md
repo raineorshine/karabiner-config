@@ -149,6 +149,13 @@ A rule takes the chord from whatever else had it, without a word. Check all four
   trigger is *moved* onto a chord a rule can emit
   ([docs/system-shortcut-rules.md](docs/system-shortcut-rules.md)).
 
+## Scoping a browser chord to a site
+
+A Karabiner condition sees the app, never the page URL, so per-site behaviour lives in the script
+the rule runs. `scripts/clear-site-data.js` (Cmd+Option+R in Brave and Chrome) reads the active
+tab's URL and returns early unless `ALLOWED_URL` matches and `EXCLUDED_URL` does not. Enable or
+disable that chord on a site there, not in `karabiner.json`.
+
 ## Communication
 
 - Report outcomes tersely: what was found, what was done — "1 instance: AGENTS.md. Removed and amended." Skip process narration and thoroughness reassurances; verify silently and state conclusions.
