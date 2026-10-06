@@ -19,6 +19,12 @@ rewrite the whole file; `.prettierignore` lists it.
 manipulator with a key it does not know and loads the rest, so the rule never fires. It reached the
 live file twice before `install` learned to refuse it ([load-errors.md](load-errors.md)).
 
+**A behaviour the user drops stays in the rule's `comment` as one sentence of history.** Lead with
+what the rule does now, then name the dropped version and the user's reason for dropping it, and fix
+every other passage that still assumes it. A reversal made from lived use (the archive rule's Cmd+1
+jump, removed as visually disruptive) reads as an obvious improvement to the next agent unless the
+comment says it was tried and refused.
+
 **Adjacent `shell_command`s in one `to` array collapse to the last one.** Two spawns back to back
 run once, and the survivor is the later one — no error, nothing logged. Join them into one
 `shell_command` with `;`, or put an event with `hold_down_milliseconds` between them. For helper
