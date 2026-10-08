@@ -196,7 +196,9 @@ hovered (the watcher above catches it). `--stop-at <label>` keeps the mounting p
 message: the reverse walk gives up on reaching `<label>` before a match, so `"Show message actions
 for Claude responded: {}" --stop-at "Read aloud"` presses only when the last response's toolbar is
 not already up, and never an earlier unhovered one. Dry-run it with and without `--stop-at` to see
-the guard doing that. The press that follows is a second request joined with `;`, because `--then`
+the guard doing that.
+An element that matches is never a stop, even when it carries the `--stop-at` label, so a target
+titled like the marker still wins. The press that follows is a second request joined with `;`, because `--then`
 runs only after a press and the first request usually misses.
 
 **A qualifier has to be in the row in every state the screen has.** A control the app renders only
@@ -211,7 +213,18 @@ ChatGPT's composer picker is `AXDescription="Select ChatGPT model"` in Chat mode
 naming the model in Work mode; `"{}" --role AXPopUpButton --sibling "Add files and more"` finds it in
 both, because the attach button is in that row on every screen. The wildcard lets in every popup in
 the row, so the walk direction decides between them — Work mode's permissions popup comes first —
-with the same fragility as `--nth`.
+with the same fragility as `--nth`. A qualifying control whose own label is the sibling text is its
+own sibling, so it matches the wildcard too; `--first` or the walk direction has to reach the target
+ahead of it.
+A label that is the user's own data — the Claude app's environment pill reads whatever the
+environment is named — leaves the wildcard as the only way in.
+
+**A widened match must be dry-run on every screen the chord is live on, not just the target's.** A
+wildcard qualified by a sibling admits any row of that shape: the Claude Cmd+L pill search
+(`"{}" --sibling "Add repository"`) also matched a cloud session's header, which carries an
+environment popup beside a hidden repo trigger, and would have taken Copy session link there. A
+`--stop-at` on a marker that opens the lookalike row ahead of the match (the header's icon-only
+`"Cloud"`) ends the forward walk before it reaches the impostor.
 
 ## Pressing
 
@@ -329,6 +342,11 @@ put up. The keypress itself is then the user's.
 **`--dry-run` from a shell verifies the target before the lock is taken.** It resolves `--label-from`
 and finds the element without pressing, so the live-config lock is held only for the presses
 themselves (110ms, `label="More options for 💰 TSLA exit strategy"`).
+
+**A screen the agent cannot open is checked by a watcher, not a request.** Loop the rule's search
+with `--dry-run` every half second in the background and save a `--dump-all` on the first
+`found=true`; it reports what the search lands on as soon as the user happens onto that screen, and a
+false match on some other screen shows up the same way.
 
 **A backgrounded app answers `AXFocusedUIElement` with nothing.** A one-off `--dry-run` from a shell
 cannot check anything conditioned on focus; it reports `focused=none`. A dry run *polled in the
