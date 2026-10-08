@@ -53,7 +53,7 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
 - Claude app: Cmd+R → open the session's PR link (via accessibility) (physical key s in Colemak)
   - Command + `S` → `printf '%s\0' com.anthropic.claudefordesktop "#{}" --role AXLink --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
 - Claude: ⌘L → Local/Cloud picker (Where Claude runs) (physical key u in Colemak)
-  - Command + `U` → `S="$HOME/.config/karabiner/scripts/bin/ax-press.sock"; case $(printf '%s\0' com.anthropic.claudefordesktop Local --role AXPopUpButton --label-attr AXTitle --log | /usr/bin/nc -U "$S") in *exit=4*) printf '%s\0' com.anthropic.claudefordesktop Cloud --role AXPopUpButton --label-attr AXTitle --else-key cmd+u --log | /usr/bin/nc -U "$S" ;; esac`
+  - Command + `U` → `S="$HOME/.config/karabiner/scripts/bin/ax-press.sock"; case $(printf '%s\0' com.anthropic.claudefordesktop Local --role AXPopUpButton --label-attr AXTitle --log | /usr/bin/nc -U "$S") in *exit=4*) printf '%s\0' com.anthropic.claudefordesktop "{}" --role AXPopUpButton --label-attr AXTitle --sibling "Add repository" --first --stop-at Cloud --else-key cmd+u --log | /usr/bin/nc -U "$S" ;; esac`
 - Claude: ⌥R → Reply to the selected text, or to the paragraph under the pointer (physical key s in Colemak)
   - Option + `S` → `printf '%s\0' com.anthropic.claudefordesktop Reply --else-click 3 --budget-ms 1000 --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
 - Claude: ⌘C → copy the last response when nothing is selected

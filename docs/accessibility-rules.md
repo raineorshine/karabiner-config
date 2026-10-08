@@ -140,10 +140,11 @@ labels and frame together, because two adjacent rows can share an avatar.
 ## Telling rivals apart
 
 **The same word in a different attribute is a different control, and `--label-attr` says which.**
-The Claude app's New Session environment pill is `AXPopUpButton AXTitle="Cloud"`, its visible text;
-a cloud session's header opens with an icon-only popup `AXDescription="Cloud"`, its aria-label. Both
-rows also hold an "Add repository" trigger (hidden in the header), so `--sibling` cannot separate
-them; `--label-attr AXTitle` does. A reply ends `exit=<code>`, which is how one `shell_command` tries
+The Claude app's New Session environment pill is `AXPopUpButton AXTitle=<environment name>`, its
+visible text ("Local", "Cloud", or a named cloud environment); a cloud session's header opens with an
+icon-only popup `AXDescription="Cloud"`, its aria-label. Both rows also hold an "Add repository"
+trigger (hidden in the header), so `--sibling` cannot separate them; `--label-attr AXTitle` does, and
+it keeps doing so under a `"{}"` wildcard, since the header popup has no title to match. A reply ends `exit=<code>`, which is how one `shell_command` tries
 a second label only when the first missed (`case ... in *exit=4*)`): `--then` runs on success, not on
 a miss.
 
