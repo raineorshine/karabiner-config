@@ -91,6 +91,10 @@ Ask the user to press the key, and say what you expect to happen. Karabiner rule
 also name the app the rule is scoped to. Per docs/debugging.md: a handful of presses cannot tell 100%
 from 90% — if the behavior is at all probabilistic, say so rather than declaring it fixed.
 
+For an `ax-press` rule with `--log`, poll `~/.config/karabiner/.claude/ax-press.log` in a background
+loop until the expected number of lines for the bundle appear, and read each press's result from it
+(`pressed=true`, the matched label, timings) rather than asking the user what happened.
+
 ### 5. Iterate without releasing
 
 Edit `karabiner.json` in the worktree and re-run `install`. The lock stays held, so a

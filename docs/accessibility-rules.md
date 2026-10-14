@@ -16,6 +16,12 @@ for. The options are documented at the top of `scripts/ax-press.swift`. The help
 signing and Accessibility grant are [ax-press-helper.md](ax-press-helper.md); why a press can log
 success and do nothing in an Electron app is [accessibility-modes.md](accessibility-modes.md).
 
+**Rule out a scriptable route first, and read an app's URL scheme from its binary.** `sdef <app>`
+answers whether it has an AppleScript dictionary, and `CFBundleURLTypes` in its `Info.plist` names
+its scheme — but a scheme is not an action: `strings` on the main binary with `grep -B3 -A3` around
+the scheme literal shows the handler (`getUrl(_:withReplyEvent:)`) and the few URLs it accepts. Proton
+VPN's `protonvpn://` handles only `refresh`, which is why its toggle presses a button.
+
 ## Finding the label
 
 **Chromium puts aria-labels in `AXDescription`; tooltips are not in the tree at all.** The button the
@@ -73,6 +79,12 @@ tree as it is. It is an inspector, not a rule mechanism: a Karabiner-spawned `os
 are unpredictable ([click-rules.md](click-rules.md)). Synthetic keystrokes through it need the shell
 to hold Accessibility itself, which a Claude desktop session's shell does (System Events error 1002
 otherwise; see "Bisect the underlying UI" in [debugging.md](debugging.md)).
+
+**Address a window's buttons by subrole or title, never by index.** System Events' `button 1 of
+window` in Proton VPN was Disconnect, not the close button, and an exploratory click with it dropped
+the user's VPN; `first button whose subrole is "AXCloseButton"` (or `whose title is ...`) is what
+names the traffic lights. In an app whose controls change real state, map it with `--dump` and
+`--dry-run` before any click: the dry run's matched title also reads the app's current state.
 
 **Except on some Chromium and Electron apps, where System Events sees nothing at all.** It answered
 `count of windows` with 0 for a running Shortwave with a window on screen, and still answered 0
@@ -218,6 +230,15 @@ own sibling, so it matches the wildcard too; `--first` or the walk direction has
 ahead of it.
 A label that is the user's own data — the Claude app's environment pill reads whatever the
 environment is named — leaves the wildcard as the only way in.
+
+**A button whose title flips with state is one rule, through a shared stem.** Proton VPN's connect
+button reads "Disconnect" or "Quick Connect"; `"{}onnect" --label-attr AXTitle` matches it in both,
+so one chord toggles. The press matches exactly (or by `{}`), unlike `--dump`'s case-insensitive
+substring, so a label found by a dump is confirmed with `--dry-run` in each state.
+
+**A native app with its window closed has no tree to search.** The helper reports `windows=0` and
+misses. `open -g -a <App>` before the request reopens the window without activating the app, and
+`--wait` covers it coming up.
 
 **A widened match must be dry-run on every screen the chord is live on, not just the target's.** A
 wildcard qualified by a sibling admits any row of that shape: the Claude Cmd+L pill search
