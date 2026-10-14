@@ -2781,6 +2781,30 @@
                         ]
                     },
                     {
+                        "comment": "Presses the main window's connect button, titled Disconnect while connected and Quick Connect otherwise; '{}onnect' on AXTitle matches only that button. Proton VPN has no CLI, AppleScript dictionary or URL action for connecting (its protonvpn:// scheme only refreshes). With the window closed the tree has no button, so 'open -g' reopens the window first without activating the app, and --wait covers the window coming up.",
+                        "description": "Proton VPN: Cmd + Ctrl + Option + V toggles connect/disconnect",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "v",
+                                    "modifiers": {
+                                        "mandatory": [
+                                            "left_command",
+                                            "left_control",
+                                            "left_option"
+                                        ]
+                                    }
+                                },
+                                "to": [
+                                    {
+                                        "shell_command": "open -g -a ProtonVPN; printf '%s\\0' ch.protonvpn.mac \"{}onnect\" --label-attr AXTitle --wait --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "description": "Chromium DevTools: Clear site data, focus page, and reload: Cmd + Option + R",
                         "manipulators": [
                             {

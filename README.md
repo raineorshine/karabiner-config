@@ -106,6 +106,8 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - L-Command + L-Option + `T` → `open 'https://github.com/notifications'`
 - em issues: Cmd + Ctrl + Option + E (physical key k in Colemak)
   - L-Command + L-Ctrl + L-Option + `K` → `open 'https://github.com/cybersemics/em/issues/'`
+- Proton VPN: Cmd + Ctrl + Option + V toggles connect/disconnect
+  - L-Command + L-Ctrl + L-Option + `V` → `open -g -a ProtonVPN; printf '%s\0' ch.protonvpn.mac "{}onnect" --label-attr AXTitle --wait --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
 - Chromium DevTools: Clear site data, focus page, and reload: Cmd + Option + R
   - Command + Option + `R` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/clear-site-data.js"`
 - Shortwave: Cmd+B → Cmd+/
