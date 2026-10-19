@@ -190,6 +190,17 @@ is read through its own. ChatGPT began wrapping each composer control in such a 
 parent-and-children semantics the Cmd+Shift+F rule logged `found=false` with nothing else wrong. A
 rule that goes quiet after an app update is worth a `--dump-all` around the qualifier first.
 
+**A redesign the user reports breaks every rule aimed at that area, not only the one they name.** The
+Claude app folded its Local/Cloud toggle and project picker into one `Environment: <name>` pill, which
+broke the Cmd+P rule the user asked about and left the Cmd+L rule still searching for the old toggle.
+Grep `karabiner.json` for the labels the changed screen used to carry, and dry-run each rule that
+names one.
+
+**An open popover can carry its trigger's label.** With the Claude environment picker open, its menu
+is an AXGroup whose AXTitle repeats the pill's `Environment: <name>`, so a search by label alone can
+land on the menu instead of the trigger. Pin the role (`--role AXPopUpButton`) whenever the target
+opens a popover.
+
 **Direction is not a discriminator, and neither is `--sibling`, when the rivals share a parent.**
 `--sibling` asks whether *some* child of the match's parent carries the label, so it selects a whole
 row at once — and if the row's parent also holds unrelated controls, they are in the set too, which

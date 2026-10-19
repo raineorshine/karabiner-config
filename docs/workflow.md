@@ -19,6 +19,11 @@ rewrite the whole file; `.prettierignore` lists it.
 manipulator with a key it does not know and loads the rest, so the rule never fires. It reached the
 live file twice before `install` learned to refuse it ([load-errors.md](load-errors.md)).
 
+**Rule comments name each other, so retargeting a rule means grepping for its old name.** The
+Create PR rule's comment cited "the Cmd+P project-selector rule" for its y coordinate and its
+accessibility status; once Cmd+P pressed the environment pill instead, that reference was wrong until
+it was edited too.
+
 **A behaviour the user drops stays in the rule's `comment` as one sentence of history.** Lead with
 what the rule does now, then name the dropped version and the user's reason for dropping it, and fix
 every other passage that still assumes it. A reversal made from lived use (the archive rule's Cmd+1
