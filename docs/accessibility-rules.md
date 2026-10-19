@@ -194,7 +194,9 @@ rule that goes quiet after an app update is worth a `--dump-all` around the qual
 Claude app folded its Local/Cloud toggle and project picker into one `Environment: <name>` pill, which
 broke the Cmd+P rule the user asked about and left the Cmd+L rule searching for the old toggle on every press (it was removed, handing Cmd+L back to Copy session link).
 Grep `karabiner.json` for the labels the changed screen used to carry, and dry-run each rule that
-names one.
+names one. A rule left behind is not harmless: a search that falls through to `--else-key` still walks
+the whole tree first, so every press of the chord pays for each missed search before the app's own
+binding fires.
 
 **An open popover can carry its trigger's label.** With the Claude environment picker open, its menu
 is an AXGroup whose AXTitle repeats the pill's `Environment: <name>`, so a search by label alone can
@@ -378,7 +380,10 @@ themselves (110ms, `label="More options for 💰 TSLA exit strategy"`).
 **A screen the agent cannot open is checked by a watcher, not a request.** Loop the rule's search
 with `--dry-run` every half second in the background and save a `--dump-all` on the first
 `found=true`; it reports what the search lands on as soon as the user happens onto that screen, and a
-false match on some other screen shows up the same way.
+false match on some other screen shows up the same way. A watcher meant to confirm a *miss* cannot key on
+the hit: with nothing found, nothing gets dumped, and the log cannot show the user ever reached the
+screen. Key it on a marker only that screen carries and log the searches beside the marker, so each
+`found=false` is pinned to a tree that was the right one.
 
 **A backgrounded app answers `AXFocusedUIElement` with nothing.** A one-off `--dry-run` from a shell
 cannot check anything conditioned on focus; it reports `focused=none`. A dry run *polled in the
