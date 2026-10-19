@@ -136,8 +136,11 @@ the same loop iteration, so two selectors are compared against the same tree.
 that session. A `start_session` proposal card ("New session", Options / Do it here / Start) is
 raised the same way, with `initiation: "own_initiative"`. Either way the session has to be the one
 in the main pane: the app renders the card in nothing else, and no tool can switch the user's view
-to it, so a watcher keyed on the card's title waits until they open it. Ask for a visit only for
-state the tools cannot produce.
+to it, so a watcher keyed on the card's title waits until they open it. Size that watcher for a
+person, an hour rather than minutes: a 10-minute loop ran out before the user came back to the session.
+A `--dry-run` that misses with the card raised proves nothing until a dump of the header's
+'<chat>, rename session' button shows the card's session is the one on screen. Ask for a visit only
+for state the tools cannot produce.
 
 **A modal empties the tree behind it.** Shortwave's settings dialog left 65 elements where the mail
 view had about a thousand: Chromium exposes the dialog and marks the page behind it inert, so a search
