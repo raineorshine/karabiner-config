@@ -127,6 +127,18 @@ main checkout if that checkout is clean — which is what puts the rule in the l
 that working tree *is* the live file. While another worktree holds the lock the fast-forward waits;
 the ship has still happened.
 
+### Leaving without a ship
+
+A session that stops short of shipping — its work handed to another session, dropped, or the title
+going to `🪦 ` — releases first, with the same `release`, and reads `status` afterwards: **`🪦 ` goes
+on only once `status` names another holder or none.** A tombstoned session is one nobody looks at
+again, so a lock it still holds keeps every other session out of the live config until the user notices.
+
+- **The lock belongs to the worktree's path.** Release before removing the worktree. If it is
+  already gone, add a detached checkout back at the same path, release from there, and remove it
+  again. Where the release cannot restore what it found, it says so and names `--keep`, which drops
+  the lock and leaves the slot alone.
+
 ## Hazards
 
 - **Do not commit `karabiner.json` from the main checkout while another worktree holds the lock.**
