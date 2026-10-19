@@ -192,7 +192,7 @@ rule that goes quiet after an app update is worth a `--dump-all` around the qual
 
 **A redesign the user reports breaks every rule aimed at that area, not only the one they name.** The
 Claude app folded its Local/Cloud toggle and project picker into one `Environment: <name>` pill, which
-broke the Cmd+P rule the user asked about and left the Cmd+L rule still searching for the old toggle.
+broke the Cmd+P rule the user asked about and left the Cmd+L rule searching for the old toggle on every press (it was removed, handing Cmd+L back to Copy session link).
 Grep `karabiner.json` for the labels the changed screen used to carry, and dry-run each rule that
 names one.
 
@@ -252,7 +252,7 @@ misses. `open -g -a <App>` before the request reopens the window without activat
 `--wait` covers it coming up.
 
 **A widened match must be dry-run on every screen the chord is live on, not just the target's.** A
-wildcard qualified by a sibling admits any row of that shape: the Claude Cmd+L pill search
+wildcard qualified by a sibling admits any row of that shape: the old Claude Cmd+L pill search
 (`"{}" --sibling "Add repository"`) also matched a cloud session's header, which carries an
 environment popup beside a hidden repo trigger, and would have taken Copy session link there. A
 `--stop-at` on a marker that opens the lookalike row ahead of the match (the header's icon-only
