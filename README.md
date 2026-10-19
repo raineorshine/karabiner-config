@@ -25,8 +25,8 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Command + `J` → Command + `N`, Command + `3`
 - Claude: ⌥N → New Chat (physical key j in Colemak)
   - Option + `J` → Command + `N`, `return_or_enter`
-- Claude: ⌘P → Choose Project (physical key r in Colemak)
-  - Command + `R` → `printf '%s\0' com.anthropic.claudefordesktop "{}" --role AXPopUpButton --sibling "Local" --first --nth 2 --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
+- Claude: ⌘P → Environment picker (Where Claude runs) (physical key r in Colemak)
+  - Command + `R` → `printf '%s\0' com.anthropic.claudefordesktop "Environment: {}" --role AXPopUpButton --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
 - Claude: ⇧⌘P → Create PR (physical key r in Colemak)
   - Command + Shift + `R` → `Move cursor to (656, 875)`, `Left Click`
 - Claude: ⇧⌘G → Show Diff
