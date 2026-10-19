@@ -133,7 +133,11 @@ the same loop iteration, so two selectors are compared against the same tree.
 **A target the session can put up itself needs no visit.** The suggested-task chip is rendered by a
 `spawn_task` call from the session on screen, so the agent building a rule for it can raise one, poll
 `--dump` until the label appears, and `dismiss_task` afterwards — the user only has to be looking at
-that session. Ask for a visit only for state the tools cannot produce.
+that session. A `start_session` proposal card ("New session", Options / Do it here / Start) is
+raised the same way, with `initiation: "own_initiative"`. Either way the session has to be the one
+in the main pane: the app renders the card in nothing else, and no tool can switch the user's view
+to it, so a watcher keyed on the card's title waits until they open it. Ask for a visit only for
+state the tools cannot produce.
 
 **A modal empties the tree behind it.** Shortwave's settings dialog left 65 elements where the mail
 view had about a thousand: Chromium exposes the dialog and marks the page behind it inert, so a search
