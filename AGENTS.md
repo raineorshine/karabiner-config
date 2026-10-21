@@ -92,7 +92,7 @@ output through the macOS Colemak input source
 virtual key sends the app the wrong character (emitting `u` arrives as `l`), so the `to` side must be
 converted with the table above:
 
-- To send the app `Cmd+K`, emit key_code `n` (the `Cmd+J -> Cmd+K, Cmd+3` rule).
+- To send the app `Cmd+K`, emit key_code `n` (the `Option+N` New Chat rule).
 - To send the app `Cmd+Shift+U`, emit key_code `i` (the `Cmd+. -> Cmd+Shift+U` rule).
 
 But not every shortcut is affected: the Show Diff rule (`Cmd+Shift+G`) emits a literal key_code `d`

@@ -21,8 +21,6 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - [any] + fn + Shift + `f12` → fn + `f12`
 - Disable Cmd+M to minimize globally.
   - [any] + Command + `M` → Command + Option + Shift + `M`
-- Claude: ⌘J → ⌘K, ⌘3 (New Session)
-  - Command + `J` → Command + `N`, Command + `3`
 - Claude: ⌥N → New Chat (physical key j in Colemak)
   - Option + `J` → Command + `N`, `return_or_enter`
 - Claude: ⌘P → Environment picker (Where Claude runs) (physical key r in Colemak)
