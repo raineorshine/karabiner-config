@@ -82,6 +82,12 @@ the lock; fix it and install again rather than asking for presses.
 Karabiner hashes the file and skips reloading unchanged content. A `REJECTED` file installed again
 unchanged fails again with the errors recorded the first time.
 
+To test an app's *default* chord without a rule, install a scratch copy rather than editing the
+branch: filter the rule out with `jq` (`rules |= map(select(.description != "..."))`), run
+`node scripts/format-karabiner.js <scratch>` on it — `install` refuses any file not in Karabiner's
+exact format, `jq --indent 4` included — and install that. If the default works, copy the scratch
+file over `karabiner.json` and run `npm run build`.
+
 Working *in the main checkout* instead? Skip this step. The live file is already your working
 file — just hold the lock so no worktree installs over you mid-test.
 

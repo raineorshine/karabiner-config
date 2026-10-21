@@ -56,6 +56,8 @@ Colemak before writing the rule.
 - Digits (0–9) and most symbols are **not** remapped by Colemak — use them as-is on both sides.
 - Always add a `description` (and a `(physical key <x> in Colemak)` note when it helps, like the
   em-issues rule) so the mapping is self-documenting.
+- Older descriptions name the physical key (the old Claude Cmd+N rule read `⌘J`), so find an
+  existing rule by its `from.key_code` with `jq`, not by grepping descriptions for the virtual chord.
 - After editing `karabiner.json`, run `npm run build`: it rewrites the file in exactly the format
   Karabiner-Elements writes and regenerates `README.md` ([docs/workflow.md](docs/workflow.md)).
 
@@ -114,6 +116,10 @@ rule's `comment` (on the rule, never in a manipulator). Keys Colemak leaves unch
 symbols, `m`, etc.) look the same either way, which can mask a missing conversion — check the table
 even when a rule "already works". This applies **only** to Claude-app rules; everywhere else, leave
 the `to` side as the literal virtual key.
+
+These workarounds go stale as the app fixes the bug: its own Cmd+N later worked under Colemak and
+retired the Cmd+K, Cmd+3 rule. Before adding or debugging one, try the app's default chord with the
+rule removed (the `test` skill's scratch-copy install).
 
 ## Before binding a chord
 
