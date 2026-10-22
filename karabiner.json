@@ -1740,7 +1740,7 @@
                         ]
                     },
                     {
-                        "comment": "Opens the start-target dropdown (Start with worktree / Start locally / Do it here ...) of a suggested session card if one is up, else of the suggested-task chip. The session card's dropdown is the AXPopUpButton titled 'Options' beside the 'Do it here' AXButton; the default reverse walk reaches the newest card first. Only on a miss (exit=4) does the shell try the chip, whose dropdown is the AXPopUpButton described 'More start options' beside its primary Start button -- the stable handle, since the primary label changes with the start target. The Claude app's popup buttons open on AXPress. Cmd+Option+T is unbound in the app. Logs one line per press to .claude/ax-press.log.",
+                        "comment": "Opens the start-target dropdown (Start with worktree / Start locally / Do it here ...) of a suggested session card if one is up, else of the suggested-task chip. The session card's dropdown is the AXPopUpButton titled 'Options' beside the 'Do it here' AXButton; the default reverse walk reaches the newest card first. Only on a miss does --or try the chip, whose dropdown is the AXPopUpButton described 'More start options' beside its primary Start button -- the stable handle, since the primary label changes with the start target. The Claude app's popup buttons open on AXPress. Cmd+Option+T is unbound in the app. Logs one line per press to .claude/ax-press.log.",
                         "description": "Claude: ⌥⌘T → Open the start options of the suggested session card, or else the suggested task chip (physical key f in Colemak)",
                         "manipulators": [
                             {
@@ -1763,7 +1763,26 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "S=\"$HOME/.config/karabiner/scripts/bin/ax-press.sock\"; case $(printf '%s\\0' com.anthropic.claudefordesktop Options --role AXPopUpButton --sibling \"Do it here\" --log | /usr/bin/nc -U \"$S\") in *exit=4*) printf '%s\\0' com.anthropic.claudefordesktop \"More start options\" --role AXPopUpButton --log | /usr/bin/nc -U \"$S\" ;; esac"
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.anthropic.claudefordesktop",
+                                                    "Options",
+                                                    "--role",
+                                                    "AXPopUpButton",
+                                                    "--sibling",
+                                                    "Do it here",
+                                                    "--log",
+                                                    "--or",
+                                                    "com.anthropic.claudefordesktop",
+                                                    "More start options",
+                                                    "--role",
+                                                    "AXPopUpButton",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
