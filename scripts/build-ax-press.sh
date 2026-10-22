@@ -10,15 +10,17 @@
 # changes with every compile. Changing the --identifier below costs a full regrant.
 # docs/ax-press-helper.md has the regrant procedure.
 #
-# Serving: rules do not launch the binary. launchd runs it with --serve and hands it the socket at
-# scripts/bin/ax-press.sock, and rules pipe their arguments there through nc. The agent is restarted
-# after every build, so it never serves an old binary.
+# Serving: rules do not launch the binary. launchd runs it with --serve and hands it two sockets:
+# scripts/bin/ax-press.sock, where a rule pipes its arguments through nc, and the datagram socket
+# scripts/bin/ax-press-command.sock, where Karabiner's send_user_command delivers them without
+# starting any process. The agent is restarted after every build, so it never serves an old binary.
 set -eu
 
 ROOT=${KARABINER_ROOT:-$(git worktree list --porcelain | head -1 | sed 's/^worktree //')}
 HERE=$(cd "$(dirname "$0")" && pwd)
 OUT="$ROOT/scripts/bin/karabiner-config-ax-press"
 SOCKET="$ROOT/scripts/bin/ax-press.sock"
+COMMAND_SOCKET="$ROOT/scripts/bin/ax-press-command.sock"
 IDENTIFIER="com.raine.karabiner-config-ax-press"
 LABEL="$IDENTIFIER"
 PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
@@ -81,6 +83,15 @@ cat > "$PLIST.new" <<EOF
 			<key>SockPathMode</key>
 			<integer>384</integer>
 		</dict>
+		<key>Commands</key>
+		<dict>
+			<key>SockPathName</key>
+			<string>$COMMAND_SOCKET</string>
+			<key>SockType</key>
+			<string>dgram</string>
+			<key>SockPathMode</key>
+			<integer>384</integer>
+		</dict>
 	</dict>
 	<key>ProcessType</key>
 	<string>Interactive</string>
@@ -105,9 +116,16 @@ rebootstrap() {
   done
 }
 
-# One request for an app that is not running; any reply ends exit=<code>.
+# One request for an app that is not running; any reply ends exit=<code>. Right after a bootstrap
+# the first few connections close with no reply (three, over 40ms, when the plist gained the command
+# socket), so keep asking for up to 2s before calling the server dead.
 answers() {
-  printf '%s\0' com.raine.karabiner-config-ax-press.probe x --dry-run | /usr/bin/nc -w 3 -U "$SOCKET" 2>/dev/null | grep -q '^exit='
+  tries=0
+  until printf '%s\0' com.raine.karabiner-config-ax-press.probe x --dry-run | /usr/bin/nc -w 3 -U "$SOCKET" 2>/dev/null | grep -q '^exit='; do
+    tries=$((tries + 1))
+    [ "$tries" -ge 20 ] && return 1
+    sleep 0.1
+  done
 }
 
 if cmp -s "$PLIST.new" "$PLIST" && launchctl print "$DOMAIN/$LABEL" >/dev/null 2>&1; then

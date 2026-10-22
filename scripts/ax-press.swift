@@ -20,7 +20,7 @@
 // which every compile changes. The tool takes everything as arguments all the same, so a new rule
 // never needs a new build.
 //
-// Usage: karabiner-config-ax-press <bundle-id> <label> [options] [--then <bundle-id> <label> [options]]...
+// Usage: karabiner-config-ax-press <bundle-id> <label> [options] [--then|--or <bundle-id> <label> [options]]...
 //        karabiner-config-ax-press --serve [--prime <bundle-id>]...
 //
 // (The binary carries the repo's name so the Accessibility list says whose it is; the source and
@@ -35,8 +35,20 @@
 //
 //   printf '%s\0' <bundle-id> <label> [options] | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"
 //
-// The reply is what a one-shot run would print, then a last line exit=<code>. Requests are handled
-// one at a time. launchd starts the server at login (RunAtLoad, so priming is up before the first
+// The reply is what a one-shot run would print, then a last line exit=<code>.
+//
+// A rule can also skip the shell. Karabiner's send_user_command action sends a datagram straight from
+// its console_user_server, with no process started, to a second socket the same LaunchAgent opens:
+//
+//   { "send_user_command": { "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+//                            "payload": { "ax_press": [<bundle-id>, <label>, <options>...] } } }
+//
+// Starting nc and its sh is the whole cost of a press under load: console_user_server runs at
+// scheduling priority 20, which its children inherit, and at a load average of 300 they waited
+// 1-5s to start while the press itself took 20-70ms. A datagram carries no sender to check, so it
+// is run only when its payload is one a send_user_command in the live karabiner.json carries; see
+// the confused-deputy note below. Nothing is sent back. Requests on both sockets are handled one at
+// a time. launchd starts the server at login (RunAtLoad, so priming is up before the first
 // press) or on the first connection, and it stays up; a request that
 // finds the grant missing makes it exit after replying, because trust is read once per process and
 // the next request should start a process that asks again. A one-shot run from a shell still works
@@ -182,7 +194,11 @@
 //                     The Claude app's archive rule opens a chat's menu, then presses Archive in it:
 //                     one request instead of two helper calls joined with &&, whose exit status a
 //                     served request has no way to hand back to the shell
-//   --serve           run as the resident server, taking the listening socket from launchd; alone,
+//   --or              end this command and start another, which runs only if this one exited 4 (no
+//                     match), and otherwise skips to the next --or. It is the datagram form of a
+//                     rule's `case ... in *exit=4*)` fallback, which needs the reply a datagram
+//                     never gets
+//   --serve           run as the resident server, taking the listening sockets from launchd; alone,
 //                     or with --prime <bundle-id> once per app whose complete accessibility the
 //                     server should switch on at launch rather than at the first press (primeBundles)
 //
@@ -217,12 +233,17 @@
 // refused unless Karabiner's console_user_server is among the ancestors of whoever asked -- this
 // process for a one-shot run, the process on the other end of the socket for a served request --
 // checked by its full path under root-owned /Library. --dump and --dry-run still work from a shell,
-// so a label can be found without a rule; a real press cannot.
+// so a label can be found without a rule; a real press cannot. A datagram has no sender to walk up
+// from, so the command socket checks what was asked instead: it runs a payload only if it equals the
+// payload of a send_user_command in the live karabiner.json, which makes it a way to fire the
+// user's own rules and nothing else. Whoever can write that file could already add a rule that
+// passes the ancestry check.
 //
 // The report line ends its timing with total_ms, measured from when this process started on the
 // request, and, for a request a rule sent, launch_ms: how long before that the shell Karabiner
 // spawned for the keypress had started, which is the part of a press no clock in here can see.
-// served=true marks a request the server handled.
+// served=true marks a request the server handled on its stream socket, served=command one from
+// send_user_command, which has no shell and so no launch_ms.
 //
 // Exit codes: 0 pressed, 2 not trusted, 3 app not running, 4 no match, 5 press failed, 6 no window,
 // 7 no match and the window's tree never grew past its own chrome (accessibility not enabled),
@@ -289,10 +310,13 @@ struct Finished: Error {
 /// Where a command's text goes: stdout and stderr for a one-shot run, the reply for a served one.
 final class Output {
   let serving: Bool
+  /// A send_user_command datagram, which nobody reads a reply to.
+  let command: Bool
   var lines: [String] = []
 
-  init(serving: Bool) {
+  init(serving: Bool, command: Bool = false) {
     self.serving = serving
+    self.command = command
   }
 
   func line(_ text: String) {
@@ -389,7 +413,7 @@ func startPriming() {
 }
 
 func usage() throws -> Never {
-  output.error("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--nth N] [--dry-run] [--dump] [--dump-all] [--actions] [--prompt] [--log] [--budget-ms N] [--wait] [--key CHORD] [--unless-editing] [--unless-selection] [--else-key CHORD] [--else-click N] [--enhanced] [--pid N] [--sibling TEXT] [--stop-at TEXT] [--label-attr ATTR] [--action A] [--click] [--scroll-first] [--scroll-to-end] [--label-from PATTERN] [--ancestor ROLE[:N]] [--within X0,Y0,X1,Y1] [--under ROLE[:LABEL]] [--set ATTR=VALUE] [--then <bundle-id> <label> ...]\n       karabiner-config-ax-press --serve [--prime <bundle-id>]...")
+  output.error("usage: karabiner-config-ax-press <bundle-id> <label> [--role R] [--first] [--nth N] [--dry-run] [--dump] [--dump-all] [--actions] [--prompt] [--log] [--budget-ms N] [--wait] [--key CHORD] [--unless-editing] [--unless-selection] [--else-key CHORD] [--else-click N] [--enhanced] [--pid N] [--sibling TEXT] [--stop-at TEXT] [--label-attr ATTR] [--action A] [--click] [--scroll-first] [--scroll-to-end] [--label-from PATTERN] [--ancestor ROLE[:N]] [--within X0,Y0,X1,Y1] [--under ROLE[:LABEL]] [--set ATTR=VALUE] [--then|--or <bundle-id> <label> ...]\n       karabiner-config-ax-press --serve [--prime <bundle-id>]...")
   throw Finished(code: 64)
 }
 
@@ -471,7 +495,12 @@ func parse(_ argv: [String]) throws -> Options {
   return options
 }
 
-/// The commands in an argument list, split on --then.
+/// The alternatives in an argument list, split on --or.
+func alternatives(_ arguments: [String]) -> [[String]] {
+  arguments.split(separator: "--or", omittingEmptySubsequences: false).map(Array.init)
+}
+
+/// The commands in an alternative, split on --then.
 func commands(_ arguments: [String]) -> [[String]] {
   arguments.split(separator: "--then", omittingEmptySubsequences: false).map(Array.init)
 }
@@ -895,11 +924,13 @@ func timestamp() -> String {
 
 /// The one place this binary writes: <checkout>/.claude/ax-press.log, found from its own location
 /// (<checkout>/scripts/bin/). Fixed on purpose, so no argument can aim an append at another file.
-let logPath: String = {
+/// The checkout this binary was built into: scripts/bin/ is two levels below it.
+let checkoutRoot: URL = {
   let binary = URL(fileURLWithPath: Bundle.main.executablePath ?? CommandLine.arguments[0]).resolvingSymlinksInPath()
   return binary.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
-    .appendingPathComponent(".claude/ax-press.log").path
 }()
+
+let logPath = checkoutRoot.appendingPathComponent(".claude/ax-press.log").path
 
 func report(_ options: Options, _ line: String) {
   output.line(line)
@@ -918,14 +949,15 @@ func report(_ options: Options, _ line: String) {
 func millis(since start: Date) -> Int { Int(Date().timeIntervalSince(start) * 1000) }
 
 /// Run one command. `peer` is the process on the other end of the socket for a served request, and
-/// nil for a one-shot run, which checks its own ancestry instead. Returns the exit code, or throws it
-/// for a command that ends early.
+/// nil for a one-shot run, which checks its own ancestry instead, or for a command datagram, whose
+/// payload was checked against karabiner.json before it got here. Returns the exit code, or throws
+/// it for a command that ends early.
 func handle(_ options: Options, peer: pid_t?) throws -> Int32 {
   let start = Date()
   var launchedAt: Date?
   func timing() -> String {
     let launch = launchedAt.map { " launch_ms=\(Int(start.timeIntervalSince($0) * 1000))" } ?? ""
-    return "total_ms=\(millis(since: start))\(launch)\(output.serving ? " served=true" : "")"
+    return "total_ms=\(millis(since: start))\(launch)\(output.command ? " served=command" : output.serving ? " served=true" : "")"
   }
 
   let promptKey = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
@@ -936,7 +968,7 @@ func handle(_ options: Options, peer: pid_t?) throws -> Int32 {
   }
 
   // Reading is allowed from anywhere; pressing only for Karabiner. See the header.
-  if !options.dryRun && !options.dump {
+  if !options.dryRun && !options.dump && !output.command {
     let (fromKarabiner, ancestors, spawned) = launchedByKarabiner(from: peer ?? getppid())
     launchedAt = spawned
     if !fromKarabiner {
@@ -1317,19 +1349,22 @@ func handle(_ options: Options, peer: pid_t?) throws -> Int32 {
 }
 
 /// Run each --then command in turn, stopping at the first that does not exit 0, and return the exit
-/// code of the last one run.
+/// code of the last one run. An alternative after --or runs only when the one before it exited 4.
 func run(_ arguments: [String], peer: pid_t?) -> Int32 {
   var code: Int32 = 0
-  for command in commands(arguments) {
-    do {
-      code = try handle(parse(command), peer: peer)
-    } catch let finished as Finished {
-      code = finished.code
-    } catch {
-      output.error("ax-press: \(error)")
-      code = 70
+  for alternative in alternatives(arguments) {
+    for command in commands(alternative) {
+      do {
+        code = try handle(parse(command), peer: peer)
+      } catch let finished as Finished {
+        code = finished.code
+      } catch {
+        output.error("ax-press: \(error)")
+        code = 70
+      }
+      if code != 0 { break }
     }
-    if code != 0 { break }
+    if code != 4 { break }
   }
   return code
 }
@@ -1339,20 +1374,30 @@ func run(_ arguments: [String], peer: pid_t?) -> Int32 {
 @_silgen_name("launch_activate_socket")
 func launch_activate_socket(_ name: UnsafePointer<CChar>, _ fds: UnsafeMutablePointer<UnsafeMutablePointer<Int32>?>, _ count: UnsafeMutablePointer<Int>) -> Int32
 
-/// Answer requests on the socket launchd opened for the LaunchAgent, one at a time, for as long as
+/// The first socket launchd opened under `name` in the LaunchAgent's Sockets, blocking.
+func launchdSocket(_ name: String) -> Int32? {
+  var fds: UnsafeMutablePointer<Int32>? = nil
+  var count = 0
+  let status = launch_activate_socket(name, &fds, &count)
+  guard status == 0, let fds, count > 0 else { return nil }
+  let socket = fds[0]
+  free(fds)
+  _ = fcntl(socket, F_SETFL, fcntl(socket, F_GETFL) & ~O_NONBLOCK)
+  return socket
+}
+
+/// Answer requests on the sockets launchd opened for the LaunchAgent, one at a time, for as long as
 /// launchd keeps the job. See the header for the protocol.
 func serve() -> Never {
   signal(SIGPIPE, SIG_IGN)
-  var fds: UnsafeMutablePointer<Int32>? = nil
-  var count = 0
-  let status = launch_activate_socket("Listeners", &fds, &count)
-  guard status == 0, let fds, count > 0 else {
-    FileHandle.standardError.write("ax-press: --serve takes its socket from launchd (launch_activate_socket: \(status)); scripts/build-ax-press.sh installs the LaunchAgent\n".data(using: .utf8)!)
+  guard let listener = launchdSocket("Listeners") else {
+    FileHandle.standardError.write("ax-press: --serve takes its socket from launchd; scripts/build-ax-press.sh installs the LaunchAgent\n".data(using: .utf8)!)
     exit(71)
   }
-  let listener = fds[0]
-  free(fds)
-  _ = fcntl(listener, F_SETFL, fcntl(listener, F_GETFL) & ~O_NONBLOCK)
+  // An agent installed before the command socket existed has only the stream one, and serves that.
+  if let commands = launchdSocket("Commands") {
+    Thread.detachNewThread { receiveCommands(on: commands) }
+  }
   // Requests are answered on a thread of their own, because workspace notifications, which priming
   // listens for, are delivered on the main run loop.
   Thread.detachNewThread {
@@ -1426,6 +1471,66 @@ func respond(on connection: Int32) -> Int32 {
   return code
 }
 
+/// The payloads of the send_user_command actions in the live karabiner.json that ask for a press, as
+/// argument lists, reread whenever the file changes. Only these are run from the command socket.
+var configuredCache: (modified: Date, requests: Set<[String]>)?
+
+func configuredRequests() -> Set<[String]> {
+  let path = checkoutRoot.appendingPathComponent("karabiner.json").path
+  guard let modified = (try? FileManager.default.attributesOfItem(atPath: path))?[.modificationDate] as? Date else { return [] }
+  if let cache = configuredCache, cache.modified == modified { return cache.requests }
+  var requests = Set<[String]>()
+  func collect(_ node: Any) {
+    if let object = node as? [String: Any] {
+      if let action = object["send_user_command"] as? [String: Any],
+         let payload = action["payload"] as? [String: Any],
+         let arguments = payload["ax_press"] as? [String] {
+        requests.insert(arguments)
+      }
+      object.values.forEach(collect)
+    } else if let array = node as? [Any] {
+      array.forEach(collect)
+    }
+  }
+  if let data = FileManager.default.contents(atPath: path), let json = try? JSONSerialization.jsonObject(with: data) {
+    collect(json)
+  }
+  configuredCache = (modified, requests)
+  return requests
+}
+
+/// Run send_user_command datagrams: each is one JSON payload, {"ax_press": [arguments]}, and nothing
+/// is sent back. A payload no rule carries is refused and logged, whatever its --log says.
+func receiveCommands(on socket: Int32) -> Never {
+  var size: Int32 = 64 * 1024
+  setsockopt(socket, SOL_SOCKET, SO_RCVBUF, &size, socklen_t(MemoryLayout<Int32>.size))
+  var buffer = [UInt8](repeating: 0, count: 64 * 1024)
+  while true {
+    let count = recv(socket, &buffer, buffer.count, 0)
+    guard count > 0 else {
+      if count < 0 && errno != EINTR { Thread.sleep(forTimeInterval: 0.1) }
+      continue
+    }
+    let data = Data(buffer[0..<count])
+    serverLock.lock()
+    autoreleasepool {
+      let payload = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
+      guard let arguments = payload?["ax_press"] as? [String], configuredRequests().contains(arguments) else {
+        var refusal = Options()
+        refusal.log = true
+        report(refusal, "refused=not-in-karabiner-json served=command payload=\(String(decoding: data.prefix(300), as: UTF8.self))")
+        return
+      }
+      output = Output(serving: true, command: true)
+      defer { output = Output(serving: false) }
+      let code = run(arguments, peer: nil)
+      // Same as the stream socket: a server that started before its grant must restart to see it.
+      if code == 2 { exit(0) }
+    }
+    serverLock.unlock()
+  }
+}
+
 // MARK: - Main
 
 func main() -> Never {
@@ -1442,7 +1547,7 @@ func main() -> Never {
     arguments.removeLast()
   } else {
     // Refuse bad arguments before paying for a second launch.
-    for command in commands(arguments) {
+    for command in alternatives(arguments).flatMap(commands) {
       do { _ = try parse(command) } catch { exit((error as? Finished)?.code ?? 70) }
     }
     respawnDisclaimed()

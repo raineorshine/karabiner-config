@@ -1399,7 +1399,18 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "printf '%s\\0' com.anthropic.claudefordesktop \"Environment: {}\" --role AXPopUpButton --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.anthropic.claudefordesktop",
+                                                    "Environment: {}",
+                                                    "--role",
+                                                    "AXPopUpButton",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -1526,7 +1537,18 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "printf '%s\\0' com.anthropic.claudefordesktop \"Usage{}\" --role AXPopUpButton --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.anthropic.claudefordesktop",
+                                                    "Usage{}",
+                                                    "--role",
+                                                    "AXPopUpButton",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -1666,7 +1688,7 @@
                         ]
                     },
                     {
-                        "comment": "Presses Start on a suggested session card if one is up, else the primary Start button of the suggested-task chip. The session card is what a start_session proposal puts in the transcript (heading 'New session', the title and brief, then Options / Do it here / Start): an AXGroup described '1 suggested task' holding an AXPopUpButton titled with the task, a 'Dismiss suggestion <title>' AXButton, an AXPopUpButton titled 'Options', and AXButtons titled 'Do it here' and 'Start'. The first search takes the AXButton titled Start beside a 'Do it here' sibling; the default reverse walk reaches the newest card first, since cards sit in the transcript near the end of the document. Only on a miss (exit=4) does the shell try the chip. Read from a --dump-all of a probe card this session raised itself. The chip is the card at the top right of a Code session that a spawn_task call puts up. The card is a split button: an AXGroup described with the primary label holds an AXButton titled with it and, beside it, an AXPopUpButton described 'More start options'. The button's title is whatever the primary target is -- 'Start with worktree', 'Start locally', 'Start on <host>', 'Start on <host> with worktree', 'Send to cloud', 'Fix in this session' -- so the rule wildcards the label ({}) and qualifies by the sibling popup, which the card carries on every screen, and --role AXButton keeps it off that popup and off the wrapping group, which carries the same description. Only the head of the suggestion queue is rendered, so there is one match. Dry run: found in 311 elements, 30ms. Does nothing (found=false) when no chip is up, which is the app's own state and not a rule to guard. Logs one line per press to .claude/ax-press.log.",
+                        "comment": "Presses Start on a suggested session card if one is up, else the primary Start button of the suggested-task chip. The session card is what a start_session proposal puts in the transcript (heading 'New session', the title and brief, then Options / Do it here / Start): an AXGroup described '1 suggested task' holding an AXPopUpButton titled with the task, a 'Dismiss suggestion <title>' AXButton, an AXPopUpButton titled 'Options', and AXButtons titled 'Do it here' and 'Start'. The first search takes the AXButton titled Start beside a 'Do it here' sibling; the default reverse walk reaches the newest card first, since cards sit in the transcript near the end of the document. Only on a miss (exit=4) does --or try the chip. Read from a --dump-all of a probe card this session raised itself. The chip is the card at the top right of a Code session that a spawn_task call puts up. The card is a split button: an AXGroup described with the primary label holds an AXButton titled with it and, beside it, an AXPopUpButton described 'More start options'. The button's title is whatever the primary target is -- 'Start with worktree', 'Start locally', 'Start on <host>', 'Start on <host> with worktree', 'Send to cloud', 'Fix in this session' -- so the rule wildcards the label ({}) and qualifies by the sibling popup, which the card carries on every screen, and --role AXButton keeps it off that popup and off the wrapping group, which carries the same description. Only the head of the suggestion queue is rendered, so there is one match. Dry run: found in 311 elements, 30ms. Does nothing (found=false) when no chip is up, which is the app's own state and not a rule to guard. Logs one line per press to .claude/ax-press.log.",
                         "description": "Claude: ⇧⌘T → Start the suggested session card, or else the suggested task chip (physical key f in Colemak)",
                         "manipulators": [
                             {
@@ -1689,7 +1711,28 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "S=\"$HOME/.config/karabiner/scripts/bin/ax-press.sock\"; case $(printf '%s\\0' com.anthropic.claudefordesktop Start --role AXButton --sibling \"Do it here\" --log | /usr/bin/nc -U \"$S\") in *exit=4*) printf '%s\\0' com.anthropic.claudefordesktop \"{}\" --role AXButton --sibling \"More start options\" --log | /usr/bin/nc -U \"$S\" ;; esac"
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.anthropic.claudefordesktop",
+                                                    "Start",
+                                                    "--role",
+                                                    "AXButton",
+                                                    "--sibling",
+                                                    "Do it here",
+                                                    "--log",
+                                                    "--or",
+                                                    "com.anthropic.claudefordesktop",
+                                                    "{}",
+                                                    "--role",
+                                                    "AXButton",
+                                                    "--sibling",
+                                                    "More start options",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -1697,7 +1740,7 @@
                         ]
                     },
                     {
-                        "comment": "Archives the current session by pressing the header's own overflow button and then its Archive item, both through the accessibility tree. The first command learns which chat is current from the session header, whose title button is labelled '<chat>, rename session' (--label-from), and AXPresses the AXPopUpButton described 'More options for <chat>' -- the three-dot button at the top right of the main pane (frame 706,42), which opens its dropdown. The second command polls the tree (--wait, every 25ms, up to the 2s budget) until an AXMenuItem titled 'Archive' exists and presses it, so a slow renderer delays the archive rather than misdirecting it, and a dropdown that never opens makes the second command time out with found=false and press nothing. The two go to the helper as one request joined with --then, because adjacent shell_commands in a to array collapse to the last one, and --then runs the second only if the first pressed: no menu, no press. This replaces the palette version (Cmd+K, type 'arch', Enter), whose Enter raced the palette's asynchronous Archive row and archived nothing under CPU load even at a measured-and-padded 150ms hold. Nothing here is timed. The first version of this rule opened the sidebar row's context menu with AXShowMenu, as the Cmd+Option+. rule does, with --first; that worked (3 of 3 idle, 3 of 3 with all 8 cores pegged, about 250ms end to end) but the header's button carries the same 'More options for <chat>' label, so with the sidebar hidden it became the first match and a right-click dispatched at it opened Electron's default Copy/Select All menu instead. Pressing the header button is what the mouse would do, needs no sidebar, and the search without --first walks from the end of the document and reaches it after about 140 elements: tested with the sidebar visible and hidden, both archived, 160-220ms end to end. The Archive item is pressed rather than typed as the menu's 'a' accelerator: a key_code after a shell_command can only be sequenced behind it with a fixed hold, which is the race being removed. Nothing is selected afterwards: the archived chat stays open, and Cmd+N starts the next one. An earlier version posted Cmd+1 once the Archive item had left the tree (--key cmd+1, 118-580ms after the press) to jump to the first chat, and was dropped because moving the selection was visually disruptive and often landed on a chat other than the one wanted. Inspected in the Code tab only. Eight presses cannot tell 100% from 90%; ordinary use is the rest of the test. Logs one line per command to .claude/ax-press.log in the live checkout. Selecting the *next chat in the archived chat's own project* (back when the rule still moved the selection) was built and then removed for cost: it needs an accessibility dump to learn the sidebar's order, which no label search can express, and a node process to read it, which was four helper launches against this rule's two while every call still launched the helper. Launches were the whole bill -- about 100ms each, of which the search was 10-50ms, because the helper re-spawns itself to disclaim responsibility -- so the successor version measured about 500ms against 160-220ms here, and Cmd+Option+. archived faster still at one launch plus the menu's own 'a'. Two things it found are worth keeping. Chat titles are not unique, so the sidebar cannot say which row is the current chat: two rows titled 'Test' in different projects sent the successor press to the wrong project's + button. What does say is the main pane's header, which carries an AXPopUpButton titled with the current chat's project beside the '<chat>, rename session' button. And archiving a project's last chat takes the whole group out of the sidebar, + button included, so there is nothing left to press afterwards: the app lands on its home screen, whose composer offers the last-used project. Selecting into the archived chat's project therefore has to happen before the archive, not after, which costs a third press and makes the archive go through the row rather than the header. The work is in git history (scripts/claude-archive-next.js, reverted here) if 200ms ever stops being the budget. On an archived chat the dropdown has no Archive item and no Unarchive item either (tried: the menu opened and a search for an AXMenuItem titled 'Unarchive' missed), and neither does the context menu; the Unarchive control is an AXButton titled 'Unarchive' in the banner above the composer ('This session is archived. Unarchive it to keep working in this session.'). So the chain tries Archive first and unarchives only when Archive is absent: after opening the dropdown it waits for any AXMenuItem ('{}' --wait --dry-run, which presses nothing) so the menu is known to be up, then looks for Archive once, without --wait, so a menu lacking it misses on one pass instead of polling out the 2s budget. That miss posts Escape (--else-key) to close the menu and returns exit=4, and the shell then presses the banner's button with --wait, because the open menu is modal and hides the page behind it until it has closed. The unarchived chat stays open, and --then focuses its composer, an AXTextArea described 'Prompt', by writing AXFocused=true. It waits for it (--wait) because the banner stands where the composer is and the composer comes back only once the unarchive has gone through. A miss earlier in the chain also ends at exit=4, and the banner search then finds nothing on a chat that is not archived. A first version pressed the banner button before trying the archive, which put an extra walk (about 35ms) on every archive, the common case.",
+                        "comment": "Archives the current session by pressing the header's own overflow button and then its Archive item, both through the accessibility tree. The first command learns which chat is current from the session header, whose title button is labelled '<chat>, rename session' (--label-from), and AXPresses the AXPopUpButton described 'More options for <chat>' -- the three-dot button at the top right of the main pane (frame 706,42), which opens its dropdown. The second command polls the tree (--wait, every 25ms, up to the 2s budget) until an AXMenuItem titled 'Archive' exists and presses it, so a slow renderer delays the archive rather than misdirecting it, and a dropdown that never opens makes the second command time out with found=false and press nothing. The two go to the helper as one request joined with --then, which runs the second only if the first pressed: no menu, no press. This replaces the palette version (Cmd+K, type 'arch', Enter), whose Enter raced the palette's asynchronous Archive row and archived nothing under CPU load even at a measured-and-padded 150ms hold. Nothing here is timed. The first version of this rule opened the sidebar row's context menu with AXShowMenu, as the Cmd+Option+. rule does, with --first; that worked (3 of 3 idle, 3 of 3 with all 8 cores pegged, about 250ms end to end) but the header's button carries the same 'More options for <chat>' label, so with the sidebar hidden it became the first match and a right-click dispatched at it opened Electron's default Copy/Select All menu instead. Pressing the header button is what the mouse would do, needs no sidebar, and the search without --first walks from the end of the document and reaches it after about 140 elements: tested with the sidebar visible and hidden, both archived, 160-220ms end to end. The Archive item is pressed rather than typed as the menu's 'a' accelerator: a key_code after a helper request can only be sequenced behind it with a fixed hold, which is the race being removed. Nothing is selected afterwards: the archived chat stays open, and Cmd+N starts the next one. An earlier version posted Cmd+1 once the Archive item had left the tree (--key cmd+1, 118-580ms after the press) to jump to the first chat, and was dropped because moving the selection was visually disruptive and often landed on a chat other than the one wanted. Inspected in the Code tab only. Eight presses cannot tell 100% from 90%; ordinary use is the rest of the test. Logs one line per command to .claude/ax-press.log in the live checkout. Selecting the *next chat in the archived chat's own project* (back when the rule still moved the selection) was built and then removed for cost: it needs an accessibility dump to learn the sidebar's order, which no label search can express, and a node process to read it, which was four helper launches against this rule's two while every call still launched the helper. Launches were the whole bill -- about 100ms each, of which the search was 10-50ms, because the helper re-spawns itself to disclaim responsibility -- so the successor version measured about 500ms against 160-220ms here, and Cmd+Option+. archived faster still at one launch plus the menu's own 'a'. Two things it found are worth keeping. Chat titles are not unique, so the sidebar cannot say which row is the current chat: two rows titled 'Test' in different projects sent the successor press to the wrong project's + button. What does say is the main pane's header, which carries an AXPopUpButton titled with the current chat's project beside the '<chat>, rename session' button. And archiving a project's last chat takes the whole group out of the sidebar, + button included, so there is nothing left to press afterwards: the app lands on its home screen, whose composer offers the last-used project. Selecting into the archived chat's project therefore has to happen before the archive, not after, which costs a third press and makes the archive go through the row rather than the header. The work is in git history (scripts/claude-archive-next.js, reverted here) if 200ms ever stops being the budget. On an archived chat the dropdown has no Archive item and no Unarchive item either (tried: the menu opened and a search for an AXMenuItem titled 'Unarchive' missed), and neither does the context menu; the Unarchive control is an AXButton titled 'Unarchive' in the banner above the composer ('This session is archived. Unarchive it to keep working in this session.'). So the chain tries Archive first and unarchives only when Archive is absent: after opening the dropdown it waits for any AXMenuItem ('{}' --wait --dry-run, which presses nothing) so the menu is known to be up, then looks for Archive once, without --wait, so a menu lacking it misses on one pass instead of polling out the 2s budget. That miss posts Escape (--else-key) to close the menu and returns exit=4, and --or then presses the banner's button with --wait, because the open menu is modal and hides the page behind it until it has closed. The unarchived chat stays open, and --then focuses its composer, an AXTextArea described 'Prompt', by writing AXFocused=true. It waits for it (--wait) because the banner stands where the composer is and the composer comes back only once the unarchive has gone through. A miss earlier in the chain also ends at exit=4, and the banner search then finds nothing on a chat that is not archived. A first version pressed the banner button before trying the archive, which put an extra walk (about 35ms) on every archive, the common case.",
                         "description": "Claude: ⇧⌘E → Archive Session via its ⋮ menu, staying on it; Unarchive and focus the composer when already archived (physical key k in Colemak)",
                         "manipulators": [
                             {
@@ -1720,7 +1763,55 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "S=\"$HOME/.config/karabiner/scripts/bin/ax-press.sock\"; A=com.anthropic.claudefordesktop; case $(printf '%s\\0' $A \"More options for {}\" --role AXPopUpButton --label-from \"{}, rename session\" --log --then $A \"{}\" --role AXMenuItem --wait --dry-run --then $A Archive --role AXMenuItem --else-key escape --log | /usr/bin/nc -U \"$S\") in *exit=4*) printf '%s\\0' $A Unarchive --role AXButton --label-attr AXTitle --wait --log --then $A Prompt --role AXTextArea --label-attr AXDescription --wait --set AXFocused=true --log | /usr/bin/nc -U \"$S\" ;; esac"
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.anthropic.claudefordesktop",
+                                                    "More options for {}",
+                                                    "--role",
+                                                    "AXPopUpButton",
+                                                    "--label-from",
+                                                    "{}, rename session",
+                                                    "--log",
+                                                    "--then",
+                                                    "com.anthropic.claudefordesktop",
+                                                    "{}",
+                                                    "--role",
+                                                    "AXMenuItem",
+                                                    "--wait",
+                                                    "--dry-run",
+                                                    "--then",
+                                                    "com.anthropic.claudefordesktop",
+                                                    "Archive",
+                                                    "--role",
+                                                    "AXMenuItem",
+                                                    "--else-key",
+                                                    "escape",
+                                                    "--log",
+                                                    "--or",
+                                                    "com.anthropic.claudefordesktop",
+                                                    "Unarchive",
+                                                    "--role",
+                                                    "AXButton",
+                                                    "--label-attr",
+                                                    "AXTitle",
+                                                    "--wait",
+                                                    "--log",
+                                                    "--then",
+                                                    "com.anthropic.claudefordesktop",
+                                                    "Prompt",
+                                                    "--role",
+                                                    "AXTextArea",
+                                                    "--label-attr",
+                                                    "AXDescription",
+                                                    "--wait",
+                                                    "--set",
+                                                    "AXFocused=true",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -1871,7 +1962,23 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "printf '%s\\0' com.anthropic.claudefordesktop \"More options for {}\" --role AXPopUpButton --label-from \"{}, rename session\" --action AXShowMenu --first --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.anthropic.claudefordesktop",
+                                                    "More options for {}",
+                                                    "--role",
+                                                    "AXPopUpButton",
+                                                    "--label-from",
+                                                    "{}, rename session",
+                                                    "--action",
+                                                    "AXShowMenu",
+                                                    "--first",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -1901,7 +2008,18 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "printf '%s\\0' com.anthropic.claudefordesktop \"#{}\" --role AXLink --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.anthropic.claudefordesktop",
+                                                    "#{}",
+                                                    "--role",
+                                                    "AXLink",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -1931,7 +2049,20 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "printf '%s\\0' com.anthropic.claudefordesktop Reply --else-click 3 --budget-ms 1000 --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.anthropic.claudefordesktop",
+                                                    "Reply",
+                                                    "--else-click",
+                                                    "3",
+                                                    "--budget-ms",
+                                                    "1000",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -1939,7 +2070,7 @@
                         ]
                     },
                     {
-                        "comment": "Presses the Copy button in the last Claude response's \"Message actions\" toolbar (AXButton described Copy). A user message's toolbar has a Copy button too, so --sibling \"Read aloud\" keeps to responses; the default reverse walk finds the last one. The app mounts a message's toolbar only once it has been hovered (or focused): until then the message carries a screen-reader-only 1x1 AXButton described \"Show message actions for Claude responded: <the turn's first line>\" whose press mounts the toolbar and focuses it (the wildcard keeps it to responses). So the first request presses that button, with --stop-at \"Read aloud\" so it fires only when the last response's toolbar is not up -- the reverse walk reaches a mounted toolbar's Read aloud first and gives up -- and the second request waits for Copy (--wait) and presses it. Two requests joined with ';' because --then runs only after a press, and the first one usually misses. --unless-selection reads the selection before any walk -- a web area's AXSelectedTextMarkerRange with any length, or the focused text control's AXSelectedTextRange -- and while there is one, or when no response is on screen, --else-key cmd+c hands the copy back to the app, so a selection still copies itself. A caret in the composer is not a selection. Key c is the same in Colemak and QWERTY.",
+                        "comment": "Presses the Copy button in the last Claude response's \"Message actions\" toolbar (AXButton described Copy). A user message's toolbar has a Copy button too, so --sibling \"Read aloud\" keeps to responses; the default reverse walk finds the last one. The app mounts a message's toolbar only once it has been hovered (or focused): until then the message carries a screen-reader-only 1x1 AXButton described \"Show message actions for Claude responded: <the turn's first line>\" whose press mounts the toolbar and focuses it (the wildcard keeps it to responses). So the first request presses that button, with --stop-at \"Read aloud\" so it fires only when the last response's toolbar is not up -- the reverse walk reaches a mounted toolbar's Read aloud first and gives up -- and the second request waits for Copy (--wait) and presses it. Two requests, two send_user_command actions the helper runs in order, because the second must run whether the first pressed or missed: --then runs only after a press and --or only after a miss. --unless-selection reads the selection before any walk -- a web area's AXSelectedTextMarkerRange with any length, or the focused text control's AXSelectedTextRange -- and while there is one, or when no response is on screen, --else-key cmd+c hands the copy back to the app, so a selection still copies itself. A caret in the composer is not a selection. Key c is the same in Colemak and QWERTY.",
                         "description": "Claude: ⌘C → copy the last response when nothing is selected",
                         "manipulators": [
                             {
@@ -1961,7 +2092,39 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "printf '%s\\0' com.anthropic.claudefordesktop 'Show message actions for Claude responded: {}' --stop-at 'Read aloud' --unless-selection --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\"; printf '%s\\0' com.anthropic.claudefordesktop Copy --sibling 'Read aloud' --unless-selection --wait --budget-ms 1000 --else-key cmd+c --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.anthropic.claudefordesktop",
+                                                    "Show message actions for Claude responded: {}",
+                                                    "--stop-at",
+                                                    "Read aloud",
+                                                    "--unless-selection",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.anthropic.claudefordesktop",
+                                                    "Copy",
+                                                    "--sibling",
+                                                    "Read aloud",
+                                                    "--unless-selection",
+                                                    "--wait",
+                                                    "--budget-ms",
+                                                    "1000",
+                                                    "--else-key",
+                                                    "cmd+c",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -1991,7 +2154,19 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "printf '%s\\0' com.anthropic.claudefordesktop 'Copy code' --unless-selection --else-key option+c --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.anthropic.claudefordesktop",
+                                                    "Copy code",
+                                                    "--unless-selection",
+                                                    "--else-key",
+                                                    "option+c",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -2360,7 +2535,25 @@
                                         ]
                                     },
                                     {
-                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Avatar for {}\" --role AXImage --within 40,100,300,1200 --ancestor '*:6' --scroll-to-end --budget-ms 5000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.electron.shortwave",
+                                                    "Avatar for {}",
+                                                    "--role",
+                                                    "AXImage",
+                                                    "--within",
+                                                    "40,100,300,1200",
+                                                    "--ancestor",
+                                                    "*:6",
+                                                    "--scroll-to-end",
+                                                    "--budget-ms",
+                                                    "5000",
+                                                    "--unless-editing"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -2728,7 +2921,22 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "open -g -a ProtonVPN; printf '%s\\0' ch.protonvpn.mac \"{}onnect\" --label-attr AXTitle --wait --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "shell_command": "open -g -a ProtonVPN"
+                                    },
+                                    {
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "ch.protonvpn.mac",
+                                                    "{}onnect",
+                                                    "--label-attr",
+                                                    "AXTitle",
+                                                    "--wait",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -2854,7 +3062,16 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Always apply\" --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.electron.shortwave",
+                                                    "Always apply",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -2884,7 +3101,18 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Save\" --else-key cmd+return --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.electron.shortwave",
+                                                    "Save",
+                                                    "--else-key",
+                                                    "cmd+return",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -2912,7 +3140,22 @@
                                         "key_code": "1"
                                     },
                                     {
-                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Overview\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.electron.shortwave",
+                                                    "Overview",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--ancestor",
+                                                    "*:2",
+                                                    "--within",
+                                                    "0,0,300,2000",
+                                                    "--unless-editing"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -2934,7 +3177,22 @@
                                         "key_code": "2"
                                     },
                                     {
-                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Inbox setup\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.electron.shortwave",
+                                                    "Inbox setup",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--ancestor",
+                                                    "*:2",
+                                                    "--within",
+                                                    "0,0,300,2000",
+                                                    "--unless-editing"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -2956,7 +3214,22 @@
                                         "key_code": "3"
                                     },
                                     {
-                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Appearance\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.electron.shortwave",
+                                                    "Appearance",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--ancestor",
+                                                    "*:2",
+                                                    "--within",
+                                                    "0,0,300,2000",
+                                                    "--unless-editing"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -2978,7 +3251,22 @@
                                         "key_code": "4"
                                     },
                                     {
-                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Compose\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.electron.shortwave",
+                                                    "Compose",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--ancestor",
+                                                    "*:2",
+                                                    "--within",
+                                                    "0,0,300,2000",
+                                                    "--unless-editing"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -3000,7 +3288,22 @@
                                         "key_code": "5"
                                     },
                                     {
-                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Notifications\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.electron.shortwave",
+                                                    "Notifications",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--ancestor",
+                                                    "*:2",
+                                                    "--within",
+                                                    "0,0,300,2000",
+                                                    "--unless-editing"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -3022,7 +3325,22 @@
                                         "key_code": "6"
                                     },
                                     {
-                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"AI Personalization\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.electron.shortwave",
+                                                    "AI Personalization",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--ancestor",
+                                                    "*:2",
+                                                    "--within",
+                                                    "0,0,300,2000",
+                                                    "--unless-editing"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -3044,7 +3362,22 @@
                                         "key_code": "7"
                                     },
                                     {
-                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"AI Integrations\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.electron.shortwave",
+                                                    "AI Integrations",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--ancestor",
+                                                    "*:2",
+                                                    "--within",
+                                                    "0,0,300,2000",
+                                                    "--unless-editing"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -3066,7 +3399,22 @@
                                         "key_code": "8"
                                     },
                                     {
-                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Labels\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.electron.shortwave",
+                                                    "Labels",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--ancestor",
+                                                    "*:2",
+                                                    "--within",
+                                                    "0,0,300,2000",
+                                                    "--unless-editing"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -3088,7 +3436,22 @@
                                         "key_code": "9"
                                     },
                                     {
-                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Filters\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.electron.shortwave",
+                                                    "Filters",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--ancestor",
+                                                    "*:2",
+                                                    "--within",
+                                                    "0,0,300,2000",
+                                                    "--unless-editing"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -3110,7 +3473,22 @@
                                         "key_code": "a"
                                     },
                                     {
-                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Calendar\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.electron.shortwave",
+                                                    "Calendar",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--ancestor",
+                                                    "*:2",
+                                                    "--within",
+                                                    "0,0,300,2000",
+                                                    "--unless-editing"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -3132,7 +3510,22 @@
                                         "key_code": "b"
                                     },
                                     {
-                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Miscellaneous\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.electron.shortwave",
+                                                    "Miscellaneous",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--ancestor",
+                                                    "*:2",
+                                                    "--within",
+                                                    "0,0,300,2000",
+                                                    "--unless-editing"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -3154,7 +3547,22 @@
                                         "key_code": "c"
                                     },
                                     {
-                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"AI Agents\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.electron.shortwave",
+                                                    "AI Agents",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--ancestor",
+                                                    "*:2",
+                                                    "--within",
+                                                    "0,0,300,2000",
+                                                    "--unless-editing"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -3176,7 +3584,22 @@
                                         "key_code": "g"
                                     },
                                     {
-                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Members & Billing\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.electron.shortwave",
+                                                    "Members & Billing",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--ancestor",
+                                                    "*:2",
+                                                    "--within",
+                                                    "0,0,300,2000",
+                                                    "--unless-editing"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -3198,7 +3621,22 @@
                                         "key_code": "k"
                                     },
                                     {
-                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Team collaboration\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.electron.shortwave",
+                                                    "Team collaboration",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--ancestor",
+                                                    "*:2",
+                                                    "--within",
+                                                    "0,0,300,2000",
+                                                    "--unless-editing"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -3220,7 +3658,22 @@
                                         "key_code": "e"
                                     },
                                     {
-                                        "shell_command": "printf '%s\\0' com.electron.shortwave \"Team AI Assistant\" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.electron.shortwave",
+                                                    "Team AI Assistant",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--ancestor",
+                                                    "*:2",
+                                                    "--within",
+                                                    "0,0,300,2000",
+                                                    "--unless-editing"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -3325,7 +3778,7 @@
                         ]
                     },
                     {
-                        "comment": "Copies the last response by pressing its Copy button through the accessibility tree rather than clicking it. The button sits beneath the response, so its position moves with the length of the response and of everything above it, and no fixed coordinate can reach it; the app offers no shortcut or menu item for it either (searched the bundle: 'Copy response' exists only as the button's tooltip, and the bindable-shortcut registry has no copy command). karabiner-config-ax-press (scripts/ax-press.swift) finds the last AXButton labelled 'Copy' in the focused window that has a 'Good response' sibling -- code-block copy buttons carry the same label, and the sibling is what tells the response's own button apart -- walking the document from its end so the search touches the composer and the last turn rather than the whole conversation (88 elements visited of 5297; 29-38ms from the helper starting to the press landing, over three presses), then AXPresses it: no pointer movement, no cursor restore. The window must be frontmost: the copy is a web clipboard write, which the page refuses when its document is not focused (pressed from a shell with another app in front, the button reported success and ChatGPT showed a 'couldn't copy' toast). Accessibility is granted to the helper itself rather than to Karabiner -- launchd runs it as its own responsible process, and a one-shot run from a shell re-spawns itself as one, so TCC judges the binary whoever started it, which is what made earlier spawned scripts' permissions unpredictable -- and the grant is keyed to the binary's path and its identifier-only designated requirement, so a rebuild keeps it (scripts/build-ax-press.sh). Because that grant would otherwise serve whatever process reaches the helper, it presses only when Karabiner-Console-User-Server is among the requesting process's ancestors; --dump and --dry-run work from a shell. Chromium exposes none of the page until an assistive client shows up, and what counts as showing up is asking the application object for its role (Chrome's and Electron's NSApplication subclasses both switch accessibility on there, following Apple's guidance for non-VoiceOver clients); the helper asks first thing, and a freshly launched instance that had ignored everything else for twenty minutes exposed its tree 124ms later, so the first press after ChatGPT relaunches should work too. While the tree is still only the window chrome the helper keeps looking for up to 2s, a budget sized for that first press on a long conversation rather than measured against one. If the newest turn is a user message, or the response is still streaming, the previous response's button is the last one and is pressed instead. Logs one line per press to .claude/ax-press.log.",
+                        "comment": "Copies the last response by pressing its Copy button through the accessibility tree rather than clicking it. The button sits beneath the response, so its position moves with the length of the response and of everything above it, and no fixed coordinate can reach it; the app offers no shortcut or menu item for it either (searched the bundle: 'Copy response' exists only as the button's tooltip, and the bindable-shortcut registry has no copy command). karabiner-config-ax-press (scripts/ax-press.swift) finds the last AXButton labelled 'Copy' in the focused window that has a 'Good response' sibling -- code-block copy buttons carry the same label, and the sibling is what tells the response's own button apart -- walking the document from its end so the search touches the composer and the last turn rather than the whole conversation (88 elements visited of 5297; 29-38ms from the helper starting to the press landing, over three presses), then AXPresses it: no pointer movement, no cursor restore. The window must be frontmost: the copy is a web clipboard write, which the page refuses when its document is not focused (pressed from a shell with another app in front, the button reported success and ChatGPT showed a 'couldn't copy' toast). Accessibility is granted to the helper itself rather than to Karabiner -- launchd runs it as its own responsible process, and a one-shot run from a shell re-spawns itself as one, so TCC judges the binary whoever started it, which is what made earlier spawned scripts' permissions unpredictable -- and the grant is keyed to the binary's path and its identifier-only designated requirement, so a rebuild keeps it (scripts/build-ax-press.sh). Because that grant would otherwise serve whatever process reaches the helper, it presses only when Karabiner-Console-User-Server is among the requesting process's ancestors, or for a send_user_command whose payload a rule in karabiner.json carries; --dump and --dry-run work from a shell. Chromium exposes none of the page until an assistive client shows up, and what counts as showing up is asking the application object for its role (Chrome's and Electron's NSApplication subclasses both switch accessibility on there, following Apple's guidance for non-VoiceOver clients); the helper asks first thing, and a freshly launched instance that had ignored everything else for twenty minutes exposed its tree 124ms later, so the first press after ChatGPT relaunches should work too. While the tree is still only the window chrome the helper keeps looking for up to 2s, a budget sized for that first press on a long conversation rather than measured against one. If the newest turn is a user message, or the response is still streaming, the previous response's button is the last one and is pressed instead. Logs one line per press to .claude/ax-press.log.",
                         "description": "ChatGPT: Cmd+Shift+C → copy the last response (press its Copy button via accessibility)",
                         "manipulators": [
                             {
@@ -3348,7 +3801,18 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "printf '%s\\0' com.openai.codex Copy --sibling \"Good response\" --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.openai.codex",
+                                                    "Copy",
+                                                    "--sibling",
+                                                    "Good response",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -3379,7 +3843,32 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "printf '%s\\0' com.openai.codex \"{}\" --role AXPopUpButton --sibling \"Add files and more\" --click --else-key cmd+shift+e --log --then com.openai.codex Power --role AXMenuItem --wait --set AXFocused=true --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.openai.codex",
+                                                    "{}",
+                                                    "--role",
+                                                    "AXPopUpButton",
+                                                    "--sibling",
+                                                    "Add files and more",
+                                                    "--click",
+                                                    "--else-key",
+                                                    "cmd+shift+e",
+                                                    "--log",
+                                                    "--then",
+                                                    "com.openai.codex",
+                                                    "Power",
+                                                    "--role",
+                                                    "AXMenuItem",
+                                                    "--wait",
+                                                    "--set",
+                                                    "AXFocused=true",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -3410,7 +3899,19 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "printf '%s\\0' com.openai.codex \"Open profile menu\" --role AXPopUpButton --click --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.openai.codex",
+                                                    "Open profile menu",
+                                                    "--role",
+                                                    "AXPopUpButton",
+                                                    "--click",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -3440,7 +3941,23 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "printf '%s\\0' org.pqrs.Karabiner-Elements.Settings \"Simple Modifications\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "org.pqrs.Karabiner-Elements.Settings",
+                                                    "Simple Modifications",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--first",
+                                                    "--ancestor",
+                                                    "AXRow",
+                                                    "--set",
+                                                    "AXSelected=true",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -3464,7 +3981,23 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "printf '%s\\0' org.pqrs.Karabiner-Elements.Settings \"Function Keys\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "org.pqrs.Karabiner-Elements.Settings",
+                                                    "Function Keys",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--first",
+                                                    "--ancestor",
+                                                    "AXRow",
+                                                    "--set",
+                                                    "AXSelected=true",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -3488,7 +4021,23 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "printf '%s\\0' org.pqrs.Karabiner-Elements.Settings \"Complex Modifications\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "org.pqrs.Karabiner-Elements.Settings",
+                                                    "Complex Modifications",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--first",
+                                                    "--ancestor",
+                                                    "AXRow",
+                                                    "--set",
+                                                    "AXSelected=true",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -3512,7 +4061,23 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "printf '%s\\0' org.pqrs.Karabiner-Elements.Settings \"Parameters\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "org.pqrs.Karabiner-Elements.Settings",
+                                                    "Parameters",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--first",
+                                                    "--ancestor",
+                                                    "AXRow",
+                                                    "--set",
+                                                    "AXSelected=true",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -3536,7 +4101,23 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "printf '%s\\0' org.pqrs.Karabiner-Elements.Settings \"Devices\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "org.pqrs.Karabiner-Elements.Settings",
+                                                    "Devices",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--first",
+                                                    "--ancestor",
+                                                    "AXRow",
+                                                    "--set",
+                                                    "AXSelected=true",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -3560,7 +4141,23 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "printf '%s\\0' org.pqrs.Karabiner-Elements.Settings \"Virtual Keyboard\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "org.pqrs.Karabiner-Elements.Settings",
+                                                    "Virtual Keyboard",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--first",
+                                                    "--ancestor",
+                                                    "AXRow",
+                                                    "--set",
+                                                    "AXSelected=true",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -3584,7 +4181,23 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "printf '%s\\0' org.pqrs.Karabiner-Elements.Settings \"Profiles\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "org.pqrs.Karabiner-Elements.Settings",
+                                                    "Profiles",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--first",
+                                                    "--ancestor",
+                                                    "AXRow",
+                                                    "--set",
+                                                    "AXSelected=true",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -3608,7 +4221,23 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "printf '%s\\0' org.pqrs.Karabiner-Elements.Settings \"UI\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "org.pqrs.Karabiner-Elements.Settings",
+                                                    "UI",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--first",
+                                                    "--ancestor",
+                                                    "AXRow",
+                                                    "--set",
+                                                    "AXSelected=true",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -3632,7 +4261,23 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "printf '%s\\0' org.pqrs.Karabiner-Elements.Settings \"Update\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "org.pqrs.Karabiner-Elements.Settings",
+                                                    "Update",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--first",
+                                                    "--ancestor",
+                                                    "AXRow",
+                                                    "--set",
+                                                    "AXSelected=true",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"
@@ -3656,7 +4301,23 @@
                                 },
                                 "to": [
                                     {
-                                        "shell_command": "printf '%s\\0' org.pqrs.Karabiner-Elements.Settings \"Misc\" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U \"$HOME/.config/karabiner/scripts/bin/ax-press.sock\""
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "org.pqrs.Karabiner-Elements.Settings",
+                                                    "Misc",
+                                                    "--role",
+                                                    "AXStaticText",
+                                                    "--first",
+                                                    "--ancestor",
+                                                    "AXRow",
+                                                    "--set",
+                                                    "AXSelected=true",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
                                     }
                                 ],
                                 "type": "basic"

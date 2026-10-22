@@ -30,7 +30,8 @@ when nothing answers. Probe by hand with `nc -w`, so a dead server cannot hang t
 '%s\0' x y --dry-run | /usr/bin/nc -w 3 -U ~/.config/karabiner/scripts/bin/ax-press.sock` answers
 `exit=3` (app not running) at once from a live server.
 
-**The wire format.** A request is the arguments, each NUL-terminated, then end of file; the reply is
+**The wire format.** On the command socket a request is one datagram, the JSON payload
+`{"ax_press":[arguments]}`, and nothing is sent back. On the stream socket a request is the arguments, each NUL-terminated, then end of file; the reply is
 what a one-shot run would print, then a last line `exit=<code>`. macOS's `nc -U` half-closes once its
 input ends and prints the reply until the server closes, then exits 0 whatever the code said, which
 is why chains are `--then` and not `&&`. Requests run one at a time, so a `--wait` or
@@ -43,8 +44,21 @@ new pid on the very next call. `ProcessType Interactive` in the plist matters: a
 gets a daemon's limits, and Karabiner-Console-User-Server, one of those, runs at scheduling priority
 20, where an app runs at 31 or above.
 
-**Rules send requests because launching the helper was most of what a press cost — and all of it
-after an idle spell.** A one-shot call re-spawns itself to disclaim responsibility, so it pays two
+**Rules send datagrams because starting any process was most of what a press cost under load.** A
+request through `nc` pays the `sh` Karabiner spawns and the `nc` itself, and Karabiner-Console-User-
+Server starts them at its own scheduling priority, 20, below every app. At a load average of 220-340
+on 8 cores (143 headless Chromium test processes) those two took 1.2-5.7s to start (`launch_ms`)
+while the search and press took 20-70ms, so ⌘P opened the environment picker after the user had
+started typing. Karabiner 16.3's `send_user_command` sends a datagram straight from the server, with
+nothing started, to `scripts/bin/ax-press-command.sock` — a second socket in the same LaunchAgent —
+and the helper, at an app's priority, does the rest. A datagram request logs `served=command` and has
+no `launch_ms`, since no shell started. Its endpoint is an absolute path: Karabiner expands neither
+`~` nor `$HOME` there, and the default endpoint lives in Karabiner's own per-user directory under
+`/Library`, which this repo does not own. The `nc` socket stays for shells and for any rule that
+still needs one.
+
+**Rules sent requests at all because launching the helper was most of what a press cost — and all of
+it after an idle spell.** A one-shot call re-spawns itself to disclaim responsibility, so it pays two
 launches of a binary macOS has to vet, then tccd checking its signature and a preferences read before
 it looks at anything. Warm, that is a few tens of milliseconds. Cold, the same call was 0.67s — the
 first Cmd+Shift+U of a morning, 18 idle hours in, with swap at 17.8 of 18.4 GB — while its own log
@@ -170,7 +184,12 @@ as the user press any labelled control in any app. So the helper refuses to pres
 root-owned `/Library`, not by name): its own for a one-shot run, and for a served request the process
 on the far end of the socket, which the kernel names (`LOCAL_PEERPID`) — the `nc` a rule runs, under
 Karabiner's `sh`. A press sent from a shell comes back `refused=not-launched-by-karabiner
-ancestors=nc<zsh<…`. `--dump` and `--dry-run` stay usable from a shell, and the helper logs to one
+ancestors=nc<zsh<…`. A datagram has no far end to name, so the command socket checks the request
+instead: it runs a payload only when it equals the `payload` of a `send_user_command` in the live
+`karabiner.json` (reread when the file changes), and logs `refused=not-in-karabiner-json` for any
+other. Any process running as the user can therefore fire the user's own ax-press rules, and nothing
+else — and whoever can write `karabiner.json` could already add a rule that passes the ancestry
+check. `--dump` and `--dry-run` stay usable from a shell, and the helper logs to one
 fixed file rather than a path from its arguments.
 
 So testing a real press always goes through the rule, and the keypress is the user's: keys a

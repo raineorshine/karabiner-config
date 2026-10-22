@@ -71,6 +71,22 @@ config.profiles[0].complex_modifications.rules.forEach(rule =>
   )
 )
 
+/** Quotes an argument the way a shell would need it, so a request reads as the command line it replaces. */
+const shellQuote = arg => /^[\w.,:@%+=\/-]+$/.test(arg) ? arg : `"${arg.replace(/(["\\$`])/g, '\\$1')}"`
+
+// An ax-press request sent with send_user_command renders blank too; show it as the helper's
+// command line, which is what the shell_command it replaced used to show
+config.profiles[0].complex_modifications.rules.forEach(rule =>
+  rule.manipulators.forEach(manipulator =>
+    (manipulator.to || []).forEach(entry => {
+      const request = entry.send_user_command && entry.send_user_command.payload && entry.send_user_command.payload.ax_press
+      if (request) {
+        entry.shell_command = `ax-press ${request.map(shellQuote).join(' ')}`
+      }
+    })
+  )
+)
+
 /** Simple string templating. Replaces {{key}} with `value` in a template string for each key-value entry in an object. */
 const template = (s, o) => {
   let output = s

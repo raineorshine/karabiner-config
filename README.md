@@ -24,13 +24,13 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
 - Claude: ⌥N → New Chat (physical key j in Colemak)
   - Option + `J` → Command + `N`, `return_or_enter`
 - Claude: ⌘P → Environment picker (Where Claude runs) (physical key r in Colemak)
-  - Command + `R` → `printf '%s\0' com.anthropic.claudefordesktop "Environment: {}" --role AXPopUpButton --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
+  - Command + `R` → `ax-press com.anthropic.claudefordesktop "Environment: {}" --role AXPopUpButton --log`
 - Claude: ⇧⌘P → Create PR (physical key r in Colemak)
   - Command + Shift + `R` → `Move cursor to (656, 875)`, `Left Click`
 - Claude: ⇧⌘G → Show Diff
   - Command + Shift + `G` → `Move cursor to (230, 940)`, `Left Click`, Command + Shift + `D`
 - Claude: ⇧⌘U → Usage (physical key i in Colemak)
-  - Command + Shift + `I` → `printf '%s\0' com.anthropic.claudefordesktop "Usage{}" --role AXPopUpButton --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
+  - Command + Shift + `I` → `ax-press com.anthropic.claudefordesktop "Usage{}" --role AXPopUpButton --log`
 - Claude: ⌘B → ⌘. (Toggle Primary Sidebar)
   - Command + `B` → Command + `.`
 - Claude: ⌥⌘B → ⌘\ (Toggle Secondary Sidebar)
@@ -40,22 +40,22 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
 - Claude: ⌘T → ⌃` (Toggle Terminal) (physical key f in Colemak)
   - Command + `F` → Ctrl + `` ` ``
 - Claude: ⇧⌘T → Start the suggested session card, or else the suggested task chip (physical key f in Colemak)
-  - Command + Shift + `F` → `S="$HOME/.config/karabiner/scripts/bin/ax-press.sock"; case $(printf '%s\0' com.anthropic.claudefordesktop Start --role AXButton --sibling "Do it here" --log | /usr/bin/nc -U "$S") in *exit=4*) printf '%s\0' com.anthropic.claudefordesktop "{}" --role AXButton --sibling "More start options" --log | /usr/bin/nc -U "$S" ;; esac`
+  - Command + Shift + `F` → `ax-press com.anthropic.claudefordesktop Start --role AXButton --sibling "Do it here" --log --or com.anthropic.claudefordesktop "{}" --role AXButton --sibling "More start options" --log`
 - Claude: ⇧⌘E → Archive Session via its ⋮ menu, staying on it; Unarchive and focus the composer when already archived (physical key k in Colemak)
-  - Command + Shift + `K` → `S="$HOME/.config/karabiner/scripts/bin/ax-press.sock"; A=com.anthropic.claudefordesktop; case $(printf '%s\0' $A "More options for {}" --role AXPopUpButton --label-from "{}, rename session" --log --then $A "{}" --role AXMenuItem --wait --dry-run --then $A Archive --role AXMenuItem --else-key escape --log | /usr/bin/nc -U "$S") in *exit=4*) printf '%s\0' $A Unarchive --role AXButton --label-attr AXTitle --wait --log --then $A Prompt --role AXTextArea --label-attr AXDescription --wait --set AXFocused=true --log | /usr/bin/nc -U "$S" ;; esac`
+  - Command + Shift + `K` → `ax-press com.anthropic.claudefordesktop "More options for {}" --role AXPopUpButton --label-from "{}, rename session" --log --then com.anthropic.claudefordesktop "{}" --role AXMenuItem --wait --dry-run --then com.anthropic.claudefordesktop Archive --role AXMenuItem --else-key escape --log --or com.anthropic.claudefordesktop Unarchive --role AXButton --label-attr AXTitle --wait --log --then com.anthropic.claudefordesktop Prompt --role AXTextArea --label-attr AXDescription --wait --set AXFocused=true --log`
 - Claude: ⇧⌘1 → Go to Chat; ⇧⌘2 → Go to Code
   - Command + Shift + `1` → fn + Ctrl + `f2`, `T`, `;`, `return_or_enter`, `C`, `H`, `A`, `F`, `return_or_enter`
   - Command + Shift + `2` → fn + Ctrl + `f2`, `T`, `;`, `return_or_enter`, `C`, `;`, `G`, `K`, `return_or_enter`
 - Claude: ⌥⌘. → Chat Context Menu
-  - Command + Option + `.` → `printf '%s\0' com.anthropic.claudefordesktop "More options for {}" --role AXPopUpButton --label-from "{}, rename session" --action AXShowMenu --first --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
+  - Command + Option + `.` → `ax-press com.anthropic.claudefordesktop "More options for {}" --role AXPopUpButton --label-from "{}, rename session" --action AXShowMenu --first --log`
 - Claude app: Cmd+R → open the session's PR link (via accessibility) (physical key s in Colemak)
-  - Command + `S` → `printf '%s\0' com.anthropic.claudefordesktop "#{}" --role AXLink --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
+  - Command + `S` → `ax-press com.anthropic.claudefordesktop "#{}" --role AXLink --log`
 - Claude: ⌥R → Reply to the selected text, or to the paragraph under the pointer (physical key s in Colemak)
-  - Option + `S` → `printf '%s\0' com.anthropic.claudefordesktop Reply --else-click 3 --budget-ms 1000 --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
+  - Option + `S` → `ax-press com.anthropic.claudefordesktop Reply --else-click 3 --budget-ms 1000 --log`
 - Claude: ⌘C → copy the last response when nothing is selected
-  - Command + `C` → `printf '%s\0' com.anthropic.claudefordesktop 'Show message actions for Claude responded: {}' --stop-at 'Read aloud' --unless-selection --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"; printf '%s\0' com.anthropic.claudefordesktop Copy --sibling 'Read aloud' --unless-selection --wait --budget-ms 1000 --else-key cmd+c --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
+  - Command + `C` → `ax-press com.anthropic.claudefordesktop "Show message actions for Claude responded: {}" --stop-at "Read aloud" --unless-selection --log`, `ax-press com.anthropic.claudefordesktop Copy --sibling "Read aloud" --unless-selection --wait --budget-ms 1000 --else-key cmd+c --log`
 - Claude: ⌥C → copy the last code block when nothing is selected
-  - Option + `C` → `printf '%s\0' com.anthropic.claudefordesktop 'Copy code' --unless-selection --else-key option+c --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
+  - Option + `C` → `ax-press com.anthropic.claudefordesktop "Copy code" --unless-selection --else-key option+c --log`
 - Quick Chars
   - L-Option + `'` → `` ` ``
   - L-Option + `T` → `~`
@@ -77,7 +77,7 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - R-Shift + `[` → L-Ctrl + `←`
   - R-Shift + `]` → L-Ctrl + `→`
 - Shortwave: Shift+G → select the last email in the list (physical key t in Colemak)
-  - Shift + `T` → Shift + `T`, `printf '%s\0' com.electron.shortwave "Avatar for {}" --role AXImage --within 40,100,300,1200 --ancestor '*:6' --scroll-to-end --budget-ms 5000 --unless-editing | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
+  - Shift + `T` → Shift + `T`, `ax-press com.electron.shortwave "Avatar for {}" --role AXImage --within 40,100,300,1200 --ancestor "*:6" --scroll-to-end --budget-ms 5000 --unless-editing`
 - Launch apps: Right shift + letters
   - R-Shift + `A` → `open '/Applications/Utilities/Activity Monitor.app'`
   - R-Shift + `C` → `open '/Applications/Calendar.app'`
@@ -103,7 +103,7 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
 - em issues: Cmd + Ctrl + Option + E (physical key k in Colemak)
   - L-Command + L-Ctrl + L-Option + `K` → `open 'https://github.com/cybersemics/em/issues/'`
 - Proton VPN: Cmd + Ctrl + Option + V toggles connect/disconnect
-  - L-Command + L-Ctrl + L-Option + `V` → `open -g -a ProtonVPN; printf '%s\0' ch.protonvpn.mac "{}onnect" --label-attr AXTitle --wait --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
+  - L-Command + L-Ctrl + L-Option + `V` → `open -g -a ProtonVPN`, `ax-press ch.protonvpn.mac "{}onnect" --label-attr AXTitle --wait --log`
 - Chromium DevTools: Clear site data, focus page, and reload: Cmd + Option + R
   - Command + Option + `R` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/clear-site-data.js"`
 - Shortwave: Cmd+B → Cmd+/
@@ -111,46 +111,46 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
 - Shortwave: Cmd+Option+B → Cmd+\
   - Command + Option + `B` → Command + `\`
 - Shortwave: Option+A → press Always apply on the label toast
-  - Option + `A` → `printf '%s\0' com.electron.shortwave "Always apply" --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
+  - Option + `A` → `ax-press com.electron.shortwave "Always apply" --log`
 - Shortwave: Cmd+Enter → press Save in the settings dialog, or send as usual
-  - Command + `return_or_enter` → `printf '%s\0' com.electron.shortwave "Save" --else-key cmd+return --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
+  - Command + `return_or_enter` → `ax-press com.electron.shortwave Save --else-key cmd+return --log`
 - Shortwave: 1-9, A-F → Settings sidebar sections, or the key itself (physical keys a b c g k e in Colemak for A-F)
-  - `1` → `1`, `printf '%s\0' com.electron.shortwave "Overview" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
-  - `2` → `2`, `printf '%s\0' com.electron.shortwave "Inbox setup" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
-  - `3` → `3`, `printf '%s\0' com.electron.shortwave "Appearance" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
-  - `4` → `4`, `printf '%s\0' com.electron.shortwave "Compose" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
-  - `5` → `5`, `printf '%s\0' com.electron.shortwave "Notifications" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
-  - `6` → `6`, `printf '%s\0' com.electron.shortwave "AI Personalization" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
-  - `7` → `7`, `printf '%s\0' com.electron.shortwave "AI Integrations" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
-  - `8` → `8`, `printf '%s\0' com.electron.shortwave "Labels" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
-  - `9` → `9`, `printf '%s\0' com.electron.shortwave "Filters" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
-  - `A` → `A`, `printf '%s\0' com.electron.shortwave "Calendar" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
-  - `B` → `B`, `printf '%s\0' com.electron.shortwave "Miscellaneous" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
-  - `C` → `C`, `printf '%s\0' com.electron.shortwave "AI Agents" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
-  - `G` → `G`, `printf '%s\0' com.electron.shortwave "Members & Billing" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
-  - `K` → `K`, `printf '%s\0' com.electron.shortwave "Team collaboration" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
-  - `E` → `E`, `printf '%s\0' com.electron.shortwave "Team AI Assistant" --role AXStaticText --ancestor '*:2' --within 0,0,300,2000 --unless-editing | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
+  - `1` → `1`, `ax-press com.electron.shortwave Overview --role AXStaticText --ancestor "*:2" --within 0,0,300,2000 --unless-editing`
+  - `2` → `2`, `ax-press com.electron.shortwave "Inbox setup" --role AXStaticText --ancestor "*:2" --within 0,0,300,2000 --unless-editing`
+  - `3` → `3`, `ax-press com.electron.shortwave Appearance --role AXStaticText --ancestor "*:2" --within 0,0,300,2000 --unless-editing`
+  - `4` → `4`, `ax-press com.electron.shortwave Compose --role AXStaticText --ancestor "*:2" --within 0,0,300,2000 --unless-editing`
+  - `5` → `5`, `ax-press com.electron.shortwave Notifications --role AXStaticText --ancestor "*:2" --within 0,0,300,2000 --unless-editing`
+  - `6` → `6`, `ax-press com.electron.shortwave "AI Personalization" --role AXStaticText --ancestor "*:2" --within 0,0,300,2000 --unless-editing`
+  - `7` → `7`, `ax-press com.electron.shortwave "AI Integrations" --role AXStaticText --ancestor "*:2" --within 0,0,300,2000 --unless-editing`
+  - `8` → `8`, `ax-press com.electron.shortwave Labels --role AXStaticText --ancestor "*:2" --within 0,0,300,2000 --unless-editing`
+  - `9` → `9`, `ax-press com.electron.shortwave Filters --role AXStaticText --ancestor "*:2" --within 0,0,300,2000 --unless-editing`
+  - `A` → `A`, `ax-press com.electron.shortwave Calendar --role AXStaticText --ancestor "*:2" --within 0,0,300,2000 --unless-editing`
+  - `B` → `B`, `ax-press com.electron.shortwave Miscellaneous --role AXStaticText --ancestor "*:2" --within 0,0,300,2000 --unless-editing`
+  - `C` → `C`, `ax-press com.electron.shortwave "AI Agents" --role AXStaticText --ancestor "*:2" --within 0,0,300,2000 --unless-editing`
+  - `G` → `G`, `ax-press com.electron.shortwave "Members & Billing" --role AXStaticText --ancestor "*:2" --within 0,0,300,2000 --unless-editing`
+  - `K` → `K`, `ax-press com.electron.shortwave "Team collaboration" --role AXStaticText --ancestor "*:2" --within 0,0,300,2000 --unless-editing`
+  - `E` → `E`, `ax-press com.electron.shortwave "Team AI Assistant" --role AXStaticText --ancestor "*:2" --within 0,0,300,2000 --unless-editing`
 - Notion: Cmd+Shift+E → click archive on top notification (166, 135) (physical key k in Colemak)
   - Command + Shift + `K` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/mouse-click.js" 166 135`
 - Messages: Cmd+E → open the emoji picker for the last received message (physical key k in Colemak)
   - Command + `K` → `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/restore-mouse-position.js" 1.4`, `Move cursor to (360, 890)`, `Right Click`, `/usr/bin/osascript -l JavaScript "$HOME/.config/karabiner/scripts/move-to-tapback-picker.js"`, `Left Click`
 - ChatGPT: Cmd+Shift+C → copy the last response (press its Copy button via accessibility)
-  - Command + Shift + `C` → `printf '%s\0' com.openai.codex Copy --sibling "Good response" --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
+  - Command + Shift + `C` → `ax-press com.openai.codex Copy --sibling "Good response" --log`
 - ChatGPT: Cmd+Shift+F → open the composer's effort/model picker in Chat and Work mode (click its button, found via accessibility; physical key e in Colemak)
-  - Command + Shift + `E` → `printf '%s\0' com.openai.codex "{}" --role AXPopUpButton --sibling "Add files and more" --click --else-key cmd+shift+e --log --then com.openai.codex Power --role AXMenuItem --wait --set AXFocused=true --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
+  - Command + Shift + `E` → `ax-press com.openai.codex "{}" --role AXPopUpButton --sibling "Add files and more" --click --else-key cmd+shift+e --log --then com.openai.codex Power --role AXMenuItem --wait --set AXFocused=true --log`
 - ChatGPT: Cmd+Shift+U → toggle the profile popup (click the sidebar's profile button, found via accessibility; physical key i in Colemak)
-  - Command + Shift + `I` → `printf '%s\0' com.openai.codex "Open profile menu" --role AXPopUpButton --click --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
+  - Command + Shift + `I` → `ax-press com.openai.codex "Open profile menu" --role AXPopUpButton --click --log`
 - Karabiner-Elements: ⌘1-9, ⌘0 → settings sections (via accessibility)
-  - Command + `1` → `printf '%s\0' org.pqrs.Karabiner-Elements.Settings "Simple Modifications" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
-  - Command + `2` → `printf '%s\0' org.pqrs.Karabiner-Elements.Settings "Function Keys" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
-  - Command + `3` → `printf '%s\0' org.pqrs.Karabiner-Elements.Settings "Complex Modifications" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
-  - Command + `4` → `printf '%s\0' org.pqrs.Karabiner-Elements.Settings "Parameters" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
-  - Command + `5` → `printf '%s\0' org.pqrs.Karabiner-Elements.Settings "Devices" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
-  - Command + `6` → `printf '%s\0' org.pqrs.Karabiner-Elements.Settings "Virtual Keyboard" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
-  - Command + `7` → `printf '%s\0' org.pqrs.Karabiner-Elements.Settings "Profiles" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
-  - Command + `8` → `printf '%s\0' org.pqrs.Karabiner-Elements.Settings "UI" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
-  - Command + `9` → `printf '%s\0' org.pqrs.Karabiner-Elements.Settings "Update" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
-  - Command + `0` → `printf '%s\0' org.pqrs.Karabiner-Elements.Settings "Misc" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"`
+  - Command + `1` → `ax-press org.pqrs.Karabiner-Elements.Settings "Simple Modifications" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
+  - Command + `2` → `ax-press org.pqrs.Karabiner-Elements.Settings "Function Keys" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
+  - Command + `3` → `ax-press org.pqrs.Karabiner-Elements.Settings "Complex Modifications" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
+  - Command + `4` → `ax-press org.pqrs.Karabiner-Elements.Settings Parameters --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
+  - Command + `5` → `ax-press org.pqrs.Karabiner-Elements.Settings Devices --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
+  - Command + `6` → `ax-press org.pqrs.Karabiner-Elements.Settings "Virtual Keyboard" --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
+  - Command + `7` → `ax-press org.pqrs.Karabiner-Elements.Settings Profiles --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
+  - Command + `8` → `ax-press org.pqrs.Karabiner-Elements.Settings UI --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
+  - Command + `9` → `ax-press org.pqrs.Karabiner-Elements.Settings Update --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
+  - Command + `0` → `ax-press org.pqrs.Karabiner-Elements.Settings Misc --role AXStaticText --first --ancestor AXRow --set AXSelected=true --log`
 - Calendar: Shift+Up/Down → Ctrl+Shift+Up/Down (resize event); Cmd+Up/Down → Ctrl+Up/Down (nudge event)
   - Shift + `↓` → Ctrl + Shift + `↓`
   - Shift + `↑` → Ctrl + Shift + `↑`

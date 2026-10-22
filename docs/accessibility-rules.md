@@ -5,11 +5,18 @@
 coordinates, no pointer movement, no restore, and the press lands on an element scrolled out of view.
 A target that moves with the content is where the difference is starkest: the Copy button under
 ChatGPT's last response sits wherever the response ends, and the app has no shortcut or menu item for
-it. A rule's `shell_command` sends the arguments to the resident helper:
+it. A rule's `send_user_command` hands the arguments to the resident helper, with no process
+started:
 
 ```
-printf '%s\0' <bundle-id> <label> [options] | /usr/bin/nc -U "$HOME/.config/karabiner/scripts/bin/ax-press.sock"
+{ "send_user_command": { "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                         "payload": { "ax_press": ["<bundle-id>", "<label>", "<option>", ...] } } }
 ```
+
+The helper runs a payload only if some rule in the live `karabiner.json` carries exactly that
+payload, so a request is always one of the rules ([ax-press-helper.md](ax-press-helper.md) "It
+presses only for Karabiner"). Nothing comes back, so a fallback on a miss is `--or` inside the
+request, never a shell reading the reply.
 
 A shell runs the binary itself with the same arguments, which is what `--dump` and `--dry-run` are
 for. The options are documented at the top of `scripts/ax-press.swift`. The helper's server, build,
@@ -163,9 +170,8 @@ The Claude app's New Session environment pill is `AXPopUpButton AXTitle=<environ
 visible text ("Local", "Cloud", or a named cloud environment); a cloud session's header opens with an
 icon-only popup `AXDescription="Cloud"`, its aria-label. Both rows also hold an "Add repository"
 trigger (hidden in the header), so `--sibling` cannot separate them; `--label-attr AXTitle` does, and
-it keeps doing so under a `"{}"` wildcard, since the header popup has no title to match. A reply ends `exit=<code>`, which is how one `shell_command` tries
-a second label only when the first missed (`case ... in *exit=4*)`): `--then` runs on success, not on
-a miss.
+it keeps doing so under a `"{}"` wildcard, since the header popup has no title to match. `--or` tries a second label only when the first
+missed (exit 4): `--then` runs on success, not on a miss.
 
 **A label that repeats outside the region that matters is what `--within` is for.** Every Shortwave
 row carries an `AXImage AXDescription="Avatar for <sender>"`, but the account avatar in the toolbar
@@ -230,8 +236,9 @@ for Claude responded: {}" --stop-at "Read aloud"` presses only when the last res
 not already up, and never an earlier unhovered one. Dry-run it with and without `--stop-at` to see
 the guard doing that.
 An element that matches is never a stop, even when it carries the `--stop-at` label, so a target
-titled like the marker still wins. The press that follows is a second request joined with `;`, because `--then`
-runs only after a press and the first request usually misses.
+titled like the marker still wins. The press that follows is a second request — a second `send_user_command`, which the helper runs
+after the first — because it must run whether the first pressed or missed, and `--then` runs only
+after a press, `--or` only after a miss.
 
 **A qualifier has to be in the row in every state the screen has.** A control the app renders only
 once something is chosen — the folder row's add-another-folder button appears with a folder and not
@@ -290,9 +297,9 @@ clipboard write is refused when the window is not frontmost, and ChatGPT shows a
 toast. A shell test with another app in front does not test the copy.
 
 **Sequencing anything after a helper call is the helper's job.** Karabiner cannot wait on a
-`shell_command`, so a key_code after one is only ever a fixed hold behind a spawn. Commands joined
-with `--then` in one request sequence themselves, each running only if the one before exited 0
-(`&&` cannot, because `nc` exits 0 whatever the server answered), and `--wait` lets the second poll for
+request, so a key_code after one is only ever a fixed hold behind it. Commands joined with `--then`
+in one request sequence themselves, each running only if the one before exited 0, `--or` starts an
+alternative only when the one before it exited 4, and `--wait` lets the second poll for
 a control the first is still bringing on screen (the Archive item of a dropdown, found 16-31ms in). A
 trailing key chord goes through `--key`, which the helper posts as a CGEvent once the pressed control
 has left the tree — the menu closing is the click having been handled, 118-580ms after the press in
@@ -307,7 +314,7 @@ first press before reaching for `--wait`, and reorder when the second target no 
 item itself polls out the whole budget whenever the menu lacks it. Wait for the menu instead — `"{}"
 --role AXMenuItem --wait --dry-run` in the chain presses nothing and passes once any item is up —
 then search the item once without `--wait`, so a miss costs one pass. `--else-key escape` on that
-search closes the menu on a miss, and the reply's `exit=4` lets the shell take the fallback. The
+search closes the menu on a miss, and its exit 4 sends the request on to the `--or` fallback. The
 Claude app's ⇧⌘E rule archives this way and unarchives on the miss. An open menu is modal
 ("A modal empties the tree behind it"), so the fallback's search behind it needs `--wait` for the
 page to come back.
@@ -347,7 +354,7 @@ key, and physical `r` typed `p` under Colemak.
 
 **A rule bound to a key you also type emits the key itself rather than handing it back.** Shift plus
 a letter counts: Shortwave's Shift+G swallowed every capital G typed in a reply until it took this
-shape. `to` takes a `key_code` and a `shell_command` together, so Karabiner types the character and
+shape. `to` takes a `key_code` and a `send_user_command` together, so Karabiner types the character and
 the helper runs behind it: nothing is swallowed, nothing waits on a launch, and the app's own
 single-key shortcuts still fire — unless the app grabs letters typed outside a text field, which
 the Claude app's Code tab does (below), and then a bare letter is not available at all.
