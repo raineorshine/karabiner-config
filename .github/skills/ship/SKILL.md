@@ -66,7 +66,9 @@ git fetch origin && git rebase origin/main
 
 Rebase on `origin/main`, not the local `main` ref: another session may have pushed without the main checkout being able to fast-forward, so local `main` can be behind what you must land on.
 
-If the rebase hits conflicts: resolve them (prefer the branch changes unless clearly wrong), `git add` the resolved files, `git rebase --continue`, and repeat until it completes. On a `README.md` conflict, don't resolve it by hand — take either side, finish the rebase, and re-run `npm run build` to regenerate it from the merged `karabiner.json`.
+If the rebase hits conflicts: resolve them (prefer the branch changes unless clearly wrong), `git add` the resolved files, `git rebase --continue`, and repeat until it completes. On a `README.md` conflict, don't resolve it by hand — take either side, finish the rebase, and re-run `npm run build` to regenerate it from the merged `karabiner.json`. On a `karabiner.json` conflict over a new rule, take main's file (`git show origin/main:karabiner.json > karabiner.json` — mid-rebase `--theirs` is the branch's side), re-insert the rule object with `jq` next to its neighbour, and rebuild.
+
+A clean rebase can still leave the rule out of date: main may have changed how every rule of its kind is written (ax-press rules moved from a shell running `nc` to a `send_user_command` payload while one branch was open, and it shipped in the retired form). After rebasing, compare the new rule's `to` with a sibling rule's on main and convert it before squashing.
 
 Skip this step and step 4 if you are already on `main` in the main checkout; commit there and go straight to step 5.
 

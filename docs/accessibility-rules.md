@@ -141,17 +141,21 @@ the same control after they toggled it. Key the marker on something only the wan
 first loop keyed on an absence also fired on an ordinary session view. Run competing `--dry-run`s in
 the same loop iteration, so two selectors are compared against the same tree.
 
-**A target the session can put up itself needs no visit.** The suggested-task chip is rendered by a
-`spawn_task` call from the session on screen, so the agent building a rule for it can raise one, poll
-`--dump` until the label appears, and `dismiss_task` afterwards — the user only has to be looking at
-that session. A `start_session` proposal card ("New session", Options / Do it here / Start) is
-raised the same way, with `initiation: "own_initiative"`. Either way the session has to be the one
-in the main pane: the app renders the card in nothing else, and no tool can switch the user's view
-to it, so a watcher keyed on the card's title waits until they open it. Size that watcher for a
-person, an hour rather than minutes: a 10-minute loop ran out before the user came back to the session.
-A `--dry-run` that misses with the card raised proves nothing until a dump of the header's
-'<chat>, rename session' button shows the card's session is the one on screen. Ask for a visit only
-for state the tools cannot produce.
+**A target the session can put up itself needs no visit.** A `start_session` proposal card ("New
+session", Options / Do it here / Start) is raised with `initiation: "own_initiative"`, polled for with
+`--dump` until its label appears, and withdrawn with `dismiss_task` afterwards — the user only has to
+be looking at that session. The suggested-task chip cannot be raised this way any more: desktop Code
+sessions no longer get `spawn_task`, so a chip comes only from a session that cannot start sessions
+itself (a cloud one), and testing a chip rule means asking such a session to suggest a dummy task.
+The card renders only in the main pane, so a watcher keyed on its title waits until the user opens
+it. Size that watcher for a person, an hour rather than minutes: a 10-minute loop ran out before the
+user came back to the session.
+A `found=false` against a card means nothing until `mcp__ccd_window__get_window_layout` reports
+`this_session.on_screen: true`; `open_session_in` cannot fix that, since it acts only while the
+session is already on screen. A card still in the tree can also have scrolled out of view: a frame
+height of 1 pinned to the top of the transcript is offscreen, and a press there opens nothing the
+user sees, so raise a fresh card just before asking for a press and dismiss the stale one. Ask for a
+visit only for state the tools cannot produce.
 
 **A modal empties the tree behind it.** Shortwave's settings dialog left 65 elements where the mail
 view had about a thousand: Chromium exposes the dialog and marks the page behind it inert, so a search
@@ -471,7 +475,10 @@ tab's header was not inspected. The suggested-task chip (top right of the transc
 button: an `AXGroup` *described* with the primary label wraps an `AXButton` *titled* with it and an
 `AXPopUpButton` described `"More start options"`, so a search for the label without `--role AXButton`
 can land on the group. The label is whichever start target the app chose (`Start with worktree`,
-`Start locally`, `Send to cloud`, ...), so the popup is the stable handle.
+`Start locally`, `Send to cloud`, ...), so the popup is the stable handle. The card's counterpart is
+`AXPopUpButton AXTitle="Options"` beside the `Do it here` button; it opens a panel whose first row is
+the Environment picker (This computer / Cloud), then the worktree toggle, Model, Effort and
+Permissions — the Cmd+Option+T rule opens either.
 
 ## Context menus (open the right-click menu without the mouse)
 

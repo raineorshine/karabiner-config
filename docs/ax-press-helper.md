@@ -192,7 +192,9 @@ else — and whoever can write `karabiner.json` could already add a rule that pa
 check. `--dump` and `--dry-run` stay usable from a shell, and the helper logs to one
 fixed file rather than a path from its arguments.
 
-So testing a real press always goes through the rule, and the keypress is the user's: keys a
-computer-use tool posts are CGEvents, downstream of the HID grab where Karabiner reads the keyboard,
-so no rule ever sees them. What an agent can check without a press is in "Verifying a rule" in
+So a rule's press can be fired without a keypress once the rule is in the live config: install it
+under the test lock, then send its exact `payload` JSON as a datagram to
+`scripts/bin/ax-press-command.sock` (`python3 -I`, `AF_UNIX`/`SOCK_DGRAM`) and read the result in
+`.claude/ax-press.log`. What still needs the user is the chord itself: keys a computer-use tool posts
+are CGEvents, downstream of the HID grab where Karabiner reads the keyboard, so no rule ever sees them. What an agent can check without a press is in "Verifying a rule" in
 [accessibility-rules.md](accessibility-rules.md).

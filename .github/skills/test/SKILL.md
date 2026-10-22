@@ -104,7 +104,8 @@ also name the app the rule is scoped to. Per docs/debugging.md: a handful of pre
 from 90% — if the behavior is at all probabilistic, say so rather than declaring it fixed.
 
 For an `ax-press` rule with `--log`, poll `~/.config/karabiner/.claude/ax-press.log` in a background
-loop until the expected number of lines for the bundle appear, and read each press's result from it
+loop until a line naming the rule's own target label appears (a bare new line can be another rule's
+press — the Cmd+P picker fired first once), and read each press's result from it
 (`pressed=true`, the matched label, timings) rather than asking the user what happened.
 
 ### 5. Iterate without releasing
