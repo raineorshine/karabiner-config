@@ -39,6 +39,9 @@ about to write, before writing it.
 
 When I request a new shortcut or ask to tweak an existing shortcut, I'll state the app in the first
 line of my chat, e.g. "ChatGPT" or "Claude". That means to constrain the shortcut to that app.
+"Claude Code" means the Claude desktop app's Code tab (`com.anthropic.claudefordesktop`), not the
+CLI, and I may name a control by what it used to be called ("project popup" for the environment pill)
+— map the name to the current control through the rule's `comment`.
 
 I type in the **Colemak** layout. When I ask for a keyboard shortcut and don't say "physical" or
 "virtual", I mean the **virtual key in Colemak** — the character printed on the key I press, as

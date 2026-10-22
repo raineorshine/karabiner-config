@@ -36,6 +36,11 @@ run once, and the survivor is the later one — no error, nothing logged. Join t
 requests, chain with `--then` inside one request instead
 ([accessibility-rules.md](accessibility-rules.md)).
 
+**The README renders only the `to` actions `build.js` knows.** `karabiner-config-to-markdown`
+draws `key_code` and `shell_command`, and anything else comes out blank — a `send_user_command`
+did until `build.js` mapped its `ax_press` payload to an `ax-press <arguments>` line. A rule using a
+new action type needs a mapping there; check the README diff after `npm run build`.
+
 **A branch cut before the reformat runs the old tooling.** Its `npm run build` is its own
 `package.json`'s, which only regenerates the README, and its ship skill is its own checkout's copy —
 so a rule hand-written there stays compact through the whole ship, and the rebase carries it onto the

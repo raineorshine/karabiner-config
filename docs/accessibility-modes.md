@@ -125,7 +125,9 @@ can rebuild it from main at any time ([ax-press-helper.md](ax-press-helper.md) "
 shell.** That shell carries the Claude app's own Accessibility grant (see "Bisect the underlying UI"
 in [debugging.md](debugging.md)), so a scratch Swift program can find the trigger, `AXPress` it, poll
 `AXExpanded`, and sweep the press time around the switch — no rule, and no human press per trial.
-Build it with `DEVELOPER_DIR=/Library/Developer/CommandLineTools` while Xcode's license is unaccepted.
+Build it with `DEVELOPER_DIR=/Library/Developer/CommandLineTools` while Xcode's license is unaccepted. On Claude
+3.1623 such a probe no longer sees the app's window at all ([debugging.md](debugging.md) "Replaying
+the UI without a press"), so this holds for the other Electron apps, not the one the session runs in.
 
 **Opening menus in the app you are running inside needs guards and a hands-off window.** Aim only at
 the session on screen (check the header's `"<title>, rename session"` label first), never press a

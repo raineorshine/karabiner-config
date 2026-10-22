@@ -18,8 +18,10 @@ payload, so a request is always one of the rules ([ax-press-helper.md](ax-press-
 presses only for Karabiner"). Nothing comes back, so a fallback on a miss is `--or` inside the
 request, never a shell reading the reply.
 
-A shell runs the binary itself with the same arguments, which is what `--dump` and `--dry-run` are
-for. The options are documented at the top of `scripts/ax-press.swift`. The helper's server, build,
+`--dump` and `--dry-run` from a shell go through the stream socket, `printf '%s\0' <arguments> |
+/usr/bin/nc -w 3 -U ~/.config/karabiner/scripts/bin/ax-press.sock`: run directly from a Claude
+session's shell, the binary answered `trusted=false`, while the served request from the same shell
+was trusted. The options are documented at the top of `scripts/ax-press.swift`. The helper's server, build,
 signing and Accessibility grant are [ax-press-helper.md](ax-press-helper.md); why a press can log
 success and do nothing in an Electron app is [accessibility-modes.md](accessibility-modes.md).
 
@@ -35,7 +37,9 @@ VPN's `protonvpn://` handles only `refresh`, which is why its toggle presses a b
 app's tooltip calls "Copy response" is `AXDescription="Copy"`, and code-block copy buttons carry the
 same label, so the rule discriminates by a sibling (`--sibling "Good response"`), not by depth or
 frame. `--dump` lists every labelled element with roles and frames; read it before guessing a label,
-and query a substring — an empty query matches nothing.
+and query a substring — an empty query matches nothing. In the Claude app a query also matches the
+transcript on screen, so a dump taken from a session that has been talking about the label lists its
+own messages too; read the role and frame before trusting a hit.
 
 **When the user names a control by its tooltip, search the app's bundle for that text.** An Electron
 app's renderer is minified JS in plain text inside `Contents/Resources/app.asar`, and the component
@@ -386,6 +390,14 @@ target needs a screen state — a text selection — is pressed by the user.
 Karabiner. `--dry-run` the search on every screen the rule must work on, perform the action with a
 computer-use click on the frame it reports, and `--dry-run` the `--then` step against what that click
 put up. The keypress itself is then the user's.
+
+**A forged datagram checks the command socket without a press.** A Python `AF_UNIX`/`SOCK_DGRAM`
+sender posting `{"ax_press":[...]}` to `scripts/bin/ax-press-command.sock` is exactly what Karabiner
+sends: a payload no rule carries must log `refused=not-in-karabiner-json`, and one a rule carries
+must log a `served=command` line — pick a rule whose app is not running, so it logs `running=false`
+and presses nothing. That proves the helper's half; only the user's keypress proves Karabiner sends.
+Mark the log's byte size (`wc -c`) before the press and `tail -c +<mark+1>` after it to read only
+the lines that press wrote.
 
 **`--dry-run` from a shell verifies the target before the lock is taken.** It resolves `--label-from`
 and finds the element without pressing, so the live-config lock is held only for the presses

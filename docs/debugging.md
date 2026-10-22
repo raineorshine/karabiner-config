@@ -13,6 +13,15 @@
   pattern is in time instead — an `ax-press` rule that logs `pressed=true`, does nothing, and works on
   the next try — it is the app's accessibility mode, not the rule
   ([accessibility-modes.md](accessibility-modes.md)).
+- **A press that lands late with a fast search is the machine, not the rule.** "⌘P only opens the
+  picker once I start typing" logged `found=true pressed=true` with `find_ms` 16-42 and `launch_ms`
+  1.2-3.7s: Karabiner's console user server, at scheduling priority 20, could not start the `sh` and
+  `nc` behind 143 headless Chromium test processes (load average 220-340 on 8 cores). Read the log's
+  phases and `uptime`, `sysctl vm.swapusage` and `ps -Ao comm | sort | uniq -c` before opening the
+  app bundle — the bundle, the label and the accessibility mode were all chased first here, and none
+  had changed. Bucketing `launch_ms` by hour shows when a spike started. Rules on `send_user_command`
+  start no process and log no `launch_ms`, so for them a late press is the helper's own timings
+  ([ax-press-helper.md](ax-press-helper.md)).
 - **A run of `found=false` ending in a hit is a label that changed, not a flaky press.** When a
   rule "works only after I click it", the log shows several misses a second apart, each walking the
   whole tree (a high `visited=`), then `found=true` once the user's click changed the control. A miss
@@ -104,7 +113,10 @@ presses into an unattended sweep. The grant follows whichever app started the sh
 the Claude desktop app runs its commands as that app: a scratch Swift probe reported
 `AXIsProcessTrusted()` true, pressed controls, wrote attributes and closed a menu with an Escape
 posted by `CGEventPostToPid`, and the sweep in [accessibility-modes.md](accessibility-modes.md) ran
-that way. From a shell without the grant, `osascript` got "not allowed to send keystrokes" (System
+that way. That stopped holding for the Claude app itself: on 3.1623 a probe from a Claude session's
+shell, trusted and with `AXManualAccessibility` set, saw only the app's menu bar — `AXWindows`
+empty, no window under `AXChildren` — so a sweep against that app now goes through the helper's
+socket (`--dump`, `--dry-run`), which still sees the whole window. From a shell without the grant, `osascript` got "not allowed to send keystrokes" (System
 Events error 1002) while Automation to System Events *was* granted, so a harmless call like `get name
 of first process` succeeded and made the permission look present. Check with an actual keystroke
 from the shell the sweep will run in. Without it, every trial costs a human press — the video section
