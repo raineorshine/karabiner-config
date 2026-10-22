@@ -78,7 +78,14 @@ taken_at() {
 holder_report() {
   printf 'held by   %s\n' "$(field label)"
   printf 'session   %s\n' "$(field session)"
-  if [ -s "$LOCK/session_id" ]; then printf 'session id %s\n' "$(field session_id)"; fi
+  if [ -s "$LOCK/session_id" ]; then
+    printf 'session id %s\n' "$(field session_id)"
+    # A desktop-app session id is a `local_` one, which the app renders as a
+    # clickable session link -- so hand the denied session a line to paste.
+    case $(field session_id) in
+      local_*) printf 'link      [%s](#%s)\n' "$(field session)" "$(field session_id)" ;;
+    esac
+  fi
   printf 'worktree  %s\n' "$(field worktree)"
   printf 'branch    %s\n' "$(field branch)"
   printf 'age       %s (taken %s)\n' "$(age_words)" "$(taken_at)"

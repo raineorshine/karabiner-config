@@ -44,6 +44,12 @@ tell the user which chat it is and how long it has held the lock, then either co
 lock-free work on this branch or ask the user — they are the one pressing keys, so they know
 whether a test is genuinely in flight.
 
+**Link the holding session.** `status`, a denied `acquire` and the other refusals print a `link`
+line — `[title](#local_…)` — whenever the holder recorded a desktop-app session id. Paste it
+verbatim into the message that tells the user to wait, so one click opens the chat that has the
+slot. A holder with no `link` line (a terminal session, or a lock taken before ids were recorded)
+gets its title and worktree instead; never build the link from an id you did not read there.
+
 ### 2. Acquire
 
 Prefix this session's title with `🔓 ` first (`set_session_title`, replacing any existing lifecycle

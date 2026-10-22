@@ -67,7 +67,8 @@ is the full procedure; landing on main is the **ship** skill.
 - **Install and lock as soon as the rule is ready to test; do not wait to be told.** If `status`
   says `unlocked`, acquire, install, and hand back with the press to make — the user should never
   have to invoke the test skill themselves. Only a lock held by another session defers the install,
-  and then say which chat holds it.
+  and then say which chat holds it — pasting the `link` line `status` prints, so the user can open
+  that session in one click.
 - **Finish the dry run before handing the turn back.** A rule whose target has not been resolved
   reads as "ready to test", and the next turn is then spent discovering the dry run fails. If the dry
   run needs something only the user can do (a particular screen open, an Accessibility regrant), ask
