@@ -1418,8 +1418,8 @@
                         ]
                     },
                     {
-                        "comment": "Clicks the Create PR button in the session view. The position is hardcoded, which the Electron renderer no longer forces: it does expose an accessibility tree, and the Cmd+P environment rule beside this one now presses its target through it. Converting this one means finding a discriminator for a button labelled \"Create PR\", and every dry run of that fires a PR. Coordinates are absolute on the main display; y matched the old Cmd+P project-selector click, x is the button's position in a 2x Retina screenshot (1313 px) halved to points. The cursor is left on the button rather than restored: restoring it needs a spawned script to read the cursor before Karabiner moves it, and the 200ms hold covering that read measured p50 101ms against a 300ms tail and one 963ms over 400 samples -- a race, not a margin. Dropping the restore removes the spawn, the hold and the race together. The 100ms warp-to-click gap stays: without it the click races the cursor move and the app registers only the hover, so the shortcut had to be pressed twice. Unlike the gap Cmd+P used to have, which measured 0, this one has not been driven to its floor -- the target is the Create PR button, so a binary search would fire it once per press.",
-                        "description": "Claude: ⇧⌘P → Create PR (physical key r in Colemak)",
+                        "comment": "Toggles the repo picker beside the environment pill under the composer, which a cloud environment shows on New Session. Its trigger is an AXComboBox described 'Add repository' with AXValue 'Repo' until a repo is chosen, and valued with the repo name after (ion-dist: triggerAriaLabel 'Add repository' FvUsYi2+QN, triggerLabel the repo), so '{}' on AXValue with --role AXComboBox matches it either way. Open, the picker is an AXApplicationDialog after the trigger in document order, its focused search box an AXComboBox described 'Search all repositories…' with no value. --stop-at on that label ends the reverse walk before the trigger, so the first command presses only a closed picker. On that miss, the --or step confirms the picker is up (--dry-run), and the --then step aims at its search box with --unless-editing, which stands down while focus is in it and hands back Escape through --else-key, closing the picker; with focus elsewhere it presses the search box instead and the picker stays open. Escape is never posted without the picker up, so it cannot interrupt a running turn. Whether AXPress on the trigger itself would also close it was not testable from a shell. Replaced a coordinate click on Create PR that held this chord. The app's own Cmd+Shift+P (togglePreview) matches code KeyP, physical p, which this rule does not take. Logs one line per press to .claude/ax-press.log.",
+                        "description": "Claude: ⇧⌘P → toggle repo picker (physical key r in Colemak)",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -1441,24 +1441,37 @@
                                 },
                                 "to": [
                                     {
-                                        "software_function": {
-                                            "set_mouse_cursor_position": {
-                                                "screen": 0,
-                                                "x": 656,
-                                                "y": 875
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.anthropic.claudefordesktop",
+                                                    "{}",
+                                                    "--role",
+                                                    "AXComboBox",
+                                                    "--label-attr",
+                                                    "AXValue",
+                                                    "--stop-at",
+                                                    "Search all repositories…",
+                                                    "--log",
+                                                    "--or",
+                                                    "com.anthropic.claudefordesktop",
+                                                    "Search all repositories…",
+                                                    "--role",
+                                                    "AXComboBox",
+                                                    "--dry-run",
+                                                    "--then",
+                                                    "com.anthropic.claudefordesktop",
+                                                    "Search all repositories…",
+                                                    "--role",
+                                                    "AXComboBox",
+                                                    "--unless-editing",
+                                                    "--else-key",
+                                                    "escape",
+                                                    "--log"
+                                                ]
                                             }
                                         }
-                                    },
-                                    {
-                                        "hold_down_milliseconds": 100,
-                                        "key_code": "vk_none"
-                                    },
-                                    {
-                                        "modifiers": [],
-                                        "pointing_button": "button1"
-                                    },
-                                    {
-                                        "key_code": "vk_none"
                                     }
                                 ],
                                 "type": "basic"

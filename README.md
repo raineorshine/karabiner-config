@@ -25,8 +25,8 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Option + `J` → Command + `N`, `return_or_enter`
 - Claude: ⌘P → Environment picker (Where Claude runs) (physical key r in Colemak)
   - Command + `R` → `ax-press com.anthropic.claudefordesktop "Environment: {}" --role AXPopUpButton --log`
-- Claude: ⇧⌘P → Create PR (physical key r in Colemak)
-  - Command + Shift + `R` → `Move cursor to (656, 875)`, `Left Click`
+- Claude: ⇧⌘P → toggle repo picker (physical key r in Colemak)
+  - Command + Shift + `R` → `ax-press com.anthropic.claudefordesktop "{}" --role AXComboBox --label-attr AXValue --stop-at "Search all repositories…" --log --or com.anthropic.claudefordesktop "Search all repositories…" --role AXComboBox --dry-run --then com.anthropic.claudefordesktop "Search all repositories…" --role AXComboBox --unless-editing --else-key escape --log`
 - Claude: ⇧⌘G → Show Diff
   - Command + Shift + `G` → `Move cursor to (230, 940)`, `Left Click`, Command + Shift + `D`
 - Claude: ⇧⌘U → Usage (physical key i in Colemak)
