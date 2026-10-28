@@ -2224,6 +2224,7 @@
                         ]
                     },
                     {
+                        "comment": "L-Option + Space types a plain Space, so a space typed while Option is still down from a quick char is never a no-break space. Supernova (com.raineorshine.supernova) is exempt: it binds Option+Space (the new chat's image preview) and makes a typed no-break space plain in its own fields, where a Space with Option lifted never reaches that binding.",
                         "description": "Quick Chars",
                         "manipulators": [
                             {
@@ -2358,6 +2359,14 @@
                                 "type": "basic"
                             },
                             {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": [
+                                            "^com\\.raineorshine\\.supernova$"
+                                        ],
+                                        "type": "frontmost_application_unless"
+                                    }
+                                ],
                                 "from": {
                                     "key_code": "spacebar",
                                     "modifiers": {
