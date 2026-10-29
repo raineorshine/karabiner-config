@@ -88,8 +88,13 @@ of row 3 to true` *proved* that writing AXSelected navigates — all before a li
 The helper only shows elements labelled the way it already knows how to look; System Events shows the
 tree as it is. It is an inspector, not a rule mechanism: a Karabiner-spawned `osascript`'s permissions
 are unpredictable ([click-rules.md](click-rules.md)). Synthetic keystrokes through it need the shell
-to hold Accessibility itself, which a Claude desktop session's shell does (System Events error 1002
-otherwise; see "Bisect the underlying UI" in [debugging.md](debugging.md)).
+to hold Accessibility itself (System Events error 1002 otherwise; see "Bisect the underlying UI" in
+[debugging.md](debugging.md)).
+A Claude desktop session's shell does not always have either grant: one answered System Events with
+-1743 (not authorized to send Apple events), and a Swift tool compiled there read `AXIsProcessTrusted`
+false and -25211 for every attribute. Check before relying on either; the helper's stream socket is
+the inspector that always works, and `lsappinfo info -only name $(lsappinfo front)` names the
+frontmost app without Apple events.
 
 **Address a window's buttons by subrole or title, never by index.** System Events' `button 1 of
 window` in Proton VPN was Disconnect, not the close button, and an exploratory click with it dropped
@@ -140,6 +145,12 @@ user navigated there — and a second loop, keyed on the marker disappearing, ca
 the same control after they toggled it. Key the marker on something only the wanted screen carries: a
 first loop keyed on an absence also fired on an ordinary session view. Run competing `--dry-run`s in
 the same loop iteration, so two selectors are compared against the same tree.
+A marker of the *screen* is still a proxy for the control: a watcher keyed on the environment pill
+fired on a New Session whose environment shows no repo picker, since that control appears only for
+a cloud environment. Key it on the target, or on the target's place beside a known neighbour.
+When the user names a new control and the bundle does not say which screen carries it, ask where it
+is before arming a watcher: two hour-long watchers expired unvisited, and one answer ("New Session,
+cloud env") ended the search.
 
 **A target the session can put up itself needs no visit.** A `start_session` proposal card ("New
 session", Options / Do it here / Start) is raised with `initiation: "own_initiative"`, polled for with
@@ -327,6 +338,14 @@ Claude app's ⇧⌘E rule archives this way and unarchives on the miss. An open 
 ("A modal empties the tree behind it"), so the fallback's search behind it needs `--wait` for the
 page to come back.
 
+**A popup that is not modal is toggled by stopping at its open state and closing it with Escape.**
+`--stop-at <a label only the open popup has>` makes the trigger search miss while the popup is up,
+since the popup sits after its trigger in document order. The `--or` branch then `--dry-run`s that
+label to confirm the popup is up, and `--then` aims at the popup's focused field with
+`--unless-editing --else-key escape`, which stands down while focus is in it and so posts Escape.
+Escape is never posted when the popup is closed, where it would interrupt the Claude app's running
+turn. The Claude app's ⇧⌘P repo picker rule takes this shape.
+
 **A control that exists only over a selection can make its own selection with `--else-click`.**
 On a miss it posts an n-click where the pointer already is and then waits for the control like
 `--wait`; each down/up pair carries its click state, so a triple click needs no timing between
@@ -389,7 +408,7 @@ self-tested by making a selection through accessibility; the selected case is th
 cannot be granted the Claude app at all (it is the agent's own window), so a Claude-app rule whose
 target needs a screen state — a text selection — is pressed by the user.
 
-**An agent cannot fire the rule, so it checks each half.** The helper refuses presses from a shell
+**An agent cannot fire the rule's chord, so it checks each half.** The helper refuses presses from a shell
 ([ax-press-helper.md](ax-press-helper.md)), and keys a computer-use tool posts never reach
 Karabiner. `--dry-run` the search on every screen the rule must work on, perform the action with a
 computer-use click on the frame it reports, and `--dry-run` the `--then` step against what that click
@@ -402,6 +421,12 @@ must log a `served=command` line — pick a rule whose app is not running, so it
 and presses nothing. That proves the helper's half; only the user's keypress proves Karabiner sends.
 Mark the log's byte size (`wc -c`) before the press and `tail -c +<mark+1>` after it to read only
 the lines that press wrote.
+Sent against a running app, a carried payload (read from `karabiner.json` with `jq`) performs the
+rule's press for real, so it verifies the press half of a rule without the user: it opened the
+Claude app's repo picker, and a `--dry-run` for the picker's search box confirmed it.
+It cannot test a path that depends on the app being frontmost: with another app in front,
+`--unless-editing` read `focused=none` and pressed instead of standing down, and an `--else-key`
+chord would have gone to the frontmost app. That path is the user's keypress.
 
 **`--dry-run` from a shell verifies the target before the lock is taken.** It resolves `--label-from`
 and finds the element without pressing, so the live-config lock is held only for the presses
