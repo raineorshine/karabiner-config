@@ -1569,6 +1569,44 @@
                         ]
                     },
                     {
+                        "comment": "Presses the Dismiss button of the banner above the composer that reads \"Approaching weekly usage limit\" (or session limit), and hands Escape back everywhere else. The banner is an AXApplicationStatus group holding the headline, the reset time, an AXButton described \"Get more usage\" and an AXButton described \"Dismiss\"; only the approaching state is dismissible (ion-dist: onDismiss:Y===\"approaching\"). --sibling \"Get more usage\" keeps the press off other banners' Dismiss buttons; it assumes the overages-or-upgrade CTA, so a plan whose banner offers Upgrade instead falls through to Escape. Every Escape in the app pays one request and, on a miss, a full walk (~80ms) before the handed-back Escape interrupts a running turn. Logs one line per press to .claude/ax-press.log.",
+                        "description": "Claude: Esc → dismiss the approaching-usage-limit banner",
+                        "manipulators": [
+                            {
+                                "conditions": [
+                                    {
+                                        "bundle_identifiers": [
+                                            "com.anthropic.claudefordesktop"
+                                        ],
+                                        "type": "frontmost_application_if"
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "escape"
+                                },
+                                "to": [
+                                    {
+                                        "send_user_command": {
+                                            "endpoint": "/Users/raine/.config/karabiner/scripts/bin/ax-press-command.sock",
+                                            "payload": {
+                                                "ax_press": [
+                                                    "com.anthropic.claudefordesktop",
+                                                    "Dismiss",
+                                                    "--sibling",
+                                                    "Get more usage",
+                                                    "--else-key",
+                                                    "escape",
+                                                    "--log"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                ],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
                         "description": "Claude: ⌘B → ⌘. (Toggle Primary Sidebar)",
                         "manipulators": [
                             {

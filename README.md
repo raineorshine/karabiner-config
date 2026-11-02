@@ -31,6 +31,8 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Command + Shift + `G` → `Move cursor to (230, 940)`, `Left Click`, Command + Shift + `D`
 - Claude: ⇧⌘U → Usage (physical key i in Colemak)
   - Command + Shift + `I` → `ax-press com.anthropic.claudefordesktop "Usage{}" --role AXPopUpButton --log`
+- Claude: Esc → dismiss the approaching-usage-limit banner
+  - `escape` → `ax-press com.anthropic.claudefordesktop Dismiss --sibling "Get more usage" --else-key escape --log`
 - Claude: ⌘B → ⌘. (Toggle Primary Sidebar)
   - Command + `B` → Command + `.`
 - Claude: ⌥⌘B → ⌘\ (Toggle Secondary Sidebar)
