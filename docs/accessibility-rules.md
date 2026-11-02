@@ -48,8 +48,8 @@ that renders the tooltip names the aria-label beside it: ChatGPT's "Thinking eff
 handlers sit there too, which is what explains a press that does nothing ("Pressing" below). Search it
 with Python `mmap` and `re`: this machine's `grep` is ugrep, which refuses a context pattern such as
 `.{0,160}effort.{0,160}` on a file that size ("exceeds complexity limits"). Across the Claude app's
-many ion-dist chunks even Python's `re` with that context pattern ran past two minutes: find the files
-with `grep -l -F` on the literal, then print a slice around `str.find`.
+ion-dist bundle even Python's `re` with that context pattern ran past two minutes: `mmap.find` the
+literal in a loop and print a slice around each hit, which reads an asar without extracting it.
 
 **A bundle string is a lead; the label is what the live tree says.** The Claude app's lazy toolbar
 button is `"Show message actions"` in ion-dist and `AXDescription="Show message actions for Claude
@@ -57,8 +57,10 @@ responded: <the turn's first line>"` on screen — a different component from th
 Confirm against a dump before writing the rule.
 
 **The Claude desktop app's renderer is not in its `app.asar`.** The Code tab's components and their
-`defaultMessage` strings live in `Contents/Resources/ion-dist/assets/v1/*.js`, where a plain `grep -l`
-finds the file and the aria-label sits beside the label text (the suggested-task chip's primary
+`defaultMessage` strings live in `Contents/Resources/ion-dist.asar` — once loose files under
+`ion-dist/assets/v1/*.js`, now packed, so a recorded bundle path is checked with `ls` before a search
+fails on it. Search the asar with Python `mmap` and `find`, printing a slice around each hit; the
+aria-label sits beside the label text (the suggested-task chip's primary
 button is `"aria-label": labels.primary`, one of six strings). The running renderer loads its chunks
 from `assets-proxy.anthropic.com` (the URLs are in `~/Library/Logs/Claude/claude.ai-web.log` stack
 traces), and a chunk's hash there can differ from the bundled one's, so read ion-dist as close to
@@ -221,6 +223,8 @@ level on either side: the match climbs out of its wrappers to find its row, and 
 is read through its own. ChatGPT began wrapping each composer control in such a group, and with plain
 parent-and-children semantics the Cmd+Shift+F rule logged `found=false` with nothing else wrong. A
 rule that goes quiet after an app update is worth a `--dump-all` around the qualifier first.
+`--sibling` takes the label literally: a `{}` in it is not a wildcard, so a sibling whose text
+varies (a headline naming the limit) cannot qualify the row; pick a sibling with a fixed label.
 
 **A redesign the user reports breaks every rule aimed at that area, not only the one they name.** The
 Claude app folded its Local/Cloud toggle and project picker into one `Environment: <name>` pill, which

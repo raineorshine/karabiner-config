@@ -143,7 +143,7 @@ A rule takes the chord from whatever else had it, without a word. Check all four
   - ChatGPT: my overrides in `~/.codex/keybindings.json`, over the `defaultKeybindings` of the command
     registry in its `app.asar` (Cmd+Shift+F was already Toggle File Tree there).
   - Claude: literal `cmd+<x>` / `cmd+shift+<x>` strings in
-    `Contents/Resources/ion-dist/assets/v1/*.js` (not `app.asar`), some behind a flag
+    `Contents/Resources/ion-dist.asar` (not `app.asar`), some behind a flag
     (`shortcut:c?["cmd+l","cmd+alt+l"]:"cmd+alt+l"`), so a listed chord may do nothing for me.
   - Brave: `brave.accelerators` in
     `~/Library/Application Support/BraveSoftware/Brave-Browser/Default/Preferences`, with
