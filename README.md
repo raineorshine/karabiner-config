@@ -47,8 +47,8 @@ The default config file is located at `~/.config/karabiner/karabiner.json`.
   - Command + Option + `F` → `ax-press com.anthropic.claudefordesktop Options --role AXPopUpButton --sibling "Do it here" --log --or com.anthropic.claudefordesktop "More start options" --role AXPopUpButton --log`
 - Claude: ⇧⌘E → Archive Session via its ⋮ menu, staying on it; Unarchive and focus the composer when already archived (physical key k in Colemak)
   - Command + Shift + `K` → `ax-press com.anthropic.claudefordesktop "More options for {}" --role AXPopUpButton --label-from "{}, rename session" --log --then com.anthropic.claudefordesktop "{}" --role AXMenuItem --wait --dry-run --then com.anthropic.claudefordesktop Archive --role AXMenuItem --else-key escape --log --or com.anthropic.claudefordesktop Unarchive --role AXButton --label-attr AXTitle --wait --log --then com.anthropic.claudefordesktop Prompt --role AXTextArea --label-attr AXDescription --wait --set AXFocused=true --log`
-- Claude: ⇧⌘1 → Go to Chat; ⇧⌘2 → Go to Code
-  - Command + Shift + `1` → fn + Ctrl + `f2`, `T`, `;`, `return_or_enter`, `C`, `H`, `A`, `F`, `return_or_enter`
+- Claude: ⇧⌘1 → Go to Claude; ⇧⌘2 → Go to Code
+  - Command + Shift + `1` → fn + Ctrl + `f2`, `T`, `;`, `return_or_enter`, `C`, `U`, `A`, `I`, `G`, `K`, `return_or_enter`
   - Command + Shift + `2` → fn + Ctrl + `f2`, `T`, `;`, `return_or_enter`, `C`, `;`, `G`, `K`, `return_or_enter`
 - Claude: ⌥⌘. → Chat Context Menu
   - Command + Option + `.` → `ax-press com.anthropic.claudefordesktop "More options for {}" --role AXPopUpButton --label-from "{}, rename session" --action AXShowMenu --first --log`

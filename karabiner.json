@@ -1920,8 +1920,8 @@
                         ]
                     },
                     {
-                        "comment": "Drives the app's own Go menu from the menu bar, because the Claude app ignores a native macOS App Shortcut override for these items (confirmed again when the rule was briefly removed: the App Shortcuts settings entry did nothing). fn+Ctrl+F2 focuses the menu bar, type-select on 'Go' highlights the menu title, Enter opens it, type-select on the item name highlights it and Enter activates it. The typed letters go through the macOS Colemak input source, so each is the physical key that types it: 'Go' is t, semicolon; 'Chat' is c, h, a, f; 'Code' is c, semicolon, g, k. No pauses: menu tracking runs a modal event loop that consumes the queue in order, so nothing races -- the previous sidebar-tab version of this rule passed 20 of 20 presses at 0ms after shipping with 150ms holds. The trailing vk_none keeps Enter from being the last `to` event, which would hold it down until the chord is released.",
-                        "description": "Claude: ⇧⌘1 → Go to Chat; ⇧⌘2 → Go to Code",
+                        "comment": "Drives the app's own Go menu from the menu bar, because the Claude app ignores a native macOS App Shortcut override for these items (confirmed again when the rule was briefly removed: the App Shortcuts settings entry did nothing). fn+Ctrl+F2 focuses the menu bar, type-select on 'Go' highlights the menu title, Enter opens it, type-select on the item name highlights it and Enter activates it. The typed letters go through the macOS Colemak input source, so each is the physical key that types it: 'Go' is t, semicolon; 'Claude' is c, u, a, i, g, k; 'Code' is c, semicolon, g, k. The ⇧⌘1 item was renamed from 'Chat' to 'Claude' in the app's Go menu, and typing the old name selected nothing. No pauses: menu tracking runs a modal event loop that consumes the queue in order, so nothing races -- the previous sidebar-tab version of this rule passed 20 of 20 presses at 0ms after shipping with 150ms holds. The trailing vk_none keeps Enter from being the last `to` event, which would hold it down until the chord is released.",
+                        "description": "Claude: ⇧⌘1 → Go to Claude; ⇧⌘2 → Go to Code",
                         "manipulators": [
                             {
                                 "conditions": [
@@ -1962,13 +1962,19 @@
                                         "key_code": "c"
                                     },
                                     {
-                                        "key_code": "h"
+                                        "key_code": "u"
                                     },
                                     {
                                         "key_code": "a"
                                     },
                                     {
-                                        "key_code": "f"
+                                        "key_code": "i"
+                                    },
+                                    {
+                                        "key_code": "g"
+                                    },
+                                    {
+                                        "key_code": "k"
                                     },
                                     {
                                         "key_code": "return_or_enter"
