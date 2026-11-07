@@ -25,3 +25,14 @@ event queue in order, so each event waits for the stage before it instead of rac
 Cmd+Shift+1/2 sidebar-tab rule shipped with 150/150/150/120ms; the same sequence at 0ms passed 20 of 20
 presses. Those presses were unloaded: if a menu rule ever misfires, suspect a busy renderer delaying
 the menu, and measure before adding a constant back ([pauses.md](pauses.md)).
+
+**A renamed item breaks the rule silently.** Type-select on a name the menu no longer has selects
+nothing, so the rule does nothing at all — the Claude app's Go → Chat became Go → Claude. When a menu
+rule stops working, re-run the one-liner above for the current item names before suspecting timing.
+
+**Verify a menu rule without a press by replaying its `to` keys.** Karabiner never sees synthetic
+events, but the menu does: System Events `key code` with the rule's physical key codes, `key code 120
+using {control down}` for the fn+Ctrl+F2 (`function down` is an AppleScript syntax error, and the fn
+is only there for Karabiner's own `fn_function_keys` translation). Then read the result back from the
+menu itself — for a checkmarked item, `value of attribute "AXMenuItemMarkChar"` of each menu item.
+Go → Claude and Go → Code verified this way, each replay flipping the ✓.
